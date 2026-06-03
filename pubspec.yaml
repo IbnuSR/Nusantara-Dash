@@ -9,10 +9,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   cupertino_icons: ^1.0.8
+  
+  # Game Engine
   flame: ^1.35.1
+  
+  # Save Data Lokal (progres pulau, kunci, koin)
   shared_preferences: ^2.5.5
-  # audioplayers: ^5.2.1  # Comment dulu, nanti ditambah kalau build stabil
+  
+  # Audio (comment dulu, aktifkan setelah build stabil)
+  # audioplayers: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -23,11 +30,29 @@ flutter:
   uses-material-design: true
   
   assets:
+    # Player
     - assets/images/player/
-    - assets/images/backgrounds/
+    
+    # Boss
+    - assets/images/boss/final/
+    - assets/images/boss/mini/
+    
+    # Background
+    - assets/images/background/
+    
+    # Obstacles
     - assets/images/obstacles/
+    
+    # Items
     - assets/images/items/
+    
+    # Weapons
+    - assets/images/weapons/
+    
+    # UI
     - assets/images/ui/
-    - assets/audio/sfx/
-    - assets/audio/music/
+    
+    # Data
     - assets/data/quiz_data.json
+    - assets/data/province_config.json
+    - assets/data/weapon_data.json

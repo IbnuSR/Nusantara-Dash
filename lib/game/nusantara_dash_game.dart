@@ -1,19 +1,24 @@
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flame/camera.dart';
+import 'package:flame/input.dart';
+import 'components/player/player.dart';
 
-class NusantaraDashGame extends FlameGame {
-  // Parameter pulau yang dipilih dari MapScreen
+class NusantaraDashGame extends FlameGame with KeyboardEvents {
   final String islandName;
+  late Player player;
 
-  // Warna tema per pulau (untuk ground & sky)
+  final double groundY = 380;
+  final double groundHeight = 70;
+
   final Map<String, Color> islandThemes = {
-    'SUMATRA': const Color(0xFF2E7D32), // Hijau hutan
-    'JAWA': const Color(0xFFE65100), // Oranye vulkanik
-    'KALIMANTAN': const Color(0xFF1B5E20), // Hijau tua hutan
-    'SULAWESI': const Color(0xFF0277BD), // Biru laut
-    'PAPUA': const Color(0xFF4E342E), // Coklat pegunungan
+    'SUMATRA': const Color(0xFF2E7D32),
+    'JAWA': const Color(0xFFE65100),
+    'KALIMANTAN': const Color(0xFF1B5E20),
+    'SULAWESI': const Color(0xFF0277BD),
+    'PAPUA': const Color(0xFF4E342E),
   };
 
   NusantaraDashGame({required this.islandName});
@@ -22,47 +27,35 @@ class NusantaraDashGame extends FlameGame {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // Set viewport
     camera.viewport = FixedResolutionViewport(resolution: Vector2(800, 450));
 
-    // 1. Load Background (coba PNG dulu, lalu JPG)
+    // 1. Load Background
     await _loadBackground();
 
-    // 2. Tambah Ground (warna sesuai tema pulau)
+    // 2. Ground
     final groundColor = islandThemes[islandName] ?? Colors.brown;
     add(
       RectangleComponent(
-        position: Vector2(0, 400),
-        size: Vector2(800, 50),
+        position: Vector2(0, groundY),
+        size: Vector2(800, groundHeight),
         paint: Paint()..color = groundColor,
-      ),
+      )..priority = -5,
     );
 
-    // 3. Placeholder Player (Satria) - Kotak Merah
-    // Nanti diganti dengan sprite pixel art
-    add(
-      RectangleComponent(
-        position: Vector2(100, 340),
-        size: Vector2(40, 60),
-        paint: Paint()..color = Colors.red,
-      )..add(
-        TextComponent(
-          text: 'SATRIA',
-          textRenderer: TextPaint(
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 8,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        )..position = Vector2(0, -15),
-      ),
-    );
+    // 3. ✅ Player dengan ukuran PROPORSIONAL (tidak cemet!)
+    // Aspect ratio texture: 125x300 = 1 : 2.4
+    // Kita pakai tinggi 150px → lebar = 150 / 2.4 = 62.5px
+    final playerWidth = 62.5;
+    final playerHeight = 150.0;
 
-    // 4. Placeholder Mini Boss - Kotak Ungu (di belakang player)
+    player = Player(size: Vector2(playerWidth, playerHeight))
+      ..position = Vector2(100, groundY - playerHeight);
+    add(player);
+
+    // 4. Mini Boss
     add(
       RectangleComponent(
-        position: Vector2(-150, 320),
+        position: Vector2(-150, groundY - 100),
         size: Vector2(80, 100),
         paint: Paint()..color = Colors.purple[900]!,
       )..add(
@@ -79,7 +72,7 @@ class NusantaraDashGame extends FlameGame {
       ),
     );
 
-    // 5. Info Pulau (di pojok kiri atas)
+    // 5. Info Pulau
     add(
       TextComponent(
         text: '🏝️ $islandName',
@@ -93,10 +86,52 @@ class NusantaraDashGame extends FlameGame {
         ),
       )..position = Vector2(20, 20),
     );
+
+    // 6. Instruksi
+    add(
+      TextComponent(
+        text: '← → : Gerak | SPACE : Lompat',
+        textRenderer: TextPaint(
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+      )..position = Vector2(20, 420),
+    );
   }
 
-  /// Load background image dari folder sesuai pulau
-  /// Support JPG dan PNG (coba PNG dulu, kalau gagal coba JPG)
+  @override
+  KeyEventResult onKeyEvent(
+    KeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        player.isMoving = true;
+        player.scale.x = 1;
+      }
+
+      if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        player.isMoving = true;
+        player.scale.x = -1;
+      }
+
+      if (event.logicalKey == LogicalKeyboardKey.space) {
+        player.jump();
+      }
+    }
+
+    if (event is KeyUpEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight ||
+          event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        if (!keysPressed.contains(LogicalKeyboardKey.arrowRight) &&
+            !keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
+          player.isMoving = false;
+        }
+      }
+    }
+
+    return KeyEventResult.handled;
+  }
+
   Future<void> _loadBackground() async {
     final islandLower = islandName.toLowerCase();
     final possiblePaths = [
@@ -108,25 +143,21 @@ class NusantaraDashGame extends FlameGame {
     for (final path in possiblePaths) {
       try {
         final image = await images.load(path);
-        // Tambahkan background sebagai SpriteComponent
         add(
           SpriteComponent(
             sprite: Sprite(image),
             size: Vector2(800, 450),
             position: Vector2(0, 0),
-          )..priority = -10, // Di belakang semua komponen
+          )..priority = -10,
         );
         debugPrint('✅ Background loaded: $path');
-        return; // Berhasil, keluar dari loop
+        return;
       } catch (e) {
-        // Coba path berikutnya
         continue;
       }
     }
 
-    // Jika semua gagal, pakai gradient warna sebagai fallback
     debugPrint('⚠️ Background tidak ditemukan, pakai gradient fallback');
-    // Add fallback sky rectangle
     add(
       RectangleComponent(
         size: Vector2(800, 450),
@@ -135,19 +166,18 @@ class NusantaraDashGame extends FlameGame {
     );
   }
 
-  /// Warna langit fallback jika background tidak ada
   Color _getSkyColor() {
     switch (islandName) {
       case 'SUMATRA':
-        return const Color(0xFF81D4FA); // Biru muda
+        return const Color(0xFF81D4FA);
       case 'JAWA':
-        return const Color(0xFFFFCC80); // Oranye pagi
+        return const Color(0xFFFFCC80);
       case 'KALIMANTAN':
-        return const Color(0xFFA5D6A7); // Hijau muda
+        return const Color(0xFFA5D6A7);
       case 'SULAWESI':
-        return const Color(0xFF4FC3F7); // Biru laut
+        return const Color(0xFF4FC3F7);
       case 'PAPUA':
-        return const Color(0xFFB0BEC5); // Abu-abu berkabut
+        return const Color(0xFFB0BEC5);
       default:
         return Colors.blue[300]!;
     }

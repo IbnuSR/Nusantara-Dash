@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame/input.dart';
 import 'components/player/player.dart';
+import 'components/level_builder.dart';
+import 'data/sumatra_level_data.dart';
 
 class NusantaraDashGame extends FlameGame
     with KeyboardEvents, HasCollisionDetection {
@@ -26,24 +28,15 @@ class NusantaraDashGame extends FlameGame
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-
-    // ✅ JANGAN SET VIEWPORT MANUAL - Biarkan auto-resize
     groundY = size.y - 100;
 
-    // 1. Load Background
     await _loadBackground();
+    add(LevelBuilder(groundY: groundY));
 
-    // 2. Ground (Tanah)
-    final groundColor = islandThemes[islandName] ?? Colors.brown;
-    add(
-      RectangleComponent(
-        position: Vector2(0, groundY),
-        size: Vector2(size.x * 3, 100),
-        paint: Paint()..color = groundColor,
-      )..priority = -5,
-    );
+    player = Player(size: Vector2(62.5, 150.0), groundY: groundY)
+      ..position = Vector2(200, groundY - 150);
+    add(player);
 
-    // 3. Joystick (Kiri Bawah)
     joystick = JoystickComponent(
       knob: CircleComponent(
         radius: 30,
@@ -55,25 +48,9 @@ class NusantaraDashGame extends FlameGame
       ),
       margin: const EdgeInsets.only(left: 60, bottom: 60),
     );
-
-    // 4. Player - KIRIM JOYSTICK
-    final playerWidth = 62.5;
-    final playerHeight = 150.0;
-
-    player = Player(
-      size: Vector2(playerWidth, playerHeight),
-      groundY: groundY,
-      joystick: joystick, // ✅ WAJIB KIRIM JOYSTICK
-    )..position = Vector2(100, groundY - playerHeight);
-    add(player);
-
-    // 5. Tambahkan Joystick ke Game
     add(joystick);
+    player.joystick = joystick;
 
-    // 6. Camera Follow Player
-    camera.follow(player);
-
-    // 7. Tombol Lompat (Kanan Bawah)
     final jumpButton = ButtonComponent(
       button: CircleComponent(
         radius: 45,
@@ -103,27 +80,6 @@ class NusantaraDashGame extends FlameGame
     );
     add(jumpButton);
 
-    // 8. Mini Boss
-    add(
-      RectangleComponent(
-        position: Vector2(size.x * 2, groundY - 100),
-        size: Vector2(80, 100),
-        paint: Paint()..color = Colors.purple[900]!,
-      )..add(
-        TextComponent(
-          text: 'BOSS',
-          textRenderer: TextPaint(
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        )..position = Vector2(15, -15),
-      ),
-    );
-
-    // 9. Info Pulau
     add(
       TextComponent(
         text: '🏝️ $islandName',
@@ -139,54 +95,55 @@ class NusantaraDashGame extends FlameGame
     );
   }
 
+  // ✅ KAMERA TRACKING YANG PASTI JALAN
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (paused) return;
+
+    // Langsung set posisi kamera ke posisi player
+    // Ini cara paling simple & dijamin bekerja
+    camera.viewfinder.position.x = player.position.x;
+    camera.viewfinder.position.y = size.y / 2;
+
+    // Clamp agar tidak keluar map
+    double minCamX = size.x / 2;
+    double maxCamX = SumatraLevelData.levelLength - size.x / 2;
+    camera.viewfinder.position.x = camera.viewfinder.position.x.clamp(
+      minCamX,
+      maxCamX,
+    );
+  }
+
   @override
   KeyEventResult onKeyEvent(
     KeyEvent event,
     Set<LogicalKeyboardKey> keysPressed,
   ) {
-    if (event is KeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-        player.position.x += 10;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-        player.position.x -= 10;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.space) {
-        player.jump();
-      }
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
+      player.jump();
     }
     return KeyEventResult.handled;
   }
 
   Future<void> _loadBackground() async {
-    final islandLower = islandName.toLowerCase();
-    final possiblePaths = [
-      'assets/images/background/bg_$islandLower.png',
-      'assets/images/background/bg_$islandLower.jpg',
-      'assets/images/background/bg_$islandLower.jpeg',
+    final paths = [
+      'assets/images/background/bg_${islandName.toLowerCase()}.png',
+      'assets/images/background/bg_${islandName.toLowerCase()}.jpg',
     ];
-
-    for (final path in possiblePaths) {
+    for (final p in paths) {
       try {
-        final image = await images.load(path);
+        final img = await images.load(p);
         add(
-          SpriteComponent(
-            sprite: Sprite(image),
-            size: Vector2(size.x * 3, size.y),
-            position: Vector2(0, 0),
-          )..priority = -10,
+          SpriteComponent(sprite: Sprite(img), size: Vector2(size.x, size.y))
+            ..priority = -10,
         );
-        debugPrint('✅ Background loaded: $path');
         return;
-      } catch (e) {
-        continue;
-      }
+      } catch (_) {}
     }
-
-    debugPrint('⚠️ Background tidak ditemukan, pakai gradient fallback');
     add(
       RectangleComponent(
-        size: Vector2(size.x * 3, size.y),
+        size: Vector2(size.x, size.y),
         paint: Paint()..color = _getSkyColor(),
       )..priority = -20,
     );

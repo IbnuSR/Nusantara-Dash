@@ -1,17 +1,17 @@
+import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flame/camera.dart';
 import 'package:flame/input.dart';
 import 'components/player/player.dart';
 
-class NusantaraDashGame extends FlameGame with KeyboardEvents {
+class NusantaraDashGame extends FlameGame
+    with KeyboardEvents, HasCollisionDetection {
   final String islandName;
   late Player player;
-
-  final double groundY = 380;
-  final double groundHeight = 70;
+  late JoystickComponent joystick;
+  late double groundY;
 
   final Map<String, Color> islandThemes = {
     'SUMATRA': const Color(0xFF2E7D32),
@@ -27,35 +27,86 @@ class NusantaraDashGame extends FlameGame with KeyboardEvents {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    camera.viewport = FixedResolutionViewport(resolution: Vector2(800, 450));
+    // ✅ JANGAN SET VIEWPORT MANUAL - Biarkan auto-resize
+    groundY = size.y - 100;
 
     // 1. Load Background
     await _loadBackground();
 
-    // 2. Ground
+    // 2. Ground (Tanah)
     final groundColor = islandThemes[islandName] ?? Colors.brown;
     add(
       RectangleComponent(
         position: Vector2(0, groundY),
-        size: Vector2(800, groundHeight),
+        size: Vector2(size.x * 3, 100),
         paint: Paint()..color = groundColor,
       )..priority = -5,
     );
 
-    // 3. ✅ Player dengan ukuran PROPORSIONAL (tidak cemet!)
-    // Aspect ratio texture: 125x300 = 1 : 2.4
-    // Kita pakai tinggi 150px → lebar = 150 / 2.4 = 62.5px
+    // 3. Joystick (Kiri Bawah)
+    joystick = JoystickComponent(
+      knob: CircleComponent(
+        radius: 30,
+        paint: Paint()..color = Colors.amber.withOpacity(0.9),
+      ),
+      background: CircleComponent(
+        radius: 70,
+        paint: Paint()..color = Colors.white.withOpacity(0.3),
+      ),
+      margin: const EdgeInsets.only(left: 60, bottom: 60),
+    );
+
+    // 4. Player - KIRIM JOYSTICK
     final playerWidth = 62.5;
     final playerHeight = 150.0;
 
-    player = Player(size: Vector2(playerWidth, playerHeight))
-      ..position = Vector2(100, groundY - playerHeight);
+    player = Player(
+      size: Vector2(playerWidth, playerHeight),
+      groundY: groundY,
+      joystick: joystick, // ✅ WAJIB KIRIM JOYSTICK
+    )..position = Vector2(100, groundY - playerHeight);
     add(player);
 
-    // 4. Mini Boss
+    // 5. Tambahkan Joystick ke Game
+    add(joystick);
+
+    // 6. Camera Follow Player
+    camera.follow(player);
+
+    // 7. Tombol Lompat (Kanan Bawah)
+    final jumpButton = ButtonComponent(
+      button: CircleComponent(
+        radius: 45,
+        paint: Paint()..color = Colors.amber.withOpacity(0.9),
+      ),
+      buttonDown: CircleComponent(
+        radius: 45,
+        paint: Paint()..color = Colors.orange.withOpacity(0.9),
+      ),
+      position: Vector2(size.x - 105, size.y - 105),
+      anchor: Anchor.center,
+      onPressed: () => player.jump(),
+    );
+
+    jumpButton.add(
+      TextComponent(
+        text: '▲',
+        textRenderer: TextPaint(
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 40,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        anchor: Anchor.center,
+      ),
+    );
+    add(jumpButton);
+
+    // 8. Mini Boss
     add(
       RectangleComponent(
-        position: Vector2(-150, groundY - 100),
+        position: Vector2(size.x * 2, groundY - 100),
         size: Vector2(80, 100),
         paint: Paint()..color = Colors.purple[900]!,
       )..add(
@@ -64,7 +115,7 @@ class NusantaraDashGame extends FlameGame with KeyboardEvents {
           textRenderer: TextPaint(
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -72,29 +123,19 @@ class NusantaraDashGame extends FlameGame with KeyboardEvents {
       ),
     );
 
-    // 5. Info Pulau
+    // 9. Info Pulau
     add(
       TextComponent(
         text: '🏝️ $islandName',
         textRenderer: TextPaint(
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             shadows: [Shadow(color: Colors.black, blurRadius: 4)],
           ),
         ),
       )..position = Vector2(20, 20),
-    );
-
-    // 6. Instruksi
-    add(
-      TextComponent(
-        text: '← → : Gerak | SPACE : Lompat',
-        textRenderer: TextPaint(
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
-        ),
-      )..position = Vector2(20, 420),
     );
   }
 
@@ -105,30 +146,15 @@ class NusantaraDashGame extends FlameGame with KeyboardEvents {
   ) {
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-        player.isMoving = true;
-        player.scale.x = 1;
+        player.position.x += 10;
       }
-
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-        player.isMoving = true;
-        player.scale.x = -1;
+        player.position.x -= 10;
       }
-
       if (event.logicalKey == LogicalKeyboardKey.space) {
         player.jump();
       }
     }
-
-    if (event is KeyUpEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.arrowRight ||
-          event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-        if (!keysPressed.contains(LogicalKeyboardKey.arrowRight) &&
-            !keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
-          player.isMoving = false;
-        }
-      }
-    }
-
     return KeyEventResult.handled;
   }
 
@@ -146,7 +172,7 @@ class NusantaraDashGame extends FlameGame with KeyboardEvents {
         add(
           SpriteComponent(
             sprite: Sprite(image),
-            size: Vector2(800, 450),
+            size: Vector2(size.x * 3, size.y),
             position: Vector2(0, 0),
           )..priority = -10,
         );
@@ -160,7 +186,7 @@ class NusantaraDashGame extends FlameGame with KeyboardEvents {
     debugPrint('⚠️ Background tidak ditemukan, pakai gradient fallback');
     add(
       RectangleComponent(
-        size: Vector2(800, 450),
+        size: Vector2(size.x * 3, size.y),
         paint: Paint()..color = _getSkyColor(),
       )..priority = -20,
     );

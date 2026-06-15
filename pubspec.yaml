@@ -18,8 +18,12 @@ dependencies:
   # Save Data Lokal (progres pulau, kunci, koin)
   shared_preferences: ^2.5.5
   
-  # Audio (comment dulu, aktifkan setelah build stabil)
-  # audioplayers: ^5.2.1
+  # Video Player (untuk cutscene)
+  video_player: ^2.8.1
+
+  # Audio (BGM)
+  audioplayers: ^6.1.0 #Untuk BGM
+  google_fonts: ^6.1.0 #Untuk pixel font
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +41,12 @@ flutter:
     - assets/images/boss/final/
     - assets/images/boss/mini/
     
+    # Video (cutscene)
+    - assets/videos/
+    
+    # BGM
+    - assets/audio/bgm/
+
     # Background
     - assets/images/background/
     

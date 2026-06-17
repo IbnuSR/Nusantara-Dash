@@ -128,8 +128,8 @@ class NusantaraDashGame extends FlameGame
 
   Future<void> _loadBackground() async {
     final paths = [
-      'assets/images/background/bg_${islandName.toLowerCase()}.png',
-      'assets/images/background/bg_${islandName.toLowerCase()}.jpg',
+      'background/bg_${islandName.toLowerCase()}.png',
+      'background/bg_${islandName.toLowerCase()}.jpg',
     ];
     for (final p in paths) {
       try {

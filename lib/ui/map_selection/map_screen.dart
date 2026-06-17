@@ -586,178 +586,196 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
-        return Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                isUnlocked
-                    ? color.withOpacity(0.95)
-                    : Colors.grey[800]!.withOpacity(0.95),
-                isUnlocked
-                    ? color.withOpacity(0.7)
-                    : Colors.grey[900]!.withOpacity(0.95),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isUnlocked ? Colors.amber : Colors.grey[600]!,
-              width: 3,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: (isUnlocked ? color : Colors.black).withOpacity(0.6),
-                blurRadius: 20,
-                spreadRadius: 3,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.3),
-                  border: Border.all(
-                    color: isUnlocked ? Colors.amber : Colors.grey[600]!,
-                    width: 3,
-                  ),
-                ),
-                child: Text(
-                  island['icon'] as String,
-                  style: const TextStyle(fontSize: 56),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                island['name'] as String,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: isUnlocked ? Colors.white : Colors.grey[400],
-                  letterSpacing: 3,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black,
-                      offset: Offset(2, 2),
-                      blurRadius: 5,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                island['subtitle'] as String,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isUnlocked ? accentColor : Colors.grey[500],
-                  fontStyle: FontStyle.italic,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                island['description'] as String,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: isUnlocked ? Colors.white : Colors.grey[400],
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildInfoItem(
-                    '⚔️ BOSS',
-                    island['boss'] as String,
-                    isUnlocked,
-                  ),
-                  Container(width: 1, height: 40, color: Colors.white24),
-                  _buildInfoItem(
-                    '🗡️ SENJATA',
-                    island['weapon'] as String,
-                    isUnlocked,
-                  ),
+        // ✅ Ambil tinggi layar yang tersedia (dikurangi area aman/notch)
+        final screenHeight = MediaQuery.of(context).size.height;
+        final safeAreaTop = MediaQuery.of(context).padding.top;
+        final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+        final availableHeight = screenHeight - safeAreaTop - safeAreaBottom;
+
+        // ✅ Modal maksimal 85% dari tinggi layar yang tersedia,
+        // sehingga selalu ada ruang & tidak pernah overflow di HP manapun.
+        final maxModalHeight = availableHeight * 0.85;
+
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxModalHeight),
+          child: Container(
+            margin: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  isUnlocked
+                      ? color.withOpacity(0.95)
+                      : Colors.grey[800]!.withOpacity(0.95),
+                  isUnlocked
+                      ? color.withOpacity(0.7)
+                      : Colors.grey[900]!.withOpacity(0.95),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              // ✅ TOMBOL INI YANG DIUBAH
-              if (isUnlocked)
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context); // Tutup modal
-
-                    // ✅ Navigate ke GameScreen dengan nama pulau
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => GameScreen(
-                          islandName:
-                              island['name']
-                                  as String, // 'SUMATRA', 'JAWA', dll
-                        ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: isUnlocked ? Colors.amber : Colors.grey[600]!,
+                width: 3,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: (isUnlocked ? color : Colors.black).withOpacity(0.6),
+                  blurRadius: 20,
+                  spreadRadius: 3,
+                ),
+              ],
+            ),
+            // ✅ KUNCI PERBAIKAN: bungkus isi dengan scroll view
+            // supaya kalau kontennya lebih tinggi dari layar,
+            // user bisa scroll alih-alih konten kepotong/overflow.
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black.withOpacity(0.3),
+                      border: Border.all(
+                        color: isUnlocked ? Colors.amber : Colors.grey[600]!,
+                        width: 3,
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.play_arrow, size: 28),
-                  label: const Text(
-                    'MULAI PETUALANGAN',
+                    ),
+                    child: Text(
+                      island['icon'] as String,
+                      style: const TextStyle(fontSize: 56),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    island['name'] as String,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
+                      color: isUnlocked ? Colors.white : Colors.grey[400],
+                      letterSpacing: 3,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black,
+                          offset: Offset(2, 2),
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    island['subtitle'] as String,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isUnlocked ? accentColor : Colors.grey[500],
+                      fontStyle: FontStyle.italic,
                       letterSpacing: 2,
                     ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
+                  const SizedBox(height: 20),
+                  Text(
+                    island['description'] as String,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: isUnlocked ? Colors.white : Colors.grey[400],
+                      height: 1.4,
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 8,
+                    textAlign: TextAlign.center,
                   ),
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[800],
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.red, width: 2),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Icon(Icons.lock, color: Colors.red, size: 24),
-                      SizedBox(width: 10),
-                      Text(
-                        'PULAU TERKUNCI',
+                      _buildInfoItem(
+                        '⚔️ BOSS',
+                        island['boss'] as String,
+                        isUnlocked,
+                      ),
+                      Container(width: 1, height: 40, color: Colors.white24),
+                      _buildInfoItem(
+                        '🗡️ SENJATA',
+                        island['weapon'] as String,
+                        isUnlocked,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ✅ TOMBOL INI YANG DIUBAH
+                  if (isUnlocked)
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context); // Tutup modal
+
+                        // ✅ Navigate ke GameScreen dengan nama pulau
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GameScreen(
+                              islandName:
+                                  island['name']
+                                      as String, // 'SUMATRA', 'JAWA', dll
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.play_arrow, size: 28),
+                      label: const Text(
+                        'MULAI PETUALANGAN',
                         style: TextStyle(
-                          color: Colors.red,
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 2,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-            ],
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 8,
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.red, width: 2),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.lock, color: Colors.red, size: 24),
+                          SizedBox(width: 10),
+                          Text(
+                            'PULAU TERKUNCI',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         );
       },

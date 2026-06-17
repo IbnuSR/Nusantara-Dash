@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'map_selection/map_screen.dart';
 import 'prologue_screen.dart'; // ✅ Import Prologue Screen
 
@@ -76,39 +75,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() => _isMusicPlaying = !_isMusicPlaying);
   }
 
-  // ✅ FUNGSI BARU: CEK PLAYER BARU/LAMA
-  Future<void> _handleStartGame() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final hasWatchedPrologue = prefs.getBool('has_watched_prologue') ?? false;
-
-      if (hasWatchedPrologue) {
-        // Player lama → langsung ke Map Screen
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MapScreen()),
-          );
-        }
-      } else {
-        // Player baru → tonton Prologue dulu
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PrologueScreen()),
-          );
-        }
-      }
-    } catch (e) {
-      print('Error checking prologue status: $e');
-      // Fallback: langsung ke Map Screen
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const MapScreen()),
-        );
-      }
-    }
+  // ✅ FIX: selalu tampilkan Prologue setiap MULAI ditekan.
+  // Gak perlu lagi cek SharedPreferences 'has_watched_prologue' —
+  // PrologueScreen sudah punya tombol SKIP sendiri buat yang males nonton ulang,
+  // jadi gak ada risiko user "terjebak" harus nonton tiap kali.
+  void _handleStartGame() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PrologueScreen()),
+    );
   }
 
   @override
@@ -305,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       label: 'MULAI',
                       icon: Icons.play_arrow,
                       color: const Color(0xFF4CAF50),
-                      onTap: _handleStartGame, // ✅ Pake fungsi baru
+                      onTap: _handleStartGame,
                     ),
                   ),
                   const SizedBox(width: 12),

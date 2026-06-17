@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'map_selection/map_screen.dart';
 
 class PrologueScreen extends StatefulWidget {
@@ -25,6 +24,7 @@ class _PrologueScreenState extends State<PrologueScreen> {
     _controller = VideoPlayerController.asset('assets/videos/prologue.mp4')
       ..initialize()
           .then((_) {
+            if (!mounted) return;
             setState(() => _isVideoInitialized = true);
             _controller.play();
 
@@ -42,19 +42,18 @@ class _PrologueScreenState extends State<PrologueScreen> {
           })
           .catchError((error) {
             print('Error loading video: $error');
-            // Fallback: navigate to map screen if video fails
+            // Fallback: navigate ke map screen kalau video gagal dimuat
             Future.delayed(const Duration(seconds: 2), () {
               _finishPrologue();
             });
           });
   }
 
-  Future<void> _finishPrologue() async {
-    // Save that player has watched prologue
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_watched_prologue', true);
-
-    // Navigate to map screen
+  // ✅ FIX: udah gak nyimpen flag 'has_watched_prologue' lagi.
+  // HomeScreen sekarang selalu nampilin layar ini setiap MULAI ditekan,
+  // jadi gak ada lagi state yang bisa "nyangkut" dan bikin video keskip
+  // di run-run berikutnya. Tombol SKIP di atas udah cukup buat repeat player.
+  void _finishPrologue() {
     if (mounted) {
       Navigator.pushReplacement(
         context,

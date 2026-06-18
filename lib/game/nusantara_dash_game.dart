@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,13 @@ class NusantaraDashGame extends FlameGame
   late JoystickComponent joystick;
   late double groundY;
 
+  // ✅ TAMBAHAN: Variabel Penyimpan Koin & UI Teks
+  int collectedCoins = 0;
+  late TextComponent coinText;
+
+  static const double virtualWidth = 1280;
+  static const double virtualHeight = 720;
+
   final Map<String, Color> islandThemes = {
     'SUMATRA': const Color(0xFF2E7D32),
     'JAWA': const Color(0xFFE65100),
@@ -28,14 +36,32 @@ class NusantaraDashGame extends FlameGame
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    groundY = size.y - 100;
+
+    camera.viewport = FixedResolutionViewport(
+      resolution: Vector2(virtualWidth, virtualHeight),
+    );
+    camera.viewfinder.anchor = Anchor.center;
+    camera.viewfinder.position = Vector2(virtualWidth / 2, virtualHeight / 2);
+
+    groundY = virtualHeight * 0.75;
 
     await _loadBackground();
-    add(LevelBuilder(groundY: groundY));
 
-    player = Player(size: Vector2(62.5, 150.0), groundY: groundY)
-      ..position = Vector2(200, groundY - 150);
-    add(player);
+    // ✅ UPDATE: Player ditambahkan fungsi pelapor koin
+    player =
+        Player(
+            size: Vector2(64, 96),
+            groundY: groundY,
+            onCoinCollected: () {
+              collectedCoins++; // Tambah skor
+              coinText.text = '🪙 $collectedCoins'; // Perbarui tulisan di UI
+            },
+          )
+          ..position = Vector2(100, groundY - 96)
+          ..priority = 100;
+    world.add(player);
+
+    world.add(LevelBuilder(groundY: groundY));
 
     joystick = JoystickComponent(
       knob: CircleComponent(
@@ -48,7 +74,7 @@ class NusantaraDashGame extends FlameGame
       ),
       margin: const EdgeInsets.only(left: 60, bottom: 60),
     );
-    add(joystick);
+    camera.viewport.add(joystick);
     player.joystick = joystick;
 
     final jumpButton = ButtonComponent(
@@ -60,7 +86,7 @@ class NusantaraDashGame extends FlameGame
         radius: 45,
         paint: Paint()..color = Colors.orange.withOpacity(0.9),
       ),
-      position: Vector2(size.x - 105, size.y - 105),
+      position: Vector2(virtualWidth - 105, virtualHeight - 105),
       anchor: Anchor.center,
       onPressed: () => player.jump(),
     );
@@ -78,41 +104,64 @@ class NusantaraDashGame extends FlameGame
         anchor: Anchor.center,
       ),
     );
-    add(jumpButton);
+    camera.viewport.add(jumpButton);
 
-    add(
-      TextComponent(
-        text: '🏝️ $islandName',
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            shadows: [Shadow(color: Colors.black, blurRadius: 4)],
-          ),
+    final islandText = TextComponent(
+      text: '🏝️ $islandName',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
         ),
-      )..position = Vector2(20, 20),
+      ),
+      position: Vector2(20, 20),
     );
+    camera.viewport.add(islandText);
+
+    // ✅ TAMBAHAN: UI Teks Koin di Kiri Atas
+    coinText = TextComponent(
+      text: '🪙 $collectedCoins',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.amber,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+        ),
+      ),
+      position: Vector2(20, 55), // Berada pas di bawah nama pulau
+    );
+    camera.viewport.add(coinText);
   }
 
-  // ✅ KAMERA TRACKING YANG PASTI JALAN
   @override
   void update(double dt) {
     super.update(dt);
     if (paused) return;
 
-    // Langsung set posisi kamera ke posisi player
-    // Ini cara paling simple & dijamin bekerja
-    camera.viewfinder.position.x = player.position.x;
-    camera.viewfinder.position.y = size.y / 2;
+    final targetX = player.position.x + player.size.x / 2;
+    final targetY = virtualHeight / 2;
 
-    // Clamp agar tidak keluar map
-    double minCamX = size.x / 2;
-    double maxCamX = SumatraLevelData.levelLength - size.x / 2;
-    camera.viewfinder.position.x = camera.viewfinder.position.x.clamp(
-      minCamX,
-      maxCamX,
+    camera.viewfinder.position = Vector2(
+      camera.viewfinder.position.x +
+          (targetX - camera.viewfinder.position.x) * 0.1,
+      camera.viewfinder.position.y +
+          (targetY - camera.viewfinder.position.y) * 0.1,
     );
+
+    double minCamX = virtualWidth / 2;
+    double maxCamX = SumatraLevelData.levelLength - (virtualWidth / 2);
+
+    if (maxCamX > minCamX) {
+      camera.viewfinder.position.x = camera.viewfinder.position.x.clamp(
+        minCamX,
+        maxCamX,
+      );
+    } else {
+      camera.viewfinder.position.x = minCamX;
+    }
   }
 
   @override
@@ -134,18 +183,22 @@ class NusantaraDashGame extends FlameGame
     for (final p in paths) {
       try {
         final img = await images.load(p);
-        add(
-          SpriteComponent(sprite: Sprite(img), size: Vector2(size.x, size.y))
-            ..priority = -10,
+
+        camera.backdrop.add(
+          SpriteComponent(
+            sprite: Sprite(img),
+            size: Vector2(virtualWidth, virtualHeight),
+          ),
         );
         return;
       } catch (_) {}
     }
-    add(
+
+    camera.backdrop.add(
       RectangleComponent(
-        size: Vector2(size.x, size.y),
+        size: Vector2(virtualWidth, virtualHeight),
         paint: Paint()..color = _getSkyColor(),
-      )..priority = -20,
+      ),
     );
   }
 

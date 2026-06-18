@@ -24,7 +24,7 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     _game = NusantaraDashGame(islandName: widget.islandName);
 
-    // 🔒 KUNCI LANDSCAPE SAAT MASUK GAME
+    // KUNCI LANDSCAPE SAAT MASUK GAME
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -78,7 +78,6 @@ class _GameScreenState extends State<GameScreen> {
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);
-              // ✅ HAPUS: Tidak paksa portrait lagi
             },
             child: const Text(
               'KEMBALI',
@@ -102,8 +101,6 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
-    // ✅ HAPUS BARIS INI (jangan paksa portrait saat keluar)
-    // SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.dispose();
   }
 
@@ -111,118 +108,48 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // ✅ GAME FULL SCREEN
-          SizedBox.expand(child: GameWidget(game: _game)),
+      // ✅ FIX: LayoutBuilder nunggu sampai constraint-nya benar-benar
+      // landscape (lebar > tinggi) sebelum GameWidget di-mount.
+      // Sebelumnya GameWidget langsung mount walau device belum
+      // selesai rotasi, jadi Flame ngambil "size" yang masih salah
+      // (tinggi portrait) buat hitung groundY -> player tenggelam.
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isLandscapeReady = constraints.maxWidth > constraints.maxHeight;
 
-          // Top Bar - Settings Button
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GestureDetector(
-                    onTap: _toggleSettings,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber, width: 2),
-                      ),
-                      child: const Icon(
-                        Icons.settings,
-                        color: Colors.amber,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                ],
+          if (!isLandscapeReady) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
               ),
-            ),
-          ),
+            );
+          }
 
-          // Settings Menu
-          if (_showSettings)
-            Container(
-              color: Colors.black.withOpacity(0.85),
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.all(40),
-                  padding: const EdgeInsets.all(30),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A237E),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.amber, width: 3),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+          return Stack(
+            children: [
+              // GAME FULL SCREEN
+              SizedBox.expand(child: GameWidget(game: _game)),
+
+              // Top Bar - Settings Button
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      const Text(
-                        '⚙️ PENGATURAN',
-                        style: TextStyle(
-                          color: Colors.amber,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      _buildStatRow(
-                        Icons.monetization_on,
-                        'Koin',
-                        '$_coins',
-                        Colors.amber,
-                      ),
-                      const SizedBox(height: 15),
-                      _buildStatRow(
-                        Icons.route,
-                        'Jarak',
-                        '${_distance.toInt()}m',
-                        Colors.blue,
-                      ),
-                      const SizedBox(height: 30),
-                      ElevatedButton.icon(
-                        onPressed: _toggleSettings,
-                        icon: const Icon(Icons.play_arrow),
-                        label: const Text('LANJUTKAN GAME'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 15,
+                      GestureDetector(
+                        onTap: _toggleSettings,
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.amber, width: 2),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      ElevatedButton.icon(
-                        onPressed: _restartGame,
-                        icon: const Icon(Icons.replay),
-                        label: const Text('MAIN ULANG'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 15,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.pop(context);
-                          // ✅ HAPUS: Tidak paksa portrait lagi
-                        },
-                        icon: const Icon(Icons.exit_to_app),
-                        label: const Text('KELUAR KE MENU'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 15,
+                          child: const Icon(
+                            Icons.settings,
+                            color: Colors.amber,
+                            size: 28,
                           ),
                         ),
                       ),
@@ -230,8 +157,96 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
               ),
-            ),
-        ],
+
+              // Settings Menu
+              if (_showSettings)
+                Container(
+                  color: Colors.black.withOpacity(0.85),
+                  child: Center(
+                    child: Container(
+                      margin: const EdgeInsets.all(40),
+                      padding: const EdgeInsets.all(30),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A237E),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.amber, width: 3),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            '⚙️ PENGATURAN',
+                            style: TextStyle(
+                              color: Colors.amber,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          _buildStatRow(
+                            Icons.monetization_on,
+                            'Koin',
+                            '$_coins',
+                            Colors.amber,
+                          ),
+                          const SizedBox(height: 15),
+                          _buildStatRow(
+                            Icons.route,
+                            'Jarak',
+                            '${_distance.toInt()}m',
+                            Colors.blue,
+                          ),
+                          const SizedBox(height: 30),
+                          ElevatedButton.icon(
+                            onPressed: _toggleSettings,
+                            icon: const Icon(Icons.play_arrow),
+                            label: const Text('LANJUTKAN GAME'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 30,
+                                vertical: 15,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          ElevatedButton.icon(
+                            onPressed: _restartGame,
+                            icon: const Icon(Icons.replay),
+                            label: const Text('MAIN ULANG'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 30,
+                                vertical: 15,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.exit_to_app),
+                            label: const Text('KELUAR KE MENU'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 30,
+                                vertical: 15,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

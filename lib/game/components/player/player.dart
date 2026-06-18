@@ -1,12 +1,14 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/input.dart';
-import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
+import '../level_builder.dart';
 
 class Player extends SpriteAnimationComponent
     with HasGameRef, CollisionCallbacks {
   final double groundY;
+  final VoidCallback
+  onCoinCollected; // ✅ TAMBAHAN: Fungsi pelapor saat dapat koin
   late JoystickComponent joystick;
 
   double speed = 400;
@@ -16,10 +18,14 @@ class Player extends SpriteAnimationComponent
   final double gravity = 2000;
   final double jumpStrength = -700;
 
-  // ✅ Jumlah frame yang BENAR sesuai sprite sheet (14, bukan 16)
   static const int totalFrames = 14;
 
-  Player({required super.size, required this.groundY});
+  // ✅ Constructor diperbarui untuk meminta fungsi onCoinCollected
+  Player({
+    required super.size,
+    required this.groundY,
+    required this.onCoinCollected,
+  });
 
   @override
   Future<void> onLoad() async {
@@ -34,10 +40,6 @@ class Player extends SpriteAnimationComponent
         'player/satria_run.png',
       );
 
-      // ✅ KUNCI PERBAIKAN:
-      // Hitung ukuran per frame OTOMATIS dari ukuran gambar asli,
-      // bukan dari angka hardcode (96x128) yang bisa salah kalau
-      // file gambar diganti/diresize.
       final double frameWidth = spriteSheetImage.width / totalFrames;
       final double frameHeight = spriteSheetImage.height.toDouble();
 
@@ -45,7 +47,7 @@ class Player extends SpriteAnimationComponent
         spriteSheetImage,
         SpriteAnimationData.sequenced(
           amount: totalFrames,
-          stepTime: 0.2, // sedikit lebih cepat agar gerak terlihat mulus
+          stepTime: 0.1,
           textureSize: Vector2(frameWidth, frameHeight),
           amountPerRow: totalFrames,
         ),
@@ -61,6 +63,12 @@ class Player extends SpriteAnimationComponent
       jumpVelocity = jumpStrength;
       _isOnGround = false;
     }
+  }
+
+  void _dieAndRespawn() {
+    position.setValues(100, groundY - size.y - 20);
+    jumpVelocity = 0;
+    _isOnGround = false;
   }
 
   @override
@@ -81,16 +89,8 @@ class Player extends SpriteAnimationComponent
       position.y += jumpVelocity * dt;
     }
 
-    if (position.y >= groundY - size.y) {
-      position.y = groundY - size.y;
-      jumpVelocity = 0;
-      _isOnGround = true;
-    }
-
-    if (position.y > groundY + 500) {
-      position.setValues(200, groundY - size.y);
-      jumpVelocity = 0;
-      _isOnGround = false;
+    if (position.y > 800) {
+      _dieAndRespawn();
     }
   }
 
@@ -98,16 +98,41 @@ class Player extends SpriteAnimationComponent
   void onCollision(Set<Vector2> points, PositionComponent other) {
     super.onCollision(points, other);
 
-    if (other is RectangleComponent && jumpVelocity > 0) {
-      double playerBottom = position.y + size.y;
-      double platformTop = other.position.y;
+    // ✅ LOGIKA KOIN: Jika nabrak koin, ambil!
+    if (other is CoinItem) {
+      if (!other.isCollected) {
+        other.isCollected = true; // Tandai sudah diambil
+        other.removeFromParent(); // Hilangkan dari layar
+        onCoinCollected(); // Laporkan ke Game untuk nambah skor
+      }
+      return;
+    }
 
-      if (playerBottom >= platformTop - 10 &&
+    if (other is RedObstacle) {
+      _dieAndRespawn();
+      return;
+    }
+
+    if (other is GroundPlatform) {
+      double playerBottom = position.y + size.y;
+      double playerRight = position.x + size.x;
+      double platformTop = other.position.y;
+      double platformLeft = other.position.x;
+      double platformRight = other.position.x + other.size.x;
+
+      if (jumpVelocity >= 0 &&
+          playerBottom >= platformTop - 15 &&
           playerBottom <= platformTop + 30 &&
           position.y + size.y / 2 < platformTop) {
-        position.y = platformTop - size.y;
+        position.y = platformTop - size.y + 0.1;
         jumpVelocity = 0;
         _isOnGround = true;
+      } else if (playerBottom > platformTop + 10) {
+        if (position.x < platformLeft && playerRight > platformLeft) {
+          position.x = platformLeft - size.x;
+        } else if (position.x > platformLeft && position.x < platformRight) {
+          position.x = platformRight;
+        }
       }
     }
   }
@@ -115,6 +140,10 @@ class Player extends SpriteAnimationComponent
   @override
   void onCollisionEnd(PositionComponent other) {
     super.onCollisionEnd(other);
+
+    if (other is GroundPlatform) {
+      _isOnGround = false;
+    }
   }
 
   @override

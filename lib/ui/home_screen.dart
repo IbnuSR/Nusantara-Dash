@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'map_selection/map_screen.dart';
-import 'prologue_screen.dart'; // ✅ Import Prologue Screen
+import 'prologue_screen.dart'; // ✅ Tetap dipakai untuk auto-play pertama kali
+import '../utils/game_prefs.dart';
 import 'package:nusantara_dash/game/features/shop/shop_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -25,6 +26,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _initAnimations();
     _playBGM();
+    _checkFirstTimeLaunch(); // ✅ CEK FIRST TIME SAAT HOME DIBUKA
+  }
+
+  // ✅ LOGIKA: Prologue auto-play HANYA pertama kali install
+  Future<void> _checkFirstTimeLaunch() async {
+    final hasWatched = await GamePrefs.hasWatchedPrologue();
+
+    if (!hasWatched && mounted) {
+      // First time → langsung push ke prologue setelah animasi selesai
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PrologueScreen()),
+          );
+        }
+      });
+    }
+    // Kedua kali & seterusnya → diam di HomeScreen
   }
 
   void _initAnimations() {
@@ -76,14 +96,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() => _isMusicPlaying = !_isMusicPlaying);
   }
 
-  // ✅ FIX: selalu tampilkan Prologue setiap MULAI ditekan.
-  // Gak perlu lagi cek SharedPreferences 'has_watched_prologue' —
-  // PrologueScreen sudah punya tombol SKIP sendiri buat yang males nonton ulang,
-  // jadi gak ada risiko user "terjebak" harus nonton tiap kali.
+  // ✅ MULAI → LANGSUNG KE MAP SCREEN (bukan prologue)
   void _handleStartGame() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const PrologueScreen()),
+      MaterialPageRoute(builder: (context) => const MapScreen()),
     );
   }
 
@@ -264,6 +281,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // ✅ UPDATED: Layout 2x2 (tanpa tombol PROLOGUE)
   Widget _buildMenuButtons() {
     return FadeTransition(
       opacity: _buttonAnimation,
@@ -281,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       label: 'MULAI',
                       icon: Icons.play_arrow,
                       color: const Color(0xFF4CAF50),
-                      onTap: _handleStartGame,
+                      onTap: _handleStartGame, // ✅ Langsung ke MapScreen
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -328,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       icon: Icons.shopping_cart,
                       color: const Color(0xFFFF9800),
                       onTap: () {
-                        // ✅ PERUBAHAN: Langsung pindah ke layar Toko
+                        // ✅ Langsung pindah ke layar Toko
                         Navigator.push(
                           context,
                           MaterialPageRoute(

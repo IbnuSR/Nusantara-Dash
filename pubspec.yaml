@@ -12,18 +12,20 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   
-  # Game Engine
+  # 🎮 Game Engine
   flame: ^1.35.1
   
-  # Save Data Lokal (progres pulau, kunci, koin)
+  # 💾 Save Data Lokal (progres pulau, kunci, koin, status prologue)
   shared_preferences: ^2.5.5
   
-  # Video Player (untuk cutscene)
+  # 🎬 Video Player (untuk cutscene & prologue)
   video_player: ^2.8.1
 
-  # Audio (BGM)
-  audioplayers: ^6.1.0 #Untuk BGM
-  google_fonts: ^6.1.0 #Untuk pixel font
+  # 🎵 Audio (BGM & SFX)
+  audioplayers: ^6.1.0
+  
+  # 🔤 Font (untuk pixel font game)
+  google_fonts: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -34,35 +36,35 @@ flutter:
   uses-material-design: true
   
   assets:
-    # Player
+    # 👤 Player sprites
     - assets/images/player/
     
-    # Boss
+    # 👹 Boss sprites
     - assets/images/boss/final/
     - assets/images/boss/mini/
     
-    # Video (cutscene)
+    # 🎬 Video cutscene & prologue
     - assets/videos/
     
-    # BGM
+    # 🎵 Background Music
     - assets/audio/bgm/
 
-    # Background
+    # 🏞️ Background pulau
     - assets/images/background/
     
-    # Obstacles
+    # 🚧 Obstacles (rintangan)
     - assets/images/obstacles/
     
-    # Items
+    # 🎁 Items (koin, kunci, nyawa, clue)
     - assets/images/items/
     
-    # Weapons
+    # ⚔️ Weapons (senjata karakter)
     - assets/images/weapons/
     
-    # UI
+    # 🖼️ UI (tombol, icon, background menu)
     - assets/images/ui/
     
-    # Data
+    # 📊 Data JSON (kuis, provinsi, senjata)
     - assets/data/quiz_data.json
     - assets/data/province_config.json
     - assets/data/weapon_data.json

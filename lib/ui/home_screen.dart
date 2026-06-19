@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'map_selection/map_screen.dart';
 import 'prologue_screen.dart'; // ✅ Import Prologue Screen
+import 'package:nusantara_dash/game/features/shop/shop_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -228,14 +229,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 fontSize: 32,
                 color: const Color(0xFFFFB300),
                 shadows: [
-                  Shadow(
+                  const Shadow(
                     color: Colors.black,
-                    offset: const Offset(3, 3),
+                    offset: Offset(3, 3),
                     blurRadius: 5,
                   ),
-                  Shadow(
-                    color: const Color(0xFFFF6F00),
-                    offset: const Offset(0, 0),
+                  const Shadow(
+                    color: Color(0xFFFF6F00),
+                    offset: Offset(0, 0),
                     blurRadius: 10,
                   ),
                 ],
@@ -249,9 +250,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 fontSize: 12,
                 color: Colors.white,
                 shadows: [
-                  Shadow(
+                  const Shadow(
                     color: Colors.black,
-                    offset: const Offset(2, 2),
+                    offset: Offset(2, 2),
                     blurRadius: 3,
                   ),
                 ],
@@ -327,10 +328,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       icon: Icons.shopping_cart,
                       color: const Color(0xFFFF9800),
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Toko Nusantara - Coming Soon!'),
-                            duration: Duration(seconds: 2),
+                        // ✅ PERUBAHAN: Langsung pindah ke layar Toko
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ShopScreen(),
                           ),
                         );
                       },
@@ -382,9 +384,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 fontSize: 14,
                 color: Colors.white,
                 shadows: [
-                  Shadow(
+                  const Shadow(
                     color: Colors.black,
-                    offset: const Offset(2, 2),
+                    offset: Offset(2, 2),
                     blurRadius: 3,
                   ),
                 ],

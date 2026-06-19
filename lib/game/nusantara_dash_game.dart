@@ -8,30 +8,43 @@ import 'package:flame/input.dart';
 import 'components/player/player.dart';
 import 'components/level_builder.dart';
 import 'data/sumatra_level_data.dart';
+import 'package:nusantara_dash/utils/coin_manager.dart'; // ✅ Pastikan import ini benar
 
 class NusantaraDashGame extends FlameGame
     with KeyboardEvents, HasCollisionDetection {
   final String islandName;
+  final VoidCallback onGameOver;
+  final VoidCallback onLevelComplete;
+  final Function(int) onCoinsUpdated;
+
   late Player player;
   late JoystickComponent joystick;
   late double groundY;
 
-  // ✅ TAMBAHAN: Variabel Penyimpan Koin & UI Teks
-  int collectedCoins = 0;
+  int collectedCoins = 0; // Koin sesi berjalan
+  int totalWalletCoins =
+      0; // ✅ Tambah variabel penampung saldo total koin storage
+  int currentLives = 0;
   late TextComponent coinText;
+  TextComponent? livesText;
+  bool isLevelFinished = false;
 
   static const double virtualWidth = 1280;
   static const double virtualHeight = 720;
 
-  final Map<String, Color> islandThemes = {
-    'SUMATRA': const Color(0xFF2E7D32),
-    'JAWA': const Color(0xFFE65100),
-    'KALIMANTAN': const Color(0xFF1B5E20),
-    'SULAWESI': const Color(0xFF0277BD),
-    'PAPUA': const Color(0xFF4E342E),
-  };
+  NusantaraDashGame({
+    required this.islandName,
+    required this.onGameOver,
+    required this.onLevelComplete,
+    required this.onCoinsUpdated,
+  });
 
-  NusantaraDashGame({required this.islandName});
+  void updateLives(int lives) {
+    currentLives = lives;
+    if (livesText != null) {
+      livesText!.text = '❤️ $currentLives';
+    }
+  }
 
   @override
   Future<void> onLoad() async {
@@ -44,17 +57,29 @@ class NusantaraDashGame extends FlameGame
     camera.viewfinder.position = Vector2(virtualWidth / 2, virtualHeight / 2);
 
     groundY = virtualHeight * 0.75;
-
     await _loadBackground();
 
-    // ✅ UPDATE: Player ditambahkan fungsi pelapor koin
+    // ✅ Muat saldo total koin terkini dari storage saat level dimulai
+    totalWalletCoins = await CoinManager.getCoins();
+
     player =
         Player(
             size: Vector2(64, 96),
             groundY: groundY,
-            onCoinCollected: () {
-              collectedCoins++; // Tambah skor
-              coinText.text = '🪙 $collectedCoins'; // Perbarui tulisan di UI
+            onCoinCollected: () async {
+              collectedCoins++;
+              totalWalletCoins++; // Sinkronisasikan penambahan koin langsung ke saldo utama
+
+              // ✅ FIX UTAMA: Simpan penambahan koin secara instan dan real-time ke SharedPreferences
+              await CoinManager.saveCoins(totalWalletCoins);
+
+              // Update teks HUD permainan langsung dengan jumlah saldo koin terbaru milik user
+              coinText.text = '🪙 $totalWalletCoins';
+              onCoinsUpdated(collectedCoins);
+            },
+            onPlayerDied: () {
+              pauseEngine();
+              onGameOver();
             },
           )
           ..position = Vector2(100, groundY - 96)
@@ -120,9 +145,9 @@ class NusantaraDashGame extends FlameGame
     );
     camera.viewport.add(islandText);
 
-    // ✅ TAMBAHAN: UI Teks Koin di Kiri Atas
+    // Menampilkan saldo koin terkini di layar game secara real-time
     coinText = TextComponent(
-      text: '🪙 $collectedCoins',
+      text: '🪙 $totalWalletCoins',
       textRenderer: TextPaint(
         style: const TextStyle(
           color: Colors.amber,
@@ -131,9 +156,23 @@ class NusantaraDashGame extends FlameGame
           shadows: [Shadow(color: Colors.black, blurRadius: 4)],
         ),
       ),
-      position: Vector2(20, 55), // Berada pas di bawah nama pulau
+      position: Vector2(20, 55),
     );
     camera.viewport.add(coinText);
+
+    livesText = TextComponent(
+      text: '❤️ $currentLives',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.redAccent,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+        ),
+      ),
+      position: Vector2(20, 90),
+    );
+    camera.viewport.add(livesText!);
   }
 
   @override
@@ -162,6 +201,13 @@ class NusantaraDashGame extends FlameGame
     } else {
       camera.viewfinder.position.x = minCamX;
     }
+
+    if (player.position.x >= SumatraLevelData.levelLength - 150 &&
+        !isLevelFinished) {
+      isLevelFinished = true;
+      pauseEngine();
+      onLevelComplete();
+    }
   }
 
   @override
@@ -183,7 +229,6 @@ class NusantaraDashGame extends FlameGame
     for (final p in paths) {
       try {
         final img = await images.load(p);
-
         camera.backdrop.add(
           SpriteComponent(
             sprite: Sprite(img),
@@ -193,29 +238,11 @@ class NusantaraDashGame extends FlameGame
         return;
       } catch (_) {}
     }
-
     camera.backdrop.add(
       RectangleComponent(
         size: Vector2(virtualWidth, virtualHeight),
-        paint: Paint()..color = _getSkyColor(),
+        paint: Paint()..color = Colors.blue[300]!,
       ),
     );
-  }
-
-  Color _getSkyColor() {
-    switch (islandName) {
-      case 'SUMATRA':
-        return const Color(0xFF81D4FA);
-      case 'JAWA':
-        return const Color(0xFFFFCC80);
-      case 'KALIMANTAN':
-        return const Color(0xFFA5D6A7);
-      case 'SULAWESI':
-        return const Color(0xFF4FC3F7);
-      case 'PAPUA':
-        return const Color(0xFFB0BEC5);
-      default:
-        return Colors.blue[300]!;
-    }
   }
 }

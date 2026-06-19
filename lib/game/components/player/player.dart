@@ -7,24 +7,25 @@ import '../level_builder.dart';
 class Player extends SpriteAnimationComponent
     with HasGameRef, CollisionCallbacks {
   final double groundY;
-  final VoidCallback
-  onCoinCollected; // ✅ TAMBAHAN: Fungsi pelapor saat dapat koin
+  final VoidCallback onCoinCollected;
+  final VoidCallback onPlayerDied; // ✅ TAMBAHAN: Pelapor saat mati
   late JoystickComponent joystick;
 
   double speed = 400;
   double jumpVelocity = 0;
   bool _isOnGround = false;
+  bool isDead = false; // ✅ TAMBAHAN: Mencegah mati berkali-kali
 
   final double gravity = 2000;
   final double jumpStrength = -700;
 
   static const int totalFrames = 14;
 
-  // ✅ Constructor diperbarui untuk meminta fungsi onCoinCollected
   Player({
     required super.size,
     required this.groundY,
     required this.onCoinCollected,
+    required this.onPlayerDied, // ✅ Wajib diisi saat inisialisasi
   });
 
   @override
@@ -39,7 +40,6 @@ class Player extends SpriteAnimationComponent
       final spriteSheetImage = await gameRef.images.load(
         'player/satria_run.png',
       );
-
       final double frameWidth = spriteSheetImage.width / totalFrames;
       final double frameHeight = spriteSheetImage.height.toDouble();
 
@@ -59,13 +59,22 @@ class Player extends SpriteAnimationComponent
   }
 
   void jump() {
-    if (_isOnGround) {
+    if (_isOnGround && !isDead) {
       jumpVelocity = jumpStrength;
       _isOnGround = false;
     }
   }
 
-  void _dieAndRespawn() {
+  // ✅ DIUBAH: Sekarang melaporkan ke GameScreen, bukan langsung pindah
+  void die() {
+    if (isDead) return;
+    isDead = true;
+    onPlayerDied();
+  }
+
+  // ✅ FUNGSI BARU: Dipanggil dari GameScreen jika user pakai Nyawa Extra
+  void respawn() {
+    isDead = false;
     position.setValues(100, groundY - size.y - 20);
     jumpVelocity = 0;
     _isOnGround = false;
@@ -74,7 +83,7 @@ class Player extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (gameRef.paused) return;
+    if (gameRef.paused || isDead) return;
 
     double input = joystick.delta.x;
 
@@ -90,26 +99,26 @@ class Player extends SpriteAnimationComponent
     }
 
     if (position.y > 800) {
-      _dieAndRespawn();
+      die(); // ✅ Jatuh ke jurang -> Panggil die()
     }
   }
 
   @override
   void onCollision(Set<Vector2> points, PositionComponent other) {
     super.onCollision(points, other);
+    if (isDead) return;
 
-    // ✅ LOGIKA KOIN: Jika nabrak koin, ambil!
     if (other is CoinItem) {
       if (!other.isCollected) {
-        other.isCollected = true; // Tandai sudah diambil
-        other.removeFromParent(); // Hilangkan dari layar
-        onCoinCollected(); // Laporkan ke Game untuk nambah skor
+        other.isCollected = true;
+        other.removeFromParent();
+        onCoinCollected();
       }
       return;
     }
 
     if (other is RedObstacle) {
-      _dieAndRespawn();
+      die(); // ✅ Nabrak Rintangan Merah -> Panggil die()
       return;
     }
 
@@ -140,7 +149,6 @@ class Player extends SpriteAnimationComponent
   @override
   void onCollisionEnd(PositionComponent other) {
     super.onCollisionEnd(other);
-
     if (other is GroundPlatform) {
       _isOnGround = false;
     }
@@ -153,7 +161,7 @@ class Player extends SpriteAnimationComponent
     double input = joystick.delta.x.abs();
     bool moving = input > 10;
 
-    if (moving || !_isOnGround) {
+    if ((moving || !_isOnGround) && !isDead) {
       super.render(canvas);
     } else {
       animation!.frames.first.sprite.render(

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'map_selection/map_screen.dart';
-import 'prologue_screen.dart'; // ✅ Tetap dipakai untuk auto-play pertama kali
-import '../utils/game_prefs.dart';
+import 'prologue_screen.dart';
+import 'package:nusantara_dash/utils/game_prefs.dart';
 import 'package:nusantara_dash/game/features/shop/shop_screen.dart';
+import 'package:nusantara_dash/screens/settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,15 +27,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _initAnimations();
     _playBGM();
-    _checkFirstTimeLaunch(); // ✅ CEK FIRST TIME SAAT HOME DIBUKA
+    _checkFirstTimeLaunch();
   }
 
-  // ✅ LOGIKA: Prologue auto-play HANYA pertama kali install
   Future<void> _checkFirstTimeLaunch() async {
     final hasWatched = await GamePrefs.hasWatchedPrologue();
 
     if (!hasWatched && mounted) {
-      // First time → langsung push ke prologue setelah animasi selesai
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) {
           Navigator.push(
@@ -44,11 +43,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
       });
     }
-    // Kedua kali & seterusnya → diam di HomeScreen
   }
 
   void _initAnimations() {
-    // Title animation (fade in + scale)
     _titleController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -62,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     _titleController.forward();
 
-    // Button animation (staggered)
     _buttonController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -96,11 +92,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() => _isMusicPlaying = !_isMusicPlaying);
   }
 
-  // ✅ MULAI → LANGSUNG KE MAP SCREEN (bukan prologue)
   void _handleStartGame() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const MapScreen()),
+    );
+  }
+
+  void _handleOpenSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
     );
   }
 
@@ -120,15 +122,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1A237E), // Deep blue top
-              Color(0xFF0D1B2A), // Navy bottom
-            ],
+            colors: [Color(0xFF1A237E), Color(0xFF0D1B2A)],
           ),
         ),
         child: Stack(
           children: [
-            // Background image (peta Nusantara)
             Positioned.fill(
               child: Image.asset(
                 'assets/images/ui/main_menu_bg.png',
@@ -147,28 +145,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
 
-            // Dark overlay untuk readability
             Positioned.fill(
               child: Container(color: Colors.black.withOpacity(0.3)),
             ),
 
-            // Main content
             SafeArea(
               child: Column(
                 children: [
-                  // Top bar dengan settings & music toggle
                   _buildTopBar(),
-
                   const Spacer(),
-
-                  // Title
                   _buildTitle(),
-
                   const Spacer(),
-
-                  // Buttons
                   _buildMenuButtons(),
-
                   const SizedBox(height: 40),
                 ],
               ),
@@ -185,16 +173,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Settings button
           GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Pengaturan - Coming Soon!'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+            onTap: _handleOpenSettings,
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -210,7 +190,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // Music toggle
           GestureDetector(
             onTap: _toggleMusic,
             child: Container(
@@ -239,7 +218,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         scale: _titleAnimation,
         child: Column(
           children: [
-            // Main title
             Text(
               'NUSANTARA DASH',
               style: GoogleFonts.pressStart2p(
@@ -260,7 +238,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(height: 8),
-            // Subtitle
             Text(
               'Guardians of the Archipelago',
               style: GoogleFonts.pressStart2p(
@@ -281,7 +258,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ✅ UPDATED: Layout 2x2 (tanpa tombol PROLOGUE)
   Widget _buildMenuButtons() {
     return FadeTransition(
       opacity: _buttonAnimation,
@@ -291,7 +267,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              // Row 1: MULAI & MUSEUM
               Row(
                 children: [
                   Expanded(
@@ -299,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       label: 'MULAI',
                       icon: Icons.play_arrow,
                       color: const Color(0xFF4CAF50),
-                      onTap: _handleStartGame, // ✅ Langsung ke MapScreen
+                      onTap: _handleStartGame,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -321,7 +296,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ],
               ),
               const SizedBox(height: 12),
-              // Row 2: SENJATA & TOKO
               Row(
                 children: [
                   Expanded(
@@ -346,7 +320,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       icon: Icons.shopping_cart,
                       color: const Color(0xFFFF9800),
                       onTap: () {
-                        // ✅ Langsung pindah ke layar Toko
                         Navigator.push(
                           context,
                           MaterialPageRoute(

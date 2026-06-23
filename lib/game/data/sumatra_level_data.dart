@@ -1,5 +1,5 @@
 class SumatraLevelData {
-  // ✅ PANJANG LEVEL DIPERPANJANG JADI 6000px
+  // ✅ PANJANG LEVEL TETAP 6000px
   static const double levelLength = 6000;
 
   // Platform & Tanah: x=pos horizontal, y=offset dari ground (negatif=atas), w=lebar, h=tinggi
@@ -15,7 +15,7 @@ class SumatraLevelData {
     {'x': 1950, 'y': -150, 'w': 200, 'h': 30},
     {'x': 2250, 'y': -80, 'w': 250, 'h': 30},
 
-    //  SECTION 3: Gap & Tantangan (2600 - 4000)
+    // 🔵 SECTION 3: Gap & Tantangan Santai (2600 - 4000)
     {'x': 2600, 'y': 0, 'w': 300, 'h': 100},
     {'x': 3000, 'y': -60, 'w': 150, 'h': 30},
     {'x': 3250, 'y': -120, 'w': 160, 'h': 30},
@@ -33,29 +33,41 @@ class SumatraLevelData {
     {'x': 5500, 'y': 0, 'w': 500, 'h': 100},
   ];
 
-  // Rintangan (ditempatkan pas di atas platform)
+  // ✅ PERBAIKAN: Rintangan dikurangi drastis, berjarak jarang-jarang, dan sangat ramah anak-anak
   static final List<Map<String, double>> obstacles = [
-    {'x': 450, 'y': -40, 'w': 40, 'h': 40},
-    {'x': 750, 'y': -80, 'w': 30, 'h': 30},
-    {'x': 1000, 'y': -130, 'w': 30, 'h': 30},
-    {'x': 1400, 'y': -40, 'w': 40, 'h': 40},
-    {'x': 1800, 'y': -110, 'w': 30, 'h': 30},
-    {'x': 2050, 'y': -180, 'w': 30, 'h': 30},
-    {'x': 2350, 'y': -110, 'w': 30, 'h': 30},
-    {'x': 2800, 'y': -40, 'w': 40, 'h': 40},
-    {'x': 3100, 'y': -90, 'w': 30, 'h': 30},
-    {'x': 3350, 'y': -150, 'w': 30, 'h': 30},
-    {'x': 3600, 'y': -210, 'w': 30, 'h': 30},
-    {'x': 3900, 'y': -140, 'w': 40, 'h': 40},
-    {'x': 4200, 'y': -80, 'w': 30, 'h': 30},
-    {'x': 4450, 'y': -140, 'w': 30, 'h': 30},
-    {'x': 4700, 'y': -100, 'w': 40, 'h': 40},
-    {'x': 5000, 'y': -160, 'w': 30, 'h': 30},
-    {'x': 5300, 'y': -90, 'w': 40, 'h': 40},
-    {'x': 5700, 'y': -40, 'w': 50, 'h': 40}, // Guard boss
+    {
+      'x': 450,
+      'y': -40,
+      'w': 40,
+      'h': 40,
+    }, // Wilayah 1: Hanya ada 1 rintangan di awal untuk latihan melompat
+    {
+      'x': 1400,
+      'y': -40,
+      'w': 40,
+      'h': 40,
+    }, // Wilayah 2: Hanya ada 1 rintangan di area tengah jalan datar
+    {
+      'x': 2800,
+      'y': -40,
+      'w': 40,
+      'h': 40,
+    }, // Wilayah 3: Hanya ada 1 rintangan setelah melewati rintangan jurang
+    {
+      'x': 4700,
+      'y': -100,
+      'w': 40,
+      'h': 40,
+    }, // Wilayah 4: Hanya ada 1 rintangan di dataran tinggi
+    {
+      'x': 5700,
+      'y': -40,
+      'w': 40,
+      'h': 40,
+    }, // Wilayah 5: 1 rintangan terakhir sebelum memasuki area bos
   ];
 
-  // Koin (tersebar di atas platform & di tengah lompatan)
+  // ✅ KOIN TETAP MELIMPAH: Agar anak-anak senang mendapatkan banyak reward poin
   static final List<Map<String, double>> coins = [
     // Section 1
     {'x': 200, 'y': -160}, {'x': 250, 'y': -160}, {'x': 300, 'y': -160},

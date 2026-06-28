@@ -73,8 +73,8 @@ class NusantaraDashGame extends FlameGame
             size: Vector2(64, 96),
             groundY: groundY,
             onCoinCollected: () async {
-              collectedCoins++;
-              totalWalletCoins++;
+              collectedCoins += 10;
+              totalWalletCoins += 10;
               await GamePrefs.saveCoins(totalWalletCoins);
               coinText.text = '🪙 $totalWalletCoins';
               onCoinsUpdated(collectedCoins);

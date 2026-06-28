@@ -1,20 +1,21 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
-import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
-import '../level_builder.dart';
+import '../level_builder.dart'; // ✅ Path pasti ke folder provinces
 
 class Player extends SpriteAnimationComponent
     with HasGameRef, CollisionCallbacks {
   final double groundY;
   final VoidCallback onCoinCollected;
-  final VoidCallback onPlayerDied; // ✅ TAMBAHAN: Pelapor saat mati
-  late JoystickComponent joystick;
+  final VoidCallback onPlayerDied;
+
+  // ✅ SOLUSI KUNCI: Variabel umum yang bisa menerima perintah dari Joystick Analog maupun Tombol Panah
+  Vector2 currentInputDelta = Vector2.zero();
 
   double speed = 400;
   double jumpVelocity = 0;
   bool _isOnGround = false;
-  bool isDead = false; // ✅ TAMBAHAN: Mencegah mati berkali-kali
+  bool isDead = false;
 
   final double gravity = 2000;
   final double jumpStrength = -700;
@@ -25,7 +26,7 @@ class Player extends SpriteAnimationComponent
     required super.size,
     required this.groundY,
     required this.onCoinCollected,
-    required this.onPlayerDied, // ✅ Wajib diisi saat inisialisasi
+    required this.onPlayerDied,
   });
 
   @override
@@ -65,19 +66,18 @@ class Player extends SpriteAnimationComponent
     }
   }
 
-  // ✅ DIUBAH: Sekarang melaporkan ke GameScreen, bukan langsung pindah
   void die() {
     if (isDead) return;
     isDead = true;
     onPlayerDied();
   }
 
-  // ✅ FUNGSI BARU: Dipanggil dari GameScreen jika user pakai Nyawa Extra
   void respawn() {
     isDead = false;
     position.setValues(100, groundY - size.y - 20);
     jumpVelocity = 0;
     _isOnGround = false;
+    currentInputDelta = Vector2.zero(); // Reset gerak saat hidup kembali
   }
 
   @override
@@ -85,7 +85,8 @@ class Player extends SpriteAnimationComponent
     super.update(dt);
     if (gameRef.paused || isDead) return;
 
-    double input = joystick.delta.x;
+    // ✅ MEMBACA NILAI GERAK DARI SUPIR MANAPUN YANG SEDANG AKTIF (Analog / Panah)
+    double input = currentInputDelta.x;
 
     if (input.abs() > 10) {
       double normalizedInput = (input / 70.0).clamp(-1.0, 1.0);
@@ -99,7 +100,7 @@ class Player extends SpriteAnimationComponent
     }
 
     if (position.y > 800) {
-      die(); // ✅ Jatuh ke jurang -> Panggil die()
+      die();
     }
   }
 
@@ -118,7 +119,7 @@ class Player extends SpriteAnimationComponent
     }
 
     if (other is RedObstacle) {
-      die(); // ✅ Nabrak Rintangan Merah -> Panggil die()
+      die();
       return;
     }
 
@@ -158,7 +159,7 @@ class Player extends SpriteAnimationComponent
   void render(Canvas canvas) {
     if (animation == null) return;
 
-    double input = joystick.delta.x.abs();
+    double input = currentInputDelta.x.abs();
     bool moving = input > 10;
 
     if ((moving || !_isOnGround) && !isDead) {

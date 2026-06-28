@@ -10,7 +10,6 @@ class ArrowController extends Component with HasGameRef {
   late ButtonComponent rightButton;
   late ButtonComponent jumpButton;
 
-  // ✅ State internal untuk simulasi joystick delta
   bool _isLeftPressed = false;
   bool _isRightPressed = false;
 
@@ -23,105 +22,98 @@ class ArrowController extends Component with HasGameRef {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // ✅ TOMBOL KIRI (Kiri Bawah)
+    // 1. TOMBOL KIRI
     leftButton = ButtonComponent(
       button: CircleComponent(
-        radius: 45,
+        radius: 60,
         paint: Paint()..color = Colors.blue.withOpacity(0.8),
       ),
       buttonDown: CircleComponent(
-        radius: 45,
+        radius: 60,
         paint: Paint()..color = Colors.blue,
       ),
-      position: Vector2(80, gameRef.size.y - 105),
+      position: Vector2(120, 600),
       anchor: Anchor.center,
       onPressed: () {
         _isLeftPressed = true;
         _isRightPressed = false;
       },
-      onReleased: () {
-        _isLeftPressed = false;
-      },
+      onReleased: () => _isLeftPressed = false,
     );
 
     leftButton.add(
-      TextComponent(
-        text: '◀',
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        anchor: Anchor.center,
-      ),
+      PolygonComponent([
+        Vector2(78, 38),
+        Vector2(78, 88),
+        Vector2(41, 63),
+      ], paint: Paint()..color = Colors.black.withOpacity(0.4)),
+    );
+    leftButton.add(
+      PolygonComponent([
+        Vector2(75, 35),
+        Vector2(75, 85),
+        Vector2(38, 60),
+      ], paint: Paint()..color = Colors.white),
     );
     add(leftButton);
 
-    // ✅ TOMBOL KANAN (Kiri Bawah, di samping kiri)
+    // 2. TOMBOL KANAN
     rightButton = ButtonComponent(
       button: CircleComponent(
-        radius: 45,
+        radius: 60,
         paint: Paint()..color = Colors.blue.withOpacity(0.8),
       ),
       buttonDown: CircleComponent(
-        radius: 45,
+        radius: 60,
         paint: Paint()..color = Colors.blue,
       ),
-      position: Vector2(200, gameRef.size.y - 105),
+      position: Vector2(280, 600),
       anchor: Anchor.center,
       onPressed: () {
         _isRightPressed = true;
         _isLeftPressed = false;
       },
-      onReleased: () {
-        _isRightPressed = false;
-      },
+      onReleased: () => _isRightPressed = false,
     );
 
     rightButton.add(
-      TextComponent(
-        text: '▶',
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        anchor: Anchor.center,
-      ),
+      PolygonComponent([
+        Vector2(48, 38),
+        Vector2(48, 88),
+        Vector2(85, 63),
+      ], paint: Paint()..color = Colors.black.withOpacity(0.4)),
+    );
+    rightButton.add(
+      PolygonComponent([
+        Vector2(45, 35),
+        Vector2(45, 85),
+        Vector2(82, 60),
+      ], paint: Paint()..color = Colors.white),
     );
     add(rightButton);
 
-    // ✅ TOMBOL LOMPAT (Kanan Bawah)
+    // 3. TOMBOL LOMPAT (Lingkaran Kuning + Segitiga Hitam)
     jumpButton = ButtonComponent(
       button: CircleComponent(
-        radius: 45,
+        radius: 60,
         paint: Paint()..color = Colors.amber.withOpacity(0.9),
       ),
       buttonDown: CircleComponent(
-        radius: 45,
+        radius: 60,
         paint: Paint()..color = Colors.orange.withOpacity(0.9),
       ),
-      position: Vector2(gameRef.size.x - 105, gameRef.size.y - 105),
+      position: Vector2(1160, 600),
       anchor: Anchor.center,
       onPressed: onJumpPressed,
     );
 
+    // ✅ UBAH: Bayangan dihapus, Segitiga langsung Hitam Legam!
     jumpButton.add(
-      TextComponent(
-        text: '▲',
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        anchor: Anchor.center,
-      ),
+      PolygonComponent([
+        Vector2(60, 32),
+        Vector2(35, 78),
+        Vector2(85, 78),
+      ], paint: Paint()..color = Colors.black),
     );
     add(jumpButton);
   }
@@ -129,18 +121,11 @@ class ArrowController extends Component with HasGameRef {
   @override
   void update(double dt) {
     super.update(dt);
-
-    // ✅ Simulasi joystick delta dari tombol panah
-    // Nilai -70 / 70 (sama dengan max delta joystick) supaya kompatibel dengan player.dart
     Vector2 simulatedDelta = Vector2.zero();
-
-    if (_isLeftPressed && !_isRightPressed) {
-      simulatedDelta = Vector2(-70, 0); // Kiri full
-    } else if (_isRightPressed && !_isLeftPressed) {
-      simulatedDelta = Vector2(70, 0); // Kanan full
-    }
-    // Kalau kedua tombol ditekan bersamaan → diam (Vector2.zero())
-
+    if (_isLeftPressed && !_isRightPressed)
+      simulatedDelta = Vector2(-70, 0);
+    else if (_isRightPressed && !_isLeftPressed)
+      simulatedDelta = Vector2(70, 0);
     onJoystickUpdate(simulatedDelta);
   }
 }

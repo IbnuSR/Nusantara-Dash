@@ -5,10 +5,13 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame/input.dart';
+
 import 'components/player/player.dart';
 import 'components/level_builder.dart';
+import 'components/controllers/analog_controller.dart';
+import 'components/controllers/arrow_controller.dart';
 import 'data/sumatra_level_data.dart';
-import 'package:nusantara_dash/utils/coin_manager.dart'; // ✅ Pastikan import ini benar
+import 'package:nusantara_dash/utils/game_prefs.dart';
 
 class NusantaraDashGame extends FlameGame
     with KeyboardEvents, HasCollisionDetection {
@@ -18,12 +21,10 @@ class NusantaraDashGame extends FlameGame
   final Function(int) onCoinsUpdated;
 
   late Player player;
-  late JoystickComponent joystick;
   late double groundY;
 
-  int collectedCoins = 0; // Koin sesi berjalan
-  int totalWalletCoins =
-      0; // ✅ Tambah variabel penampung saldo total koin storage
+  int collectedCoins = 0;
+  int totalWalletCoins = 0;
   int currentLives = 0;
   late TextComponent coinText;
   TextComponent? livesText;
@@ -31,6 +32,9 @@ class NusantaraDashGame extends FlameGame
 
   static const double virtualWidth = 1280;
   static const double virtualHeight = 720;
+
+  // ✅ ANGKA SAKTI: Zoom kamera (1.35 artinya kamera 35% lebih dekat ke karakter)
+  static const double cameraZoom = 1.35;
 
   NusantaraDashGame({
     required this.islandName,
@@ -56,11 +60,13 @@ class NusantaraDashGame extends FlameGame
     camera.viewfinder.anchor = Anchor.center;
     camera.viewfinder.position = Vector2(virtualWidth / 2, virtualHeight / 2);
 
+    // ✅ PASANG ZOOM KAMERA DI SINI:
+    camera.viewfinder.zoom = cameraZoom;
+
     groundY = virtualHeight * 0.75;
     await _loadBackground();
 
-    // ✅ Muat saldo total koin terkini dari storage saat level dimulai
-    totalWalletCoins = await CoinManager.getCoins();
+    totalWalletCoins = await GamePrefs.getCoins();
 
     player =
         Player(
@@ -68,12 +74,8 @@ class NusantaraDashGame extends FlameGame
             groundY: groundY,
             onCoinCollected: () async {
               collectedCoins++;
-              totalWalletCoins++; // Sinkronisasikan penambahan koin langsung ke saldo utama
-
-              // ✅ FIX UTAMA: Simpan penambahan koin secara instan dan real-time ke SharedPreferences
-              await CoinManager.saveCoins(totalWalletCoins);
-
-              // Update teks HUD permainan langsung dengan jumlah saldo koin terbaru milik user
+              totalWalletCoins++;
+              await GamePrefs.saveCoins(totalWalletCoins);
               coinText.text = '🪙 $totalWalletCoins';
               onCoinsUpdated(collectedCoins);
             },
@@ -88,48 +90,20 @@ class NusantaraDashGame extends FlameGame
 
     world.add(LevelBuilder(groundY: groundY));
 
-    joystick = JoystickComponent(
-      knob: CircleComponent(
-        radius: 30,
-        paint: Paint()..color = Colors.amber.withOpacity(0.9),
-      ),
-      background: CircleComponent(
-        radius: 70,
-        paint: Paint()..color = Colors.white.withOpacity(0.3),
-      ),
-      margin: const EdgeInsets.only(left: 60, bottom: 60),
-    );
-    camera.viewport.add(joystick);
-    player.joystick = joystick;
-
-    final jumpButton = ButtonComponent(
-      button: CircleComponent(
-        radius: 45,
-        paint: Paint()..color = Colors.amber.withOpacity(0.9),
-      ),
-      buttonDown: CircleComponent(
-        radius: 45,
-        paint: Paint()..color = Colors.orange.withOpacity(0.9),
-      ),
-      position: Vector2(virtualWidth - 105, virtualHeight - 105),
-      anchor: Anchor.center,
-      onPressed: () => player.jump(),
-    );
-
-    jumpButton.add(
-      TextComponent(
-        text: '▲',
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        anchor: Anchor.center,
-      ),
-    );
-    camera.viewport.add(jumpButton);
+    String controlType = await GamePrefs.getControlType();
+    if (controlType == 'analog') {
+      final analog = AnalogController(
+        onJoystickUpdate: (delta) => player.currentInputDelta = delta,
+        onJumpPressed: () => player.jump(),
+      );
+      camera.viewport.add(analog);
+    } else {
+      final arrow = ArrowController(
+        onJoystickUpdate: (delta) => player.currentInputDelta = delta,
+        onJumpPressed: () => player.jump(),
+      );
+      camera.viewport.add(arrow);
+    }
 
     final islandText = TextComponent(
       text: '🏝️ $islandName',
@@ -145,7 +119,6 @@ class NusantaraDashGame extends FlameGame
     );
     camera.viewport.add(islandText);
 
-    // Menampilkan saldo koin terkini di layar game secara real-time
     coinText = TextComponent(
       text: '🪙 $totalWalletCoins',
       textRenderer: TextPaint(
@@ -190,8 +163,10 @@ class NusantaraDashGame extends FlameGame
           (targetY - camera.viewfinder.position.y) * 0.1,
     );
 
-    double minCamX = virtualWidth / 2;
-    double maxCamX = SumatraLevelData.levelLength - (virtualWidth / 2);
+    // ✅ RUMUS BATAS KAMERA BARU (Menyesuaikan zoom agar ujung kiri map tidak tembus keluar)
+    double visibleWorldWidth = virtualWidth / cameraZoom;
+    double minCamX = visibleWorldWidth / 2;
+    double maxCamX = SumatraLevelData.levelLength - (visibleWorldWidth / 2);
 
     if (maxCamX > minCamX) {
       camera.viewfinder.position.x = camera.viewfinder.position.x.clamp(

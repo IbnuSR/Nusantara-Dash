@@ -2,61 +2,59 @@ import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 
-class GameHud extends Component with HasGameRef {
+class AnalogController extends PositionComponent with HasGameRef {
   final Function(Vector2) onJoystickUpdate;
   final VoidCallback onJumpPressed;
 
   late JoystickComponent joystick;
   late ButtonComponent jumpButton;
 
-  GameHud({required this.onJoystickUpdate, required this.onJumpPressed});
+  AnalogController({
+    required this.onJoystickUpdate,
+    required this.onJumpPressed,
+  });
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // ✅ JOYSTICK (Kiri Bawah) - Syntax Flame Terbaru
+    size = Vector2(1280, 720);
+    position = Vector2.zero();
+
     joystick = JoystickComponent(
       knob: CircleComponent(
-        radius: 30,
+        radius: 40,
         paint: Paint()..color = Colors.amber.withOpacity(0.9),
       ),
       background: CircleComponent(
-        radius: 70,
+        radius: 90,
         paint: Paint()..color = Colors.white.withOpacity(0.3),
       ),
-      margin: const EdgeInsets.only(left: 60, bottom: 60),
+      margin: const EdgeInsets.only(left: 50, bottom: 50),
     );
     add(joystick);
 
-    // ✅ TOMBOL LOMPAT (Kanan Bawah)
     jumpButton = ButtonComponent(
       button: CircleComponent(
-        radius: 45,
+        radius: 60,
         paint: Paint()..color = Colors.amber.withOpacity(0.9),
       ),
       buttonDown: CircleComponent(
-        radius: 45,
+        radius: 60,
         paint: Paint()..color = Colors.orange.withOpacity(0.9),
       ),
-      position: Vector2(gameRef.size.x - 105, gameRef.size.y - 105),
+      position: Vector2(1160, 600),
       anchor: Anchor.center,
       onPressed: onJumpPressed,
     );
 
-    // Icon panah di tombol
+    // ✅ UBAH: Segitiga langsung Hitam Legam!
     jumpButton.add(
-      TextComponent(
-        text: '▲',
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        anchor: Anchor.center,
-      ),
+      PolygonComponent([
+        Vector2(60, 32),
+        Vector2(35, 78),
+        Vector2(85, 78),
+      ], paint: Paint()..color = Colors.black),
     );
     add(jumpButton);
   }
@@ -64,8 +62,6 @@ class GameHud extends Component with HasGameRef {
   @override
   void update(double dt) {
     super.update(dt);
-
-    // ✅ Kirim delta joystick ke player (sesuai tutorial Gemini)
     if (!joystick.delta.isZero()) {
       onJoystickUpdate(joystick.delta);
     } else {

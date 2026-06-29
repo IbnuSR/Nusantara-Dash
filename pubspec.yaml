@@ -4,44 +4,35 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.8
+  sdk: ^3.5.0
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  
-  # 🎮 Game Engine
   flame: ^1.35.1
-  
-  # 💾 Save Data Lokal
   shared_preferences: ^2.5.5
-  
-  # 🎬 Video Player
   video_player: ^2.8.1
-
-  # 🎵 Audio
   audioplayers: ^6.1.0
-  
-  # 🔤 Font
   google_fonts: ^6.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  # ✅ Tambahkan package icon di sini
   flutter_launcher_icons: "^0.14.2"
 
 flutter:
   uses-material-design: true
   
+  # ✅ PERBAIKAN: Path asset KONSISTEN dengan lokasi fisik
   assets:
+    - assets/audio/bgm/           # ✅ Tambahkan prefix 'assets/'
+    - assets/audio/sfx/           # ✅ Tambahkan prefix 'assets/'
     - assets/images/player/
     - assets/images/boss/final/
     - assets/images/boss/mini/
     - assets/videos/
-    - assets/audio/bgm/
     - assets/images/background/
     - assets/images/obstacles/
     - assets/images/items/
@@ -51,7 +42,6 @@ flutter:
     - assets/data/province_config.json
     - assets/data/weapon_data.json
 
-# ✅ Konfigurasi Icon (Blok ini harus di paling bawah)
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true

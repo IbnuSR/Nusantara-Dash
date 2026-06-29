@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'map_selection/map_screen.dart';
 import 'prologue_screen.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
+import 'package:nusantara_dash/utils/audio_manager.dart';
 import 'package:nusantara_dash/game/features/shop/shop_screen.dart';
 import 'package:nusantara_dash/screens/settings/settings_screen.dart';
 
@@ -15,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isMusicPlaying = false;
   late AnimationController _titleController;
   late AnimationController _buttonController;
@@ -27,7 +26,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _initAnimations();
     _playBGM();
-    // ✅ BERSIH TOTAL: Tidak ada lagi fungsi otomatis jalan di sini!
   }
 
   void _initAnimations() {
@@ -57,27 +55,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  // ✅ PERBAIKAN: Path BGM TANPA prefix 'assets/'
   Future<void> _playBGM() async {
     try {
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-      await _audioPlayer.setVolume(0.5);
-      await _audioPlayer.play(AssetSource('audio/bgm/main_menu.mp3'));
-      setState(() => _isMusicPlaying = true);
+      print('🎵 Loading BGM...');
+      // ✅ Path yang benar: 'audio/bgm/main_menu.mp3' (tanpa 'assets/')
+      await AudioManager.instance.playBGM('audio/bgm/main_menu.mp3');
+
+      setState(() {
+        _isMusicPlaying = AudioManager.instance.isBGMEnabled;
+      });
+      print('✅ BGM started via AudioManager');
     } catch (e) {
-      print('Error playing BGM: $e');
+      print('❌ Error playing BGM: $e');
     }
   }
 
   Future<void> _toggleMusic() async {
-    if (_isMusicPlaying) {
-      await _audioPlayer.pause();
-    } else {
-      await _audioPlayer.resume();
-    }
-    setState(() => _isMusicPlaying = !_isMusicPlaying);
+    await AudioManager.instance.toggleBGM();
+    setState(() {
+      _isMusicPlaying = AudioManager.instance.isBGMEnabled;
+    });
   }
 
-  // ✅ INI SATU-SATUNYA PINTU MENUJU PROLOG SEKARANG:
   void _handleStartGame() async {
     bool hasWatched = await GamePrefs.hasWatchedPrologue();
 
@@ -100,12 +100,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SettingsScreen()),
-    );
+    ).then((_) {
+      if (mounted) {
+        setState(() {
+          _isMusicPlaying = AudioManager.instance.isBGMEnabled;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
     _titleController.dispose();
     _buttonController.dispose();
     super.dispose();
@@ -217,13 +222,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               style: GoogleFonts.pressStart2p(
                 fontSize: 32,
                 color: const Color(0xFFFFB300),
-                shadows: [
-                  const Shadow(
+                shadows: const [
+                  Shadow(
                     color: Colors.black,
                     offset: Offset(3, 3),
                     blurRadius: 5,
                   ),
-                  const Shadow(
+                  Shadow(
                     color: Color(0xFFFF6F00),
                     offset: Offset(0, 0),
                     blurRadius: 10,
@@ -237,8 +242,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               style: GoogleFonts.pressStart2p(
                 fontSize: 12,
                 color: Colors.white,
-                shadows: [
-                  const Shadow(
+                shadows: const [
+                  Shadow(
                     color: Colors.black,
                     offset: Offset(2, 2),
                     blurRadius: 3,
@@ -368,8 +373,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               style: GoogleFonts.pressStart2p(
                 fontSize: 14,
                 color: Colors.white,
-                shadows: [
-                  const Shadow(
+                shadows: const [
+                  Shadow(
                     color: Colors.black,
                     offset: Offset(2, 2),
                     blurRadius: 3,

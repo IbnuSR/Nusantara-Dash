@@ -1,17 +1,19 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GamePrefs {
+  // Keys
   static const String _prologueKey = 'has_watched_prologue';
-  static const String _controlTypeKey = 'control_type'; // 'analog' atau 'arrow'
+  static const String _controlTypeKey = 'control_type';
   static const String _musicVolumeKey = 'music_volume';
+  static const String _sfxVolumeKey = 'sfx_volume';
+  static const String _musicEnabledKey = 'music_enabled';
+  static const String _sfxEnabledKey = 'sfx_enabled';
   static const String _coinsKey = 'nusantara_dash_coins';
-  static const String _livesKey =
-      'nusantara_dash_lives'; // ✅ Kunci penyimpanan nyawa
-  static const String _cluesKey =
-      'nusantara_dash_clues'; // ✅ Kunci penyimpanan clue
+  static const String _livesKey = 'nusantara_dash_lives';
+  static const String _cluesKey = 'nusantara_dash_clues';
   static const String _unlockedIslandsKey = 'nusantara_dash_unlocked';
 
-  // 🎬 Prologue
+  // ===== 🎬 PROLOGUE =====
   static Future<bool> hasWatchedPrologue() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_prologueKey) ?? false;
@@ -27,7 +29,7 @@ class GamePrefs {
     await prefs.remove(_prologueKey);
   }
 
-  // 🎮 CONTROL TYPE: 'analog' atau 'arrow'
+  // ===== 🎮 CONTROL TYPE =====
   static Future<String> getControlType() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_controlTypeKey) ?? 'analog';
@@ -38,10 +40,10 @@ class GamePrefs {
     await prefs.setString(_controlTypeKey, type);
   }
 
-  // 🎵 MUSIC VOLUME: 0.0 - 1.0
+  // ===== 🎵 MUSIC VOLUME (✅ DEFAULT 100%) =====
   static Future<double> getMusicVolume() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble(_musicVolumeKey) ?? 0.5;
+    return prefs.getDouble(_musicVolumeKey) ?? 1.0; // ✅ 0.5 → 1.0
   }
 
   static Future<void> setMusicVolume(double volume) async {
@@ -49,11 +51,52 @@ class GamePrefs {
     await prefs.setDouble(_musicVolumeKey, volume);
   }
 
-  // 🪙 Koin
+  // ===== 🔊 SFX VOLUME (✅ DEFAULT 100%) =====
+  static Future<double> getSFXVolume() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_sfxVolumeKey) ?? 1.0; // ✅ 0.7 → 1.0
+  }
+
+  static Future<void> setSFXVolume(double volume) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_sfxVolumeKey, volume);
+  }
+
+  // ===== 🎵 MUSIC ENABLED TOGGLE =====
+  static Future<bool> isMusicEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_musicEnabledKey) ?? true;
+  }
+
+  static Future<void> setMusicEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_musicEnabledKey, enabled);
+  }
+
+  // ===== 🔊 SFX ENABLED TOGGLE =====
+  static Future<bool> isSFXEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_sfxEnabledKey) ?? true;
+  }
+
+  static Future<void> setSFXEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_sfxEnabledKey, enabled);
+  }
+
+  // ===== 🔄 RESET AUDIO SETTINGS (✅ BARU) =====
+  static Future<void> resetAudioSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_musicVolumeKey, 1.0);
+    await prefs.setDouble(_sfxVolumeKey, 1.0);
+    await prefs.setBool(_musicEnabledKey, true);
+    await prefs.setBool(_sfxEnabledKey, true);
+  }
+
+  // ===== 🪙 KOIN =====
   static Future<int> getCoins() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_coinsKey) ??
-        500; // ✅ Modal awal 500 koin untuk testing toko
+    return prefs.getInt(_coinsKey) ?? 500;
   }
 
   static Future<void> saveCoins(int coins) async {
@@ -66,7 +109,6 @@ class GamePrefs {
     await saveCoins(current + amount);
   }
 
-  // ✅ FUNGSI BARU: Untuk memotong koin saat belanja di Toko
   static Future<bool> spendCoins(int amount) async {
     final current = await getCoins();
     if (current >= amount) {
@@ -76,10 +118,10 @@ class GamePrefs {
     return false;
   }
 
-  // ❤️ Nyawa Cadangan (Lives) - ✅ INI YANG BIKIN ERROR TADI!
+  // ===== ❤️ NYAWA =====
   static Future<int> getExtraLives() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_livesKey) ?? 3; // ✅ Default dikasih 3 nyawa
+    return prefs.getInt(_livesKey) ?? 3;
   }
 
   static Future<void> addExtraLife() async {
@@ -96,7 +138,7 @@ class GamePrefs {
     }
   }
 
-  // 💡 Bantuan Kuis (Clues) - ✅ DISIAPKAN UNTUK TOKO
+  // ===== 💡 CLUE =====
   static Future<int> getClues() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_cluesKey) ?? 0;
@@ -116,7 +158,7 @@ class GamePrefs {
     }
   }
 
-  // 🏝️ Unlocked Islands
+  // ===== 🏝️ UNLOCKED ISLANDS =====
   static Future<List<String>> getUnlockedIslands() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getStringList(_unlockedIslandsKey) ?? ['SUMATRA'];

@@ -27,22 +27,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _initAnimations();
     _playBGM();
-    _checkFirstTimeLaunch();
-  }
-
-  Future<void> _checkFirstTimeLaunch() async {
-    final hasWatched = await GamePrefs.hasWatchedPrologue();
-
-    if (!hasWatched && mounted) {
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PrologueScreen()),
-          );
-        }
-      });
-    }
+    // ✅ BERSIH TOTAL: Tidak ada lagi fungsi otomatis jalan di sini!
   }
 
   void _initAnimations() {
@@ -92,11 +77,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() => _isMusicPlaying = !_isMusicPlaying);
   }
 
-  void _handleStartGame() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const MapScreen()),
-    );
+  // ✅ INI SATU-SATUNYA PINTU MENUJU PROLOG SEKARANG:
+  void _handleStartGame() async {
+    bool hasWatched = await GamePrefs.hasWatchedPrologue();
+
+    if (!mounted) return;
+
+    if (hasWatched) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const MapScreen()),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const PrologueScreen()),
+      );
+    }
   }
 
   void _handleOpenSettings() {
@@ -144,11 +141,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 },
               ),
             ),
-
             Positioned.fill(
               child: Container(color: Colors.black.withOpacity(0.3)),
             ),
-
             SafeArea(
               child: Column(
                 children: [
@@ -189,7 +184,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-
           GestureDetector(
             onTap: _toggleMusic,
             child: Container(

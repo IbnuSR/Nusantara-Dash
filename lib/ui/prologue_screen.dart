@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'map_selection/map_screen.dart';
+import 'package:nusantara_dash/utils/game_prefs.dart'; // ✅ WAJIB DI-IMPORT
 
 class PrologueScreen extends StatefulWidget {
   const PrologueScreen({super.key});
@@ -36,7 +37,7 @@ class _PrologueScreenState extends State<PrologueScreen> {
             // Auto-navigate when video ends
             _controller.addListener(() {
               if (_controller.value.position >= _controller.value.duration) {
-                _finishPrologue();
+                _finishPrologue(); // Panggil fungsi selesai
               }
             });
           })
@@ -49,11 +50,12 @@ class _PrologueScreenState extends State<PrologueScreen> {
           });
   }
 
-  // ✅ FIX: udah gak nyimpen flag 'has_watched_prologue' lagi.
-  // HomeScreen sekarang selalu nampilin layar ini setiap MULAI ditekan,
-  // jadi gak ada lagi state yang bisa "nyangkut" dan bikin video keskip
-  // di run-run berikutnya. Tombol SKIP di atas udah cukup buat repeat player.
-  void _finishPrologue() {
+  // ✅ FIX: Wajib panggil fungsi simpan memori agar tidak berulang!
+  Future<void> _finishPrologue() async {
+    // 1. Simpan tanda "SUDAH NONTON" ke SharedPreferences
+    await GamePrefs.markPrologueWatched();
+
+    // 2. Lempar ke Map Screen
     if (mounted) {
       Navigator.pushReplacement(
         context,
@@ -83,7 +85,7 @@ class _PrologueScreenState extends State<PrologueScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _finishPrologue();
+              _finishPrologue(); // Langsung anggap sudah selesai!
             },
             child: const Text('SKIP', style: TextStyle(color: Colors.amber)),
           ),
@@ -137,7 +139,7 @@ class _PrologueScreenState extends State<PrologueScreen> {
             ),
           ),
 
-          // Skip button (muncul setelah 5 detik)
+          // Skip button
           if (_showSkipButton)
             Positioned(
               top: 20,

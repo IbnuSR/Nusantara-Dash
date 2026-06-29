@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -39,14 +40,14 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _initAnimations() {
-    // Logo scale animation (bounce effect)
+    // Efek mantul ala game retro
     _logoController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
     _logoScale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 40),
-      TweenSequenceItem(tween: Tween(begin: 1.2, end: 0.95), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.1), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.1, end: 0.95), weight: 20),
       TweenSequenceItem(tween: Tween(begin: 0.95, end: 1.0), weight: 40),
     ]).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOut));
 
@@ -55,17 +56,16 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
 
-    // Glow pulse animation (infinite loop)
+    // Glow pulse (Berkedip untuk loading)
     _glowController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     )..repeat(reverse: true);
 
-    _glowPulse = Tween<double>(begin: 0.3, end: 1.0).animate(
+    _glowPulse = Tween<double>(begin: 0.2, end: 1.0).animate(
       CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
     );
 
-    // Text animation
     _textController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -75,7 +75,6 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _textController, curve: Curves.easeIn));
 
-    // Transition animation
     _transitionController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -84,7 +83,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _transitionController, curve: Curves.easeInOut),
     );
 
-    // Particle animation
     _particleController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -95,16 +93,13 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _startSequence() {
-    // Phase 1: Team Logo appears
     _logoController.forward();
     _particleController.forward();
 
-    // Phase 2: Text appears
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) _textController.forward();
     });
 
-    // Phase 3: Transition to Game Logo
     Future.delayed(const Duration(milliseconds: 3500), () {
       if (mounted) {
         _transitionController.forward();
@@ -126,8 +121,8 @@ class _SplashScreenState extends State<SplashScreen>
       }
     });
 
-    // Phase 4: Navigate to Home
-    Future.delayed(const Duration(milliseconds: 6500), () {
+    // Pindah ke menu utama
+    Future.delayed(const Duration(milliseconds: 7000), () {
       if (mounted) _navigateToHome();
     });
   }
@@ -158,12 +153,12 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF0D1B2A), // Warna dasar dark retro
       body: Stack(
         fit: StackFit.expand,
         children: [
-          _buildAnimatedBackground(),
-          _buildParticles(),
+          _buildPixelGridBackground(),
+          _buildPixelParticles(),
           Center(
             child: AnimatedBuilder(
               animation: _transitionController,
@@ -177,51 +172,45 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
           Positioned(
-            bottom: 40,
+            bottom: 30,
             left: 0,
             right: 0,
-            child: _buildLoadingIndicator(),
+            child: _buildBlinkingLoading(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAnimatedBackground() {
-    return AnimatedBuilder(
-      animation: _glowController,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.center,
-              radius: 1.5,
-              colors: [
-                Colors.blue.shade900.withOpacity(
-                  0.3 + (_glowPulse.value * 0.2),
-                ),
-                Colors.indigo.shade900.withOpacity(0.5),
-                Colors.purple.shade900.withOpacity(0.7),
-                Colors.black,
-              ],
-            ),
-          ),
-        );
-      },
+  // ✅ BACKGROUND: Garis ala scanline TV Tabung Retro
+  Widget _buildPixelGridBackground() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFF000000),
+            const Color(0xFF0B192C),
+            const Color(0xFF1B2845),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildParticles() {
+  // ✅ PARTICLES: Diganti jadi kotak (Pixel) tajam tanpa blur!
+  Widget _buildPixelParticles() {
     return AnimatedBuilder(
       animation: _particleController,
       builder: (context, child) {
         return Stack(
-          children: List.generate(30, (index) {
+          children: List.generate(40, (index) {
             final random = Random(index);
             final delay = random.nextDouble() * 2;
-            final size = 2.0 + random.nextDouble() * 4;
-            final dx = (random.nextDouble() - 0.5) * 400;
-            final dy = (random.nextDouble() - 0.5) * 600;
+            final size = 4.0 + random.nextDouble() * 6; // Piksel lebih besar
+            final dx = (random.nextDouble() - 0.5) * 600;
+            final dy = (random.nextDouble() - 0.5) * 800;
 
             return TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
@@ -233,21 +222,16 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Opacity(
                     opacity: (1.0 - value) * _particleFade.value,
                     child: Container(
-                      width: size * (1 + value),
-                      height: size * (1 + value),
+                      width: size,
+                      height: size,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
                         color: _showTeamLogo
-                            ? Colors.amber.withOpacity(0.8)
-                            : Colors.orange.withOpacity(0.8),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                (_showTeamLogo ? Colors.amber : Colors.orange)
-                                    .withOpacity(0.5 * (1 - value)),
-                            blurRadius: 10,
-                          ),
-                        ],
+                            ? Colors.redAccent.withOpacity(0.8)
+                            : Colors.amber.withOpacity(0.8),
+                        border: Border.all(
+                          color: Colors.white24,
+                          width: 1,
+                        ), // Garis pixel
                       ),
                     ),
                   ),
@@ -264,55 +248,46 @@ class _SplashScreenState extends State<SplashScreen>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Team Logo
         ScaleTransition(
           scale: _logoScale,
           child: FadeTransition(
             opacity: _logoFade,
-            child: AnimatedBuilder(
-              animation: _glowController,
-              builder: (context, child) {
-                return Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.amber, width: 4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.amber.withOpacity(0.5 * _glowPulse.value),
-                        blurRadius: 30 * _glowPulse.value,
-                        spreadRadius: 5 * _glowPulse.value,
-                      ),
-                      BoxShadow(
-                        color: Colors.red.withOpacity(0.3 * _glowPulse.value),
-                        blurRadius: 50 * _glowPulse.value,
-                        spreadRadius: 10 * _glowPulse.value,
-                      ),
-                    ],
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                color: Colors.black, // ✅ FIX: Diubah jadi hitam legam!
+                border: Border.all(
+                  color: Colors.white,
+                  width: 4,
+                ), // Bingkai tajam
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color.fromARGB(255, 1, 0, 0),
+                    offset: Offset(4, 4), // Hard shadow ala pixel
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/ui/team_logo.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.red,
-                          child: const Center(
-                            child: Text('🔴', style: TextStyle(fontSize: 80)),
-                          ),
-                        );
-                      },
+                ],
+              ),
+              child: Image.asset(
+                'assets/images/ui/team_logo.png',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Text(
+                      'R U',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),
         const SizedBox(height: 30),
-
-        // ✅ TEAM NAME - FIXED (pakai 2 Shadow untuk efek glow)
         SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(0, 0.5),
@@ -320,56 +295,24 @@ class _SplashScreenState extends State<SplashScreen>
           ).animate(_textController),
           child: FadeTransition(
             opacity: _textFade,
-            child: const Text(
+            child: Text(
               'RED UNION',
-              style: TextStyle(
-                color: Colors.amber,
-                fontWeight: FontWeight.bold,
-                fontSize: 36,
-                letterSpacing: 5,
-                shadows: [
-                  // Shadow 1: Glow effect (blur besar)
-                  Shadow(color: Colors.amber, blurRadius: 25),
-                  // Shadow 2: Outline effect (blur kecil)
-                  Shadow(color: Colors.amber, blurRadius: 5),
-                  // Shadow 3: Dark outline
-                  Shadow(
-                    color: Colors.black,
-                    blurRadius: 10,
-                    offset: Offset(3, 3),
-                  ),
+              style: GoogleFonts.pressStart2p(
+                color: Colors.white,
+                fontSize: 20,
+                shadows: const [
+                  Shadow(color: Colors.red, offset: Offset(3, 3)),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
-
-        // Tagline
-        SlideTransition(
-          position: Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero)
-              .animate(
-                CurvedAnimation(
-                  parent: _textController,
-                  curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
-                ),
-              ),
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-              CurvedAnimation(
-                parent: _textController,
-                curve: const Interval(0.3, 1.0, curve: Curves.easeIn),
-              ),
-            ),
-            child: Text(
-              'G A M E   S T U D I O',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 14,
-                letterSpacing: 3,
-                fontWeight: FontWeight.w300,
-              ),
-            ),
+        const SizedBox(height: 15),
+        FadeTransition(
+          opacity: _textFade,
+          child: Text(
+            'G A M E   S T U D I O',
+            style: GoogleFonts.pressStart2p(color: Colors.white70, fontSize: 8),
           ),
         ),
       ],
@@ -380,104 +323,59 @@ class _SplashScreenState extends State<SplashScreen>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Game Icon
         ScaleTransition(
           scale: _logoScale,
           child: FadeTransition(
             opacity: _logoFade,
-            child: AnimatedBuilder(
-              animation: _glowController,
-              builder: (context, child) {
-                return Container(
-                  padding: const EdgeInsets.all(25),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.amber, width: 4),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.amber.withOpacity(0.6 * _glowPulse.value),
-                        blurRadius: 30 * _glowPulse.value,
-                        spreadRadius: 5 * _glowPulse.value,
-                      ),
-                      BoxShadow(
-                        color: Colors.orange.withOpacity(
-                          0.4 * _glowPulse.value,
-                        ),
-                        blurRadius: 50 * _glowPulse.value,
-                        spreadRadius: 10 * _glowPulse.value,
-                      ),
-                    ],
+            child: Container(
+              width: 320, // Diperbesar supaya art-nya kelihatan
+              height: 320,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white,
+                  width: 6,
+                ), // Bingkai pixel tajam
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.amber,
+                    offset: Offset(8, 8), // Hard shadow arcade
                   ),
-                  child: const Text('🏃‍♂️', style: TextStyle(fontSize: 90)),
-                );
-              },
+                ],
+              ),
+              // ✅ MEMANGGIL LOGO BARUMU:
+              child: Image.asset(
+                'assets/images/ui/nusantara_logo.jpg',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[800],
+                    child: const Center(
+                      child: Text(
+                        '❌ GAMBAR TIDAK DITEMUKAN',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 40),
-
-        // ✅ GAME TITLE - FIXED (pakai 2 Shadow untuk efek glow)
+        const SizedBox(height: 30),
         SlideTransition(
           position: Tween<Offset>(
-            begin: const Offset(0, -0.5),
+            begin: const Offset(0, 0.5),
             end: Offset.zero,
           ).animate(_textController),
           child: FadeTransition(
             opacity: _textFade,
-            child: const Text(
-              'NUSANTARA DASH',
-              style: TextStyle(
-                fontSize: 42,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 4,
-                shadows: [
-                  // Shadow 1: Glow effect (blur besar)
-                  Shadow(color: Colors.amber, blurRadius: 20),
-                  // Shadow 2: Outline glow (blur kecil)
-                  Shadow(color: Colors.amber, blurRadius: 5),
-                  // Shadow 3: Dark outline
-                  Shadow(
-                    color: Colors.black,
-                    blurRadius: 10,
-                    offset: Offset(3, 3),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 15),
-
-        // Subtitle
-        SlideTransition(
-          position: Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero)
-              .animate(
-                CurvedAnimation(
-                  parent: _textController,
-                  curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
-                ),
-              ),
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-              CurvedAnimation(
-                parent: _textController,
-                curve: const Interval(0.3, 1.0, curve: Curves.easeIn),
-              ),
-            ),
             child: Text(
               'Guardians of the Archipelago',
-              style: TextStyle(
-                fontSize: 16,
+              style: GoogleFonts.pressStart2p(
+                fontSize: 10,
                 color: Colors.amber.shade200,
-                fontStyle: FontStyle.italic,
-                letterSpacing: 2,
-                shadows: [
-                  Shadow(
-                    color: Colors.black,
-                    blurRadius: 5,
-                    offset: const Offset(2, 2),
-                  ),
+                shadows: const [
+                  Shadow(color: Colors.black, offset: Offset(2, 2)),
                 ],
               ),
             ),
@@ -487,29 +385,31 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildLoadingIndicator() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 28,
-          height: 28,
-          child: CircularProgressIndicator(
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-            strokeWidth: 3,
+  // ✅ LOADING: Efek Berkedip ala "INSERT COIN" mesin Ding-dong
+  Widget _buildBlinkingLoading() {
+    return AnimatedBuilder(
+      animation: _glowController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _glowPulse.value, // Membuat efek kelap-kelip
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _showTeamLogo ? 'LOADING...' : 'PRESS START...',
+                style: GoogleFonts.pressStart2p(
+                  color: Colors.white,
+                  fontSize: 12,
+                  letterSpacing: 2,
+                  shadows: const [
+                    Shadow(color: Colors.black, offset: Offset(2, 2)),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(width: 15),
-        Text(
-          'Loading...',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
-            fontSize: 14,
-            letterSpacing: 2,
-            fontWeight: FontWeight.w300,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

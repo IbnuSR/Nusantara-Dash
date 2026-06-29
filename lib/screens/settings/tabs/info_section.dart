@@ -11,10 +11,6 @@ class InfoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '👥 RED UNION',
-            style: GoogleFonts.pressStart2p(fontSize: 14, color: Colors.amber),
-          ),
           const SizedBox(height: 8),
           Text(
             'Tim Developer di balik Nusantara Dash',
@@ -22,7 +18,7 @@ class InfoSection extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Red Union Logo & Info
+          // Logo Red Union
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -32,25 +28,26 @@ class InfoSection extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // Logo Red Union
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE53935),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFE53935).withOpacity(0.5),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.shield,
-                    size: 60,
-                    color: Colors.white,
+                // Logo Image atau Icon
+                ClipOval(
+                  child: Image.asset(
+                    'assets/images/team/dev_logo.png',
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback ke icon kalau gambar tidak ada
+                      return Container(
+                        width: 100,
+                        height: 100,
+                        color: const Color(0xFFE53935),
+                        child: const Icon(
+                          Icons.shield,
+                          size: 60,
+                          color: Colors.white,
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -76,37 +73,37 @@ class InfoSection extends StatelessWidget {
           const SizedBox(height: 32),
 
           Text(
-            '👨‍💻 ANGGOTA TIM',
+            '👨‍ ANGGOTA TIM',
             style: GoogleFonts.pressStart2p(fontSize: 12, color: Colors.amber),
           ),
           const SizedBox(height: 16),
 
           // Member 1
           _buildTeamMember(
-            name: 'Nama Anggota 1',
+            name: 'M. Masrukhin Ferdian',
             role: 'Lead Developer',
-            instagram: '@username1',
-            photoAsset: 'assets/images/team/member1.png',
+            instagram: '@....',
+            photoAsset: 'assets/images/team/member2.jpeg',
             color: const Color(0xFF4CAF50),
           ),
           const SizedBox(height: 16),
 
           // Member 2
           _buildTeamMember(
-            name: 'Nama Anggota 2',
+            name: 'Ibnu Sabilul Rosad',
             role: 'UI/UX Designer',
-            instagram: '@username2',
-            photoAsset: 'assets/images/team/member2.png',
+            instagram: '@ibnu_s.r',
+            photoAsset: 'assets/images/team/member1.jpeg',
             color: const Color(0xFF2196F3),
           ),
           const SizedBox(height: 16),
 
           // Member 3
           _buildTeamMember(
-            name: 'Nama Anggota 3',
+            name: 'M. Iqbal Rakha',
             role: 'Game Artist',
-            instagram: '@username3',
-            photoAsset: 'assets/images/team/member3.png',
+            instagram: '@iqbalrakha',
+            photoAsset: 'assets/images/team/member3.jpeg',
             color: const Color(0xFF9C27B0),
           ),
 
@@ -187,23 +184,22 @@ class InfoSection extends StatelessWidget {
       child: Row(
         children: [
           // Photo/Avatar
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color, width: 2),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                photoAsset,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(Icons.person, size: 40, color: color);
-                },
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              photoAsset,
+              width: 70,
+              height: 70,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback ke icon kalau gambar tidak ada
+                return Container(
+                  width: 70,
+                  height: 70,
+                  color: color.withOpacity(0.3),
+                  child: Icon(Icons.person, size: 40, color: color),
+                );
+              },
             ),
           ),
           const SizedBox(width: 16),
@@ -231,7 +227,7 @@ class InfoSection extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.link, size: 14, color: Colors.pink),
+                    Icon(Icons.photo_camera, size: 14, color: Colors.pink),
                     const SizedBox(width: 4),
                     Text(
                       instagram,

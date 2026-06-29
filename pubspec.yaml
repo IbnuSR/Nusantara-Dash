@@ -9,63 +9,51 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   cupertino_icons: ^1.0.8
   
   # 🎮 Game Engine
   flame: ^1.35.1
   
-  # 💾 Save Data Lokal (progres pulau, kunci, koin, status prologue)
+  # 💾 Save Data Lokal
   shared_preferences: ^2.5.5
   
-  # 🎬 Video Player (untuk cutscene & prologue)
+  # 🎬 Video Player
   video_player: ^2.8.1
 
-  # 🎵 Audio (BGM & SFX)
+  # 🎵 Audio
   audioplayers: ^6.1.0
   
-  # 🔤 Font (untuk pixel font game)
+  # 🔤 Font
   google_fonts: ^6.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  # ✅ Tambahkan package icon di sini
+  flutter_launcher_icons: "^0.14.2"
 
 flutter:
   uses-material-design: true
   
   assets:
-    # 👤 Player sprites
     - assets/images/player/
-    
-    # 👹 Boss sprites
     - assets/images/boss/final/
     - assets/images/boss/mini/
-    
-    # 🎬 Video cutscene & prologue
     - assets/videos/
-    
-    # 🎵 Background Music
     - assets/audio/bgm/
-
-    # 🏞️ Background pulau
     - assets/images/background/
-    
-    # 🚧 Obstacles (rintangan)
     - assets/images/obstacles/
-    
-    # 🎁 Items (koin, kunci, nyawa, clue)
     - assets/images/items/
-    
-    # ⚔️ Weapons (senjata karakter)
     - assets/images/weapons/
-    
-    # 🖼️ UI (tombol, icon, background menu)
     - assets/images/ui/
-
-    
-    # 📊 Data JSON (kuis, provinsi, senjata)
     - assets/data/quiz_data.json
     - assets/data/province_config.json
     - assets/data/weapon_data.json
+
+# ✅ Konfigurasi Icon (Blok ini harus di paling bawah)
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/ui/nusantara_logo.jpg"
+  min_sdk_android: 21

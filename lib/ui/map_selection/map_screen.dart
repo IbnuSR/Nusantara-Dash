@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../prologue_screen.dart';
-import '../../game/game_screen.dart'; // ✅ TAMBAHKAN IMPORT INI
+import '../../game/game_screen.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -15,7 +15,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   late Animation<double> _pulseAnimation;
   late Animation<double> _fadeInAnimation;
 
-  // Data 5 Pulau dengan posisi relatif di peta Indonesia
+  // ✅ POSISI DIPERBAIKI sesuai peta pixel art Indonesia
   final List<Map<String, dynamic>> _islands = [
     {
       'name': 'SUMATRA',
@@ -28,8 +28,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'unlocked': true,
       'completed': false,
       'description': 'Hutan lebat penuh misteri, tempat Sang Belang mengaum',
-      'x': 0.18,
-      'y': 0.40,
+      'x': 0.15, // ✅ Barat laut
+      'y': 0.35,
       'size': 90.0,
     },
     {
@@ -43,8 +43,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'unlocked': false,
       'completed': false,
       'description': 'Gunung berapi yang mengamuk, rumah Buto Amuka',
-      'x': 0.35,
-      'y': 0.68,
+      'x': 0.35, // ✅ Selatan, tengah
+      'y': 0.60,
       'size': 75.0,
     },
     {
@@ -58,8 +58,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'unlocked': false,
       'completed': false,
       'description': 'Hutan belantara tempat Enggang Gading menebar racun',
-      'x': 0.48,
-      'y': 0.38,
+      'x': 0.50, // ✅ Tengah utara
+      'y': 0.35,
       'size': 95.0,
     },
     {
@@ -73,8 +73,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'unlocked': false,
       'completed': false,
       'description': 'Perairan luas tempat Naga Phinisi menguasai lautan',
-      'x': 0.65,
-      'y': 0.48,
+      'x': 0.68, // ✅ Timur tengah
+      'y': 0.45,
       'size': 80.0,
     },
     {
@@ -88,8 +88,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'unlocked': false,
       'completed': false,
       'description': 'Puncak Jayawijaya tempat Sang Cendrawasih menebar ilusi',
-      'x': 0.83,
-      'y': 0.45,
+      'x': 0.85, // ✅ Timur jauh
+      'y': 0.40,
       'size': 90.0,
     },
   ];
@@ -148,16 +148,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         ),
         child: Stack(
           children: [
-            _buildMapBackground(),
+            // ✅ BACKGROUND PETA PIXEL ART INDONESIA
+            _buildPixelArtMapBackground(),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.2),
                     Colors.transparent,
-                    Colors.black.withOpacity(0.5),
+                    Colors.black.withOpacity(0.4),
                   ],
                 ),
               ),
@@ -173,7 +174,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         builder: (context, constraints) {
                           return Stack(
                             children: [
-                              _buildIndonesiaMap(constraints),
                               ..._islands.map(
                                 (island) => _buildIslandHotspot(
                                   island,
@@ -198,58 +198,27 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildMapBackground() {
-    return Stack(
-      children: [
-        Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.center,
-              radius: 1.5,
-              colors: [Color(0xFF1A3A5C), Color(0xFF0A1929)],
+  // ✅ BACKGROUND PETA PIXEL ART
+  Widget _buildPixelArtMapBackground() {
+    return Positioned.fill(
+      child: Image.asset(
+        'assets/images/ui/indonesia_map_pixel.png', // ✅ Path ke gambar peta
+        fit: BoxFit.contain,
+        alignment: Alignment.center,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback jika gambar tidak ditemukan
+          return Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 1.5,
+                colors: [Color(0xFF1A3A5C), Color(0xFF0A1929)],
+              ),
             ),
-          ),
-        ),
-        CustomPaint(size: Size.infinite, painter: _OceanPatternPainter()),
-        ...List.generate(20, (index) {
-          return TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.0, end: 1.0),
-            duration: Duration(seconds: 3 + (index % 5)),
-            builder: (context, value, child) {
-              return Positioned(
-                left:
-                    (index * 137) %
-                    MediaQuery.of(context).size.width.toDouble(),
-                top:
-                    (index * 89 + value * 100) %
-                    MediaQuery.of(context).size.height.toDouble(),
-                child: Opacity(
-                  opacity: 0.2 + (value * 0.3),
-                  child: Container(
-                    width: 3,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.amber.withOpacity(0.6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.amber.withOpacity(0.4),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
           );
-        }),
-      ],
+        },
+      ),
     );
-  }
-
-  Widget _buildIndonesiaMap(BoxConstraints constraints) {
-    return Positioned.fill(child: CustomPaint(painter: _IndonesiaMapPainter()));
   }
 
   Widget _buildIslandHotspot(
@@ -586,14 +555,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
-        // ✅ Ambil tinggi layar yang tersedia (dikurangi area aman/notch)
         final screenHeight = MediaQuery.of(context).size.height;
         final safeAreaTop = MediaQuery.of(context).padding.top;
         final safeAreaBottom = MediaQuery.of(context).padding.bottom;
         final availableHeight = screenHeight - safeAreaTop - safeAreaBottom;
-
-        // ✅ Modal maksimal 85% dari tinggi layar yang tersedia,
-        // sehingga selalu ada ruang & tidak pernah overflow di HP manapun.
         final maxModalHeight = availableHeight * 0.85;
 
         return ConstrainedBox(
@@ -626,9 +591,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            // ✅ KUNCI PERBAIKAN: bungkus isi dengan scroll view
-            // supaya kalau kontennya lebih tinggi dari layar,
-            // user bisa scroll alih-alih konten kepotong/overflow.
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -704,21 +666,15 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  // ✅ TOMBOL INI YANG DIUBAH
                   if (isUnlocked)
                     ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.pop(context); // Tutup modal
-
-                        // ✅ Navigate ke GameScreen dengan nama pulau
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => GameScreen(
-                              islandName:
-                                  island['name']
-                                      as String, // 'SUMATRA', 'JAWA', dll
+                              islandName: island['name'] as String,
                             ),
                           ),
                         );
@@ -806,112 +762,4 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       ],
     );
   }
-}
-
-// Custom Painter untuk pattern ombak laut
-class _OceanPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.blue.withOpacity(0.05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    for (int i = 0; i < 10; i++) {
-      final path = Path();
-      final y = (size.height / 10) * i;
-      path.moveTo(0, y);
-      for (double x = 0; x < size.width; x += 20) {
-        path.quadraticBezierTo(
-          x + 10,
-          y + 5 * (i % 2 == 0 ? 1 : -1),
-          x + 20,
-          y,
-        );
-      }
-      canvas.drawPath(path, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// Custom Painter untuk outline peta Indonesia (simplified)
-class _IndonesiaMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.amber.withOpacity(0.15)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final fillPaint = Paint()
-      ..color = Colors.blue.withOpacity(0.1)
-      ..style = PaintingStyle.fill;
-
-    _drawIslandOutline(canvas, paint, fillPaint, size, [
-      Offset(0.10, 0.30),
-      Offset(0.22, 0.25),
-      Offset(0.25, 0.45),
-      Offset(0.20, 0.55),
-      Offset(0.12, 0.50),
-    ]);
-
-    _drawIslandOutline(canvas, paint, fillPaint, size, [
-      Offset(0.28, 0.65),
-      Offset(0.42, 0.63),
-      Offset(0.43, 0.72),
-      Offset(0.30, 0.73),
-    ]);
-
-    _drawIslandOutline(canvas, paint, fillPaint, size, [
-      Offset(0.40, 0.25),
-      Offset(0.55, 0.22),
-      Offset(0.58, 0.40),
-      Offset(0.52, 0.52),
-      Offset(0.42, 0.48),
-    ]);
-
-    _drawIslandOutline(canvas, paint, fillPaint, size, [
-      Offset(0.60, 0.35),
-      Offset(0.70, 0.32),
-      Offset(0.72, 0.50),
-      Offset(0.65, 0.55),
-      Offset(0.62, 0.45),
-    ]);
-
-    _drawIslandOutline(canvas, paint, fillPaint, size, [
-      Offset(0.75, 0.35),
-      Offset(0.90, 0.32),
-      Offset(0.92, 0.50),
-      Offset(0.85, 0.58),
-      Offset(0.77, 0.52),
-    ]);
-  }
-
-  void _drawIslandOutline(
-    Canvas canvas,
-    Paint strokePaint,
-    Paint fillPaint,
-    Size size,
-    List<Offset> points,
-  ) {
-    final path = Path();
-    final scaledPoints = points
-        .map((p) => Offset(p.dx * size.width, p.dy * size.height))
-        .toList();
-
-    path.moveTo(scaledPoints.first.dx, scaledPoints.first.dy);
-    for (int i = 1; i < scaledPoints.length; i++) {
-      path.lineTo(scaledPoints[i].dx, scaledPoints[i].dy);
-    }
-    path.close();
-
-    canvas.drawPath(path, fillPaint);
-    canvas.drawPath(path, strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

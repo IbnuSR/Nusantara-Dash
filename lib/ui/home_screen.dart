@@ -5,6 +5,7 @@ import 'prologue_screen.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
 import 'package:nusantara_dash/utils/audio_manager.dart';
 import 'package:nusantara_dash/game/features/shop/shop_screen.dart';
+import 'package:nusantara_dash/game/features/weapons/weapon_screen.dart';
 import 'package:nusantara_dash/screens/settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -55,13 +56,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  // ✅ PERBAIKAN: Path BGM TANPA prefix 'assets/'
   Future<void> _playBGM() async {
     try {
       print('🎵 Loading BGM...');
-      // ✅ Path yang benar: 'audio/bgm/main_menu.mp3' (tanpa 'assets/')
       await AudioManager.instance.playBGM('audio/bgm/main_menu.mp3');
-
       setState(() {
         _isMusicPlaying = AudioManager.instance.isBGMEnabled;
       });
@@ -107,6 +105,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         });
       }
     });
+  }
+
+  void _handleOpenWeapons() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const WeaponScreen()),
+    );
+  }
+
+  void _handleOpenShop() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ShopScreen()),
+    );
   }
 
   @override
@@ -302,14 +314,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       label: 'SENJATA',
                       icon: Icons.gavel,
                       color: const Color(0xFF9C27B0),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Gudang Senjata - Coming Soon!'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      },
+                      onTap: _handleOpenWeapons,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -318,14 +323,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       label: 'TOKO',
                       icon: Icons.shopping_cart,
                       color: const Color(0xFFFF9800),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ShopScreen(),
-                          ),
-                        );
-                      },
+                      onTap: _handleOpenShop,
                     ),
                   ),
                 ],

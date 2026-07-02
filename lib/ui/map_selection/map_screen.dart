@@ -13,29 +13,27 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   late AnimationController _fadeInController;
   late Animation<double> _fadeInAnimation;
-
-  // ✅ WIDGET ANIMASI BERDETAK (PULSE) DITAMBAHKAN
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
   final double _mapWidth = 1672.0;
   final double _mapHeight = 941.0;
 
+  // ✅ DITAMBAHKAN: 'boss_image' untuk menggantikan emoticon
   final List<Map<String, dynamic>> _islands = [
     {
       'name': 'SUMATRA',
       'subtitle': 'Rimba Harimau',
-      'icon': '🐯',
+      'icon': '🐯', // Sebagai cadangan (fallback) jika gambar belum ada
       'boss': 'Sang Belang',
       'weapon': 'Rencong Suci',
-      'color': const Color(0xFF4CAF50),
-      'accentColor': const Color(0xFF81C784),
-      'unlocked': true, // 🟢 Terbuka: Akan berdetak!
+      'unlocked': true,
       'description': 'Hutan lebat penuh misteri, tempat Sang Belang mengaum',
       'x': 0.17,
       'y': 0.40,
       'size': 260.0,
       'image_path': 'assets/images/ui/sumatra_active.png',
+      'boss_image': 'assets/images/ui/avatar_sumatra.png', // Aset baru
     },
     {
       'name': 'JAWA',
@@ -43,14 +41,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'icon': '👹',
       'boss': 'Buto Amuka',
       'weapon': 'Keris Pusaka',
-      'color': const Color(0xFF2196F3),
-      'accentColor': const Color(0xFF64B5F6),
-      'unlocked': false, // 🔴 Terkunci: Diam saja
+      'unlocked': false,
       'description': 'Gunung berapi yang mengamuk, rumah Buto Amuka',
       'x': 0.34,
       'y': 0.60,
       'size': 240.0,
       'image_path': 'assets/images/ui/jawa_locked.png',
+      'boss_image': 'assets/images/ui/avatar_jawa.png', // Aset baru
     },
     {
       'name': 'KALIMANTAN',
@@ -58,14 +55,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'icon': '🦅',
       'boss': 'Enggang Gading',
       'weapon': 'Mandau Sakti',
-      'color': const Color(0xFF9C27B0),
-      'accentColor': const Color(0xFFBA68C8),
       'unlocked': false,
       'description': 'Hutan belantara tempat Enggang Gading menebar racun',
       'x': 0.46,
       'y': 0.38,
       'size': 240.0,
       'image_path': 'assets/images/ui/kalimantan_locked.png',
+      'boss_image': 'assets/images/ui/avatar_kalimantan.png', // Aset baru
     },
     {
       'name': 'SULAWESI',
@@ -73,14 +69,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'icon': '🌊',
       'boss': 'Naga Phinisi',
       'weapon': 'Badik Keramat',
-      'color': const Color(0xFFFF9800),
-      'accentColor': const Color(0xFFFFB74D),
       'unlocked': false,
       'description': 'Perairan luas tempat Naga Phinisi menguasai lautan',
       'x': 0.65,
       'y': 0.46,
       'size': 240.0,
       'image_path': 'assets/images/ui/sulawesi_locked.png',
+      'boss_image': 'assets/images/ui/avatar_sulawesi.png', // Aset baru
     },
     {
       'name': 'PAPUA',
@@ -88,22 +83,19 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'icon': '🦜',
       'boss': 'Sang Cendrawasih',
       'weapon': 'Busur Kasuari',
-      'color': const Color(0xFFE91E63),
-      'accentColor': const Color(0xFFF06292),
       'unlocked': false,
       'description': 'Puncak Jayawijaya tempat Sang Cendrawasih menebar ilusi',
       'x': 0.85,
       'y': 0.45,
       'size': 240.0,
       'image_path': 'assets/images/ui/papua_locked.png',
+      'boss_image': 'assets/images/ui/avatar_papua.png', // Aset baru
     },
   ];
 
   @override
   void initState() {
     super.initState();
-
-    // Animasi muncul perlahan
     _fadeInController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -113,29 +105,24 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
     _fadeInController.forward();
 
-    // ✅ Inisialisasi animasi detak jantung berulang (Looping)
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
-    )..repeat(reverse: true); // Bergerak bolak-balik tanpa henti
-
-    // Efek skala: membesar sedikit (1.05) dan mengecil (0.95)
+    )..repeat(reverse: true);
     _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
     );
   }
 
   void _tontonUlangPrologue() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PrologueScreen()),
-    );
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const PrologueScreen()));
   }
 
   @override
   void dispose() {
     _fadeInController.dispose();
-    _pulseController.dispose(); // ✅ Jangan lupa dibuang agar tidak bocor memori
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -163,9 +150,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     FadeTransition(
                       opacity: _fadeInAnimation,
                       child: Stack(
-                        children: _islands.map((island) {
-                          return _buildIslandMarker(island);
-                        }).toList(),
+                        children: _islands
+                            .map((island) => _buildIslandMarker(island))
+                            .toList(),
                       ),
                     ),
                   ],
@@ -211,7 +198,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     final imagePath = island['image_path'] as String;
     final isUnlocked = island['unlocked'] as bool;
 
-    // Tombol dasarnya
     Widget islandButton = BouncyImageButton(
       width: size,
       height: size,
@@ -222,13 +208,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     return Positioned(
       left: x - size / 2,
       top: y - size / 2,
-      // ✅ LOGIKA KUNCI: Jika pulau terbuka, bungkus tombol dengan efek detak jantung!
       child: isUnlocked
-          ? ScaleTransition(
-              scale: _pulseAnimation,
-              child: islandButton,
-            )
-          : islandButton, // Kalau terkunci, biarkan diam.
+          ? ScaleTransition(scale: _pulseAnimation, child: islandButton)
+          : islandButton,
     );
   }
 
@@ -262,7 +244,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
   Widget _buildBottomInfo() {
     int pulauSelesai = 1;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Container(
@@ -272,10 +253,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           color: const Color(0xFF111111),
           border: Border.all(color: const Color(0xFFD4AF37), width: 3),
           boxShadow: const [
-            BoxShadow(
-              color: Colors.black,
-              offset: Offset(4, 4),
-            ),
+            BoxShadow(color: Colors.black, offset: Offset(4, 4))
           ],
         ),
         child: Row(
@@ -288,12 +266,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 Text(
                   'TAP PULAU',
                   style: GoogleFonts.pressStart2p(
-                    color: Colors.white,
-                    fontSize: 10,
-                    shadows: const [
-                      Shadow(color: Colors.black, offset: Offset(2, 2)),
-                    ],
-                  ),
+                      color: Colors.white,
+                      fontSize: 10,
+                      shadows: const [
+                        Shadow(color: Colors.black, offset: Offset(2, 2))
+                      ]),
                 ),
               ],
             ),
@@ -303,15 +280,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 color: const Color(0xFF2E7D32),
                 border: Border.all(color: const Color(0xFF81C784), width: 2),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black, offset: Offset(2, 2)),
+                  BoxShadow(color: Colors.black, offset: Offset(2, 2))
                 ],
               ),
               child: Text(
                 '$pulauSelesai/5 SELESAI',
-                style: GoogleFonts.pressStart2p(
-                  color: Colors.white,
-                  fontSize: 8,
-                ),
+                style:
+                    GoogleFonts.pressStart2p(color: Colors.white, fontSize: 8),
               ),
             ),
           ],
@@ -320,48 +295,43 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
+// ✅ MODAL DIROMBAK TOTAL MENJADI TEMA DARK RETRO RPG
   void _showIslandDetail(Map<String, dynamic> island) {
     final isUnlocked = island['unlocked'] as bool;
-    final color = island['color'] as Color;
-    final accentColor = island['accentColor'] as Color;
 
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
-        final screenHeight = MediaQuery.of(context).size.height;
-        final safeAreaTop = MediaQuery.of(context).padding.top;
-        final safeAreaBottom = MediaQuery.of(context).padding.bottom;
-        final availableHeight = screenHeight - safeAreaTop - safeAreaBottom;
-        final maxModalHeight = availableHeight * 0.85;
+        final availableHeight = MediaQuery.of(context).size.height -
+            MediaQuery.of(context).padding.top -
+            MediaQuery.of(context).padding.bottom;
 
         return ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxModalHeight),
+          constraints: BoxConstraints(maxHeight: availableHeight * 0.85),
           child: Container(
             margin: const EdgeInsets.all(20),
             decoration: BoxDecoration(
+              // ✅ TEMA GELAP: Gradasi Biru Dongker ke Hitam (seperti dasar laut/malam)
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  isUnlocked
-                      ? color.withOpacity(0.95)
-                      : Colors.grey[800]!.withOpacity(0.95),
-                  isUnlocked
-                      ? color.withOpacity(0.7)
-                      : Colors.grey[900]!.withOpacity(0.95),
-                ],
+                colors: isUnlocked
+                    ? [const Color(0xFF0F172A), const Color(0xFF020617)]
+                    : [Colors.grey[900]!, Colors.black],
               ),
-              borderRadius: BorderRadius.circular(24),
+              // Sudut kotak tegas khas pixel art
+              borderRadius: BorderRadius.circular(0),
+              // Bingkai emas (Amber) jika terbuka, abu-abu jika terkunci
               border: Border.all(
-                  color: isUnlocked ? Colors.amber : Colors.grey[600]!,
-                  width: 3),
-              boxShadow: [
+                color: isUnlocked ? const Color(0xFFD4AF37) : Colors.grey[700]!,
+                width: 4,
+              ),
+              boxShadow: const [
                 BoxShadow(
-                    color: (isUnlocked ? color : Colors.black).withOpacity(0.6),
-                    blurRadius: 20,
-                    spreadRadius: 3),
+                    color: Colors.black,
+                    offset: Offset(8, 8)), // Hard shadow khas retro
               ],
             ),
             child: SingleChildScrollView(
@@ -369,67 +339,96 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // WADAH GAMBAR BOS/IKON
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    width: 90,
+                    height: 90,
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withOpacity(0.6),
                       border: Border.all(
-                          color: isUnlocked ? Colors.amber : Colors.grey[600]!,
-                          width: 3),
+                        color: isUnlocked
+                            ? const Color(0xFFD4AF37)
+                            : Colors.grey[600]!,
+                        width: 3,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black, offset: Offset(4, 4)),
+                      ],
                     ),
-                    child: Text(island['icon'] as String,
-                        style: const TextStyle(fontSize: 56)),
+                    child: Image.asset(
+                      island['boss_image'] as String,
+                      fit: BoxFit
+                          .contain, // ✅ Menampilkan seluruh foto tanpa crop
+                      errorBuilder: (context, error, stackTrace) => Center(
+                        child: Text(island['icon'] as String,
+                            style: const TextStyle(fontSize: 40)),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+
+                  // NAMA PULAU (Warna Emas)
                   Text(
                     island['name'] as String,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: isUnlocked ? Colors.white : Colors.grey[400],
-                      letterSpacing: 3,
+                    style: GoogleFonts.pressStart2p(
+                      fontSize: 20,
+                      color: isUnlocked ? Colors.amber : Colors.grey[400],
                       shadows: const [
-                        Shadow(
-                            color: Colors.black,
-                            offset: Offset(2, 2),
-                            blurRadius: 5)
+                        Shadow(color: Colors.black, offset: Offset(3, 3))
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 10),
+
+                  // SUBTITLE (Warna Abu-abu Terang)
                   Text(
                     island['subtitle'] as String,
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: isUnlocked ? accentColor : Colors.grey[500],
-                        fontStyle: FontStyle.italic,
-                        letterSpacing: 2),
+                    style: GoogleFonts.pressStart2p(
+                      fontSize: 8,
+                      color: isUnlocked ? Colors.white70 : Colors.grey[600],
+                      height: 1.5,
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
+
+                  // DESKRIPSI (Warna Putih)
                   Text(
                     island['description'] as String,
-                    style: TextStyle(
-                        fontSize: 15,
-                        color: isUnlocked ? Colors.white : Colors.grey[400],
-                        height: 1.4),
+                    style: GoogleFonts.pressStart2p(
+                      fontSize: 9,
+                      color: isUnlocked ? Colors.white : Colors.grey[500],
+                      height: 1.8,
+                    ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 30),
+
+                  // INFO BOSS & SENJATA
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoItem(
-                          '⚔️ BOSS', island['boss'] as String, isUnlocked),
-                      Container(width: 1, height: 40, color: Colors.white24),
-                      _buildInfoItem('🗡️ SENJATA', island['weapon'] as String,
-                          isUnlocked),
+                      Expanded(
+                          child: _buildInfoItem(
+                              'BOSS', island['boss'] as String, isUnlocked)),
+                      Container(
+                          width: 2,
+                          height: 30,
+                          color: isUnlocked
+                              ? Colors.amber.withOpacity(0.5)
+                              : Colors.grey[800]),
+                      Expanded(
+                          child: _buildInfoItem('SENJATA',
+                              island['weapon'] as String, isUnlocked)),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 35),
+
+                  // TOMBOL MULAI (Warna Emas dengan Teks Hitam agar mencolok)
                   if (isUnlocked)
-                    ElevatedButton.icon(
-                      onPressed: () {
+                    GestureDetector(
+                      onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
                             context,
@@ -437,41 +436,53 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                 builder: (context) => GameScreen(
                                     islandName: island['name'] as String)));
                       },
-                      icon: const Icon(Icons.play_arrow, size: 28),
-                      label: const Text('MULAI PETUALANGAN',
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber,
-                        foregroundColor: Colors.black,
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                        elevation: 8,
+                            horizontal: 20, vertical: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.amber, // Tombol emas
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black, offset: Offset(4, 4))
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.play_arrow,
+                                color: Colors.black, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'MULAI PETUALANGAN',
+                              style: GoogleFonts.pressStart2p(
+                                  fontSize: 10, color: Colors.black),
+                            ),
+                          ],
+                        ),
                       ),
                     )
                   else
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
+                          horizontal: 20, vertical: 15),
                       decoration: BoxDecoration(
-                          color: Colors.grey[800],
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.red, width: 2)),
-                      child: const Row(
+                        color: Colors.black,
+                        border: Border.all(color: Colors.red, width: 2),
+                        boxShadow: const [
+                          BoxShadow(
+                              color: Colors.redAccent, offset: Offset(4, 4))
+                        ],
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.lock, color: Colors.red, size: 24),
-                          SizedBox(width: 10),
-                          Text('PULAU TERKUNCI',
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 2)),
+                          const Icon(Icons.lock, color: Colors.red, size: 18),
+                          const SizedBox(width: 10),
+                          Text(
+                            'PULAU TERKUNCI',
+                            style: GoogleFonts.pressStart2p(
+                                color: Colors.red, fontSize: 10),
+                          ),
                         ],
                       ),
                     ),
@@ -484,21 +495,32 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
+// ✅ DESAIN INFO ITEM (TEKS BOSS & SENJATA)
   Widget _buildInfoItem(String label, String value, bool isUnlocked) {
     return Column(
       children: [
-        Text(label,
-            style: TextStyle(
-                fontSize: 11,
-                color: isUnlocked ? Colors.white70 : Colors.grey[500],
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.bold)),
-        const SizedBox(height: 6),
-        Text(value,
-            style: TextStyle(
-                fontSize: 15,
-                color: isUnlocked ? Colors.white : Colors.grey[400],
-                fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: GoogleFonts.pressStart2p(
+            fontSize: 7,
+            color: isUnlocked
+                ? Colors.amber
+                : Colors.grey[600], // Label warna emas
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          value,
+          style: GoogleFonts.pressStart2p(
+            fontSize: 9,
+            color: isUnlocked
+                ? Colors.white
+                : Colors.grey[500], // Value warna putih
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }
@@ -577,7 +599,7 @@ class _BouncyImageButtonState extends State<BouncyImageButton>
           height: widget.height,
           child: Image.asset(
             widget.imagePath,
-            fit: BoxFit.contain, // Menampilkan seluruh foto tanpa crop
+            fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) => Container(
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.3),

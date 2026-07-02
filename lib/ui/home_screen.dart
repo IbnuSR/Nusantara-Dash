@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _playBGM() async {
     try {
-      print('🎵 Loading BGM...');
+      print(' Loading BGM...');
       await AudioManager.instance.playBGM('audio/bgm/main_menu.mp3');
       setState(() {
         _isMusicPlaying = AudioManager.instance.isBGMEnabled;
@@ -179,42 +179,62 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // ✅ WIDGET HELPER: Custom Icon TANPA border & TANPA warna tint
+  // Ukuran bisa diatur bebas via parameter `size`
+  Widget _buildCustomIcon({
+    required String iconPath,
+    required double size,
+  }) {
+    return Image.asset(
+      iconPath,
+      width: size,
+      height: size,
+      // ✅ Tidak ada parameter `color` → gambar tampil apa adanya
+      errorBuilder: (context, error, stackTrace) {
+        // ✅ Placeholder simple: cuma teks, tanpa border/box
+        return SizedBox(
+          width: size,
+          height: size,
+          child: Center(
+            child: Text(
+              'ini tombol apa',
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: size * 0.2,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildTopBar() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // ✅ SETTINGS BUTTON
           GestureDetector(
             onTap: _handleOpenSettings,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A237E),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFB300), width: 2),
-              ),
-              child: const Icon(
-                Icons.settings,
-                color: Color(0xFFFFB300),
-                size: 28,
-              ),
+            child: _buildCustomIcon(
+              iconPath: 'assets/images/ui/buttons/pengaturan.png',
+              size: 75, // ✅ Ubah ukuran sesuka kamu
             ),
           ),
+
+          // ✅ MUSIC TOGGLE
           GestureDetector(
             onTap: _toggleMusic,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A237E),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFB300), width: 2),
-              ),
-              child: Icon(
-                _isMusicPlaying ? Icons.music_note : Icons.music_off,
-                color: const Color(0xFFFFB300),
-                size: 28,
-              ),
+            child: _buildCustomIcon(
+              iconPath: _isMusicPlaying
+                  ? 'assets/images/ui/buttons/audioOn.png'
+                  : 'assets/images/ui/buttons/audioOff.png',
+              size: 75, // ✅ Ubah ukuran sesuka kamu
             ),
           ),
         ],
@@ -283,7 +303,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Expanded(
                     child: _buildMenuButton(
                       label: 'MULAI',
-                      icon: Icons.play_arrow,
+                      iconPath: 'assets/images/ui/buttons/mulai.png',
+                      iconSize: 50, // ✅ Ubah ukuran icon sesuka kamu
                       color: const Color(0xFF4CAF50),
                       onTap: _handleStartGame,
                     ),
@@ -292,7 +313,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Expanded(
                     child: _buildMenuButton(
                       label: 'MUSEUM',
-                      icon: Icons.menu_book,
+                      iconPath: 'assets/images/ui/buttons/museum.png',
+                      iconSize: 50,
                       color: const Color(0xFF2196F3),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -312,7 +334,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Expanded(
                     child: _buildMenuButton(
                       label: 'SENJATA',
-                      icon: Icons.gavel,
+                      iconPath: 'assets/images/ui/buttons/senjata.png',
+                      iconSize: 50,
                       color: const Color(0xFF9C27B0),
                       onTap: _handleOpenWeapons,
                     ),
@@ -321,7 +344,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Expanded(
                     child: _buildMenuButton(
                       label: 'TOKO',
-                      icon: Icons.shopping_cart,
+                      iconPath: 'assets/images/ui/buttons/toko.png',
+                      iconSize: 50,
                       color: const Color(0xFFFF9800),
                       onTap: _handleOpenShop,
                     ),
@@ -335,9 +359,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // ✅ _buildMenuButton dengan parameter `iconSize` yang bebas diatur
   Widget _buildMenuButton({
     required String label,
-    required IconData icon,
+    required String iconPath,
+    required double iconSize, // ✅ Parameter ukuran icon
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -364,7 +390,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 28),
+            // ✅ Icon tanpa warna tint, ukuran bebas
+            _buildCustomIcon(
+              iconPath: iconPath,
+              size: iconSize,
+            ),
             const SizedBox(width: 8),
             Text(
               label,

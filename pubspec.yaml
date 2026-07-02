@@ -38,6 +38,9 @@ flutter:
     - assets/images/items/
     - assets/images/weapons/
     - assets/images/ui/
+    - assets/images/ui/buttons/
+    - assets/images/ui/icons/
+    - assets/images/ui/hud/
     - assets/data/quiz_data.json
     - assets/data/province_config.json
     - assets/data/weapon_data.json

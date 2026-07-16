@@ -24,7 +24,6 @@ class _AudioSettingsState extends State<AudioSettings> {
   }
 
   Future<void> _loadSettings() async {
-    // ✅ Ambil dari AudioManager (sudah sinkron dengan GamePrefs)
     setState(() {
       _musicVolume = AudioManager.instance.bgmVolume;
       _sfxVolume = AudioManager.instance.sfxVolume;
@@ -37,25 +36,26 @@ class _AudioSettingsState extends State<AudioSettings> {
   /// ✅ Update volume musik REAL-TIME
   Future<void> _updateMusicVolume(double volume) async {
     setState(() => _musicVolume = volume);
-
-    // ✅ Langsung update AudioManager (real-time)
     await AudioManager.instance.setBGMVolume(volume);
 
-    // ✅ Update state enabled
     if (volume > 0 && !_musicEnabled) {
       setState(() => _musicEnabled = true);
     }
   }
 
-  /// ✅ Update volume SFX REAL-TIME
-  Future<void> _updateSFXVolume(double volume) async {
+  /// ✅ Update volume SFX REAL-TIME + Preview
+  Future<void> _updateSFXVolume(double volume,
+      {bool playPreview = true}) async {
     setState(() => _sfxVolume = volume);
-
-    // ✅ Langsung update AudioManager (real-time)
     await AudioManager.instance.setSFXVolume(volume);
 
     if (volume > 0 && !_sfxEnabled) {
       setState(() => _sfxEnabled = true);
+    }
+
+    // ✅ Preview SFX saat geser slider (setiap 10%)
+    if (playPreview && volume > 0) {
+      _testSFX('audio/sfx/sfx_coin.mp3');
     }
   }
 
@@ -71,7 +71,7 @@ class _AudioSettingsState extends State<AudioSettings> {
     setState(() => _sfxEnabled = AudioManager.instance.isSFXEnabled);
   }
 
-  /// ✅ Test SFX
+  /// ✅ Test SFX (PATH DIPERBAIKI)
   void _testSFX(String path) {
     AudioManager.instance.playSFX(path);
   }
@@ -119,19 +119,20 @@ class _AudioSettingsState extends State<AudioSettings> {
             title: 'SFX',
             volume: _sfxVolume,
             enabled: _sfxEnabled,
-            onVolumeChanged: _updateSFXVolume,
+            onVolumeChanged: (volume) =>
+                _updateSFXVolume(volume, playPreview: true),
             onToggle: _toggleSFX,
             quickValues: const [('MUTE', 0.0), ('50%', 0.5), ('100%', 1.0)],
+            isSFX: true, // ✅ Flag untuk preview
           ),
 
           const SizedBox(height: 32),
 
-          // 🎮 TEST AUDIO
+          // 🎮 TEST AUDIO (PATH DIPERBAIKI)
           _buildSectionHeader(
             '🎮 TEST AUDIO',
             'Tes suara untuk memastikan setting bekerja',
           ),
-          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -139,26 +140,54 @@ class _AudioSettingsState extends State<AudioSettings> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFFFB300), width: 2),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            child: Column(
               children: [
-                ElevatedButton.icon(
-                  onPressed: () => _testSFX('audio/sfx/coin.mp3'),
-                  icon: const Icon(Icons.monetization_on),
-                  label: const Text('COIN'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          AudioManager.instance.playSFX('sfx_coin.mp3'),
+                      icon: const Icon(Icons.monetization_on),
+                      label: const Text('COIN'),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber,
+                          foregroundColor: Colors.black),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          AudioManager.instance.playSFX('sfx_jump.mp3'),
+                      icon: const Icon(Icons.arrow_upward),
+                      label: const Text('JUMP'),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white),
+                    ),
+                  ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _testSFX('audio/sfx/jump.mp3'),
-                  icon: const Icon(Icons.arrow_upward),
-                  label: const Text('JUMP'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          AudioManager.instance.playSFX('sfx_land.mp3'),
+                      icon: const Icon(Icons.download),
+                      label: const Text('LAND'),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.brown,
+                          foregroundColor: Colors.white),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          AudioManager.instance.playSFX('sfx_gameover.mp3'),
+                      icon: const Icon(Icons.dangerous),
+                      label: const Text('GAME OVER'),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -192,6 +221,7 @@ class _AudioSettingsState extends State<AudioSettings> {
     required Function(double) onVolumeChanged,
     required VoidCallback onToggle,
     required List<(String, double)> quickValues,
+    bool isSFX = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -210,10 +240,10 @@ class _AudioSettingsState extends State<AudioSettings> {
                 !enabled
                     ? Icons.volume_off
                     : volume == 0
-                    ? Icons.volume_mute
-                    : volume < 0.5
-                    ? Icons.volume_down
-                    : Icons.volume_up,
+                        ? Icons.volume_mute
+                        : volume < 0.5
+                            ? Icons.volume_down
+                            : Icons.volume_up,
                 color: enabled ? Colors.amber : Colors.grey,
                 size: 60,
               ),

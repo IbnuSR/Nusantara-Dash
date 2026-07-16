@@ -12,6 +12,7 @@ import 'components/controllers/analog_controller.dart';
 import 'components/controllers/arrow_controller.dart';
 import 'data/sumatra_level_data.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
+import 'package:nusantara_dash/utils/audio_manager.dart'; // ✅ IMPORT INI
 
 class NusantaraDashGame extends FlameGame
     with KeyboardEvents, HasCollisionDetection {
@@ -68,39 +69,63 @@ class NusantaraDashGame extends FlameGame
 
     totalWalletCoins = await GamePrefs.getCoins();
 
-    player =
-        Player(
-            size: Vector2(64, 96),
-            groundY: groundY,
-            onCoinCollected: () async {
-              collectedCoins += 10;
-              totalWalletCoins += 10;
-              await GamePrefs.saveCoins(totalWalletCoins);
-              coinText.text = '🪙 $totalWalletCoins';
-              onCoinsUpdated(collectedCoins);
-            },
-            onPlayerDied: () {
-              pauseEngine();
-              onGameOver();
-            },
-          )
-          ..position = Vector2(100, groundY - 96)
-          ..priority = 100;
+    // ✅ INI BAGIAN PENTING: Colok SFX ke callback player
+    // ✅ PATH DIPERBAIKI: 'audio/sfx/...' bukan 'sfx/...'
+    player = Player(
+      size: Vector2(64, 96),
+      groundY: groundY,
+
+      // 🔊 CALLBACK 1: Saat ambil koin → main SFX coin
+      onCoinCollected: () async {
+        collectedCoins += 10;
+        totalWalletCoins += 10;
+        await GamePrefs.saveCoins(totalWalletCoins);
+        coinText.text = '🪙 $totalWalletCoins';
+        onCoinsUpdated(collectedCoins);
+
+        // 🔊 MAINKAN SFX KOIN (Cukup nama file saja)
+        AudioManager.instance.playSFX('sfx_coin.mp3');
+      },
+
+      // 🔊 CALLBACK 2: Saat mati → main SFX game over
+      onPlayerDied: () {
+        pauseEngine();
+        // 🔊 MAINKAN SFX GAME OVER (Cukup nama file saja)
+        AudioManager.instance.playSFX('sfx_gameover.mp3');
+      },
+
+      // 🔊 CALLBACK 3: Saat mendarat → main SFX land
+      onPlayerLanded: () {
+        // 🔊 MAINKAN SFX LAND (Cukup nama file saja)
+        AudioManager.instance.playSFX('sfx_land.mp3');
+      },
+    )
+      ..position = Vector2(100, groundY - 96)
+      ..priority = 100;
     world.add(player);
 
     world.add(LevelBuilder(groundY: groundY));
 
+    // ✅ Controller dengan SFX jump
     String controlType = await GamePrefs.getControlType();
     if (controlType == 'analog') {
       final analog = AnalogController(
         onJoystickUpdate: (delta) => player.currentInputDelta = delta,
-        onJumpPressed: () => player.jump(),
+        onJumpPressed: () {
+          player.jump();
+          // 🔊 MAINKAN SFX LOMPAT (Cukup nama file saja)
+          AudioManager.instance.playSFX('sfx_jump.mp3');
+        },
       );
       camera.viewport.add(analog);
     } else {
       final arrow = ArrowController(
         onJoystickUpdate: (delta) => player.currentInputDelta = delta,
-        onJumpPressed: () => player.jump(),
+        onJumpPressed: () {
+          player.jump();
+          // 🔊 MAINKAN SFX LOMPAT (Cukup nama file saja)
+          AudioManager.instance.playSFX('sfx_jump.mp3');
+        },
       );
       camera.viewport.add(arrow);
     }
@@ -177,11 +202,13 @@ class NusantaraDashGame extends FlameGame
       camera.viewfinder.position.x = minCamX;
     }
 
+    // ✅ Level complete dengan SFX
     if (player.position.x >= SumatraLevelData.levelLength - 150 &&
         !isLevelFinished) {
       isLevelFinished = true;
       pauseEngine();
-      onLevelComplete();
+      // 🔊 MAINKAN SFX LEVEL COMPLETE (Cukup nama file saja)
+      AudioManager.instance.playSFX('sfx_level_complete.mp3');
     }
   }
 
@@ -192,6 +219,8 @@ class NusantaraDashGame extends FlameGame
   ) {
     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
       player.jump();
+      // 🔊 MAINKAN SFX LOMPAT (keyboard) (Cukup nama file saja)
+      AudioManager.instance.playSFX('sfx_jump.mp3');
     }
     return KeyEventResult.handled;
   }

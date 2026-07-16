@@ -6,22 +6,18 @@ import 'utils/audio_manager.dart';
 import 'utils/game_prefs.dart';
 
 void main() async {
-  // ✅ 1. Inisialisasi Flutter Binding (WAJIB untuk async operations)
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ 2. Lock Orientasi Landscape (Game runner wajib landscape)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
-  // ✅ 3. Fullscreen Mode (Hide status bar & navigation bar)
   await SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
     overlays: [],
   );
 
-  // ✅ 4. Auto-reset audio ke 100% jika belum pernah diset user
   try {
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey('music_volume') ||
@@ -33,7 +29,6 @@ void main() async {
     print('⚠️ Failed to reset audio settings: $e');
   }
 
-  // ✅ 5. Inisialisasi Audio Manager (Untuk BGM & SFX)
   try {
     await AudioManager.instance.initialize();
     print('✅ Audio Manager ready');
@@ -41,7 +36,6 @@ void main() async {
     print('❌ Audio initialization failed: $e');
   }
 
-  // ✅ 6. Run App
   runApp(const NusantaraDashApp());
 }
 
@@ -53,8 +47,6 @@ class NusantaraDashApp extends StatelessWidget {
     return MaterialApp(
       title: 'Nusantara Dash',
       debugShowCheckedModeBanner: false,
-
-      // ✅ Theme untuk game
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF0D1B2A),
@@ -80,12 +72,8 @@ class NusantaraDashApp extends StatelessWidget {
           style: TextButton.styleFrom(foregroundColor: const Color(0xFFFFB300)),
         ),
       ),
-
-      // ✅ Route management
       initialRoute: '/',
       routes: {'/': (context) => const SplashScreen()},
-
-      // ✅ Prevent text scaling
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),

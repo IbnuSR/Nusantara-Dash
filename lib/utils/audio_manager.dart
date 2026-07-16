@@ -1,5 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ IMPORT INI
+import 'package:shared_preferences/shared_preferences.dart';
 import 'game_prefs.dart';
 
 class AudioManager {
@@ -8,8 +8,12 @@ class AudioManager {
 
   AudioManager._internal();
 
+  // BGM tetap pakai AudioPlayer
   final AudioPlayer _bgmPlayer = AudioPlayer();
-  final AudioPlayer _sfxPlayer = AudioPlayer();
+
+  // ✅ PERBAIKAN: Pakai AudioCache khusus untuk SFX (Jauh lebih stabil)
+  // Prefix 'audio/sfx/' artinya kita cuma perlu panggil nama file saja nanti
+  final AudioCache _sfxCache = AudioCache(prefix: 'audio/sfx/');
 
   bool _bgmEnabled = true;
   bool _sfxEnabled = true;
@@ -42,12 +46,16 @@ class AudioManager {
       await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
       await _bgmPlayer.setVolume(_bgmEnabled ? _bgmVolume : 0.0);
 
-      await _sfxPlayer.setReleaseMode(ReleaseMode.stop);
-      await _sfxPlayer.setVolume(_sfxEnabled ? _sfxVolume : 0.0);
+      // ✅ Pre-load semua SFX ke memori agar tidak ada delay saat diputar
+      await _sfxCache.loadAll([
+        'sfx_coin.mp3',
+        'sfx_jump.mp3',
+        'sfx_land.mp3',
+        'sfx_gameover.mp3',
+        'sfx_level_complete.mp3',
+      ]);
 
-      print(
-        '✅ Audio Manager initialized - BGM: ${(_bgmVolume * 100).round()}%, SFX: ${(_sfxVolume * 100).round()}%',
-      );
+      print('✅ Audio Manager initialized & SFX pre-loaded!');
     } catch (e) {
       print('❌ Audio Manager initialization failed: $e');
     }
@@ -70,9 +78,6 @@ class AudioManager {
       await _bgmPlayer.stop();
       await _bgmPlayer.play(AssetSource(assetPath));
       await _bgmPlayer.setVolume(_bgmEnabled ? _bgmVolume : 0.0);
-      print(
-        '🎵 Playing BGM: $assetPath at volume ${(_bgmVolume * 100).round()}%',
-      );
     } catch (e) {
       print('Error playing BGM: $e');
     }
@@ -81,68 +86,24 @@ class AudioManager {
   Future<void> setBGMVolume(double volume) async {
     _bgmVolume = volume.clamp(0.0, 1.0);
     await _bgmPlayer.setVolume(_bgmEnabled ? _bgmVolume : 0.0);
-
-    if (_currentBGMPath != null && _bgmEnabled) {
-      print('🎵 BGM Volume updated to: ${(_bgmVolume * 100).round()}%');
-    }
-
     await GamePrefs.setMusicVolume(_bgmVolume);
-
-    if (_bgmVolume > 0 && !_bgmEnabled) {
-      _bgmEnabled = true;
-      await GamePrefs.setMusicEnabled(true);
-    }
   }
 
   Future<void> setSFXVolume(double volume) async {
     _sfxVolume = volume.clamp(0.0, 1.0);
-    await _sfxPlayer.setVolume(_sfxEnabled ? _sfxVolume : 0.0);
     await GamePrefs.setSFXVolume(_sfxVolume);
-
-    if (_sfxVolume > 0 && !_sfxEnabled) {
-      _sfxEnabled = true;
-      await GamePrefs.setSFXEnabled(true);
-    }
   }
 
   Future<void> toggleBGM() async {
     _bgmEnabled = !_bgmEnabled;
-
     if (_bgmEnabled) {
       await _bgmPlayer.setVolume(_bgmVolume);
-      if (_currentBGMPath != null) {
-        await _bgmPlayer.resume();
-      }
+      if (_currentBGMPath != null) await _bgmPlayer.resume();
     } else {
       await _bgmPlayer.setVolume(0.0);
       await _bgmPlayer.pause();
     }
-
     await GamePrefs.setMusicEnabled(_bgmEnabled);
-    print('🎵 BGM ${_bgmEnabled ? "enabled" : "disabled"}');
-  }
-
-  Future<void> pauseBGM() async => await _bgmPlayer.pause();
-
-  Future<void> resumeBGM() async {
-    if (_bgmEnabled && _currentBGMPath != null) {
-      await _bgmPlayer.resume();
-    }
-  }
-
-  Future<void> stopBGM() async {
-    await _bgmPlayer.stop();
-    _currentBGMPath = null;
-  }
-
-  // ===== SFX CONTROLS =====
-  Future<void> playSFX(String assetPath) async {
-    if (!_sfxEnabled) return;
-    try {
-      await _sfxPlayer.play(AssetSource(assetPath));
-    } catch (e) {
-      print('Error playing SFX: $e');
-    }
   }
 
   Future<void> toggleSFX() async {
@@ -150,8 +111,21 @@ class AudioManager {
     await GamePrefs.setSFXEnabled(_sfxEnabled);
   }
 
+  // ===== SFX CONTROLS (✅ DIPERBAIKI TOTAL) =====
+  Future<void> playSFX(String fileName) async {
+    if (!_sfxEnabled || _sfxVolume == 0.0) return;
+
+    try {
+      final player = AudioPlayer();
+      player.onPlayerComplete.listen((_) => player.dispose());
+      await player.play(AssetSource('audio/sfx/$fileName'), volume: _sfxVolume);
+    } catch (e) {
+      print('❌ Error playing SFX $fileName: $e');
+    }
+  }
+
   void dispose() {
     _bgmPlayer.dispose();
-    _sfxPlayer.dispose();
+    _sfxCache.clearAll(); // Bersihkan cache SFX
   }
 }

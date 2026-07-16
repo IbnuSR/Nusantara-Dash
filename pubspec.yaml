@@ -36,7 +36,6 @@ flutter:
     - assets/images/background/
     - assets/images/obstacles/
     - assets/images/items/
-    - assets/images/weapons/
     - assets/images/ui/
     - assets/images/ui/buttons/
     - assets/images/ui/icons/

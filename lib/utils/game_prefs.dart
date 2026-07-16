@@ -40,10 +40,10 @@ class GamePrefs {
     await prefs.setString(_controlTypeKey, type);
   }
 
-  // ===== 🎵 MUSIC VOLUME (✅ DEFAULT 100%) =====
+  // ===== 🎵 MUSIC VOLUME =====
   static Future<double> getMusicVolume() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble(_musicVolumeKey) ?? 1.0; // ✅ 0.5 → 1.0
+    return prefs.getDouble(_musicVolumeKey) ?? 1.0;
   }
 
   static Future<void> setMusicVolume(double volume) async {
@@ -51,10 +51,10 @@ class GamePrefs {
     await prefs.setDouble(_musicVolumeKey, volume);
   }
 
-  // ===== 🔊 SFX VOLUME (✅ DEFAULT 100%) =====
+  // ===== 🔊 SFX VOLUME =====
   static Future<double> getSFXVolume() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble(_sfxVolumeKey) ?? 1.0; // ✅ 0.7 → 1.0
+    return prefs.getDouble(_sfxVolumeKey) ?? 1.0;
   }
 
   static Future<void> setSFXVolume(double volume) async {
@@ -84,7 +84,7 @@ class GamePrefs {
     await prefs.setBool(_sfxEnabledKey, enabled);
   }
 
-  // ===== 🔄 RESET AUDIO SETTINGS (✅ BARU) =====
+  // ===== 🔄 RESET AUDIO SETTINGS =====
   static Future<void> resetAudioSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_musicVolumeKey, 1.0);

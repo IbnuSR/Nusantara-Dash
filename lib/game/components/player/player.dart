@@ -8,6 +8,7 @@ class Player extends SpriteAnimationComponent
   final double groundY;
   final VoidCallback onCoinCollected;
   final VoidCallback onPlayerDied;
+  final VoidCallback? onPlayerLanded; // ✅ Callback baru untuk SFX mendarat
 
   // ✅ SOLUSI KUNCI: Variabel umum yang bisa menerima perintah dari Joystick Analog maupun Tombol Panah
   Vector2 currentInputDelta = Vector2.zero();
@@ -15,6 +16,7 @@ class Player extends SpriteAnimationComponent
   double speed = 400;
   double jumpVelocity = 0;
   bool _isOnGround = false;
+  bool _wasInAir = false; // ✅ Track apakah sebelumnya di udara (untuk SFX land)
   bool isDead = false;
 
   final double gravity = 2000;
@@ -27,6 +29,7 @@ class Player extends SpriteAnimationComponent
     required this.groundY,
     required this.onCoinCollected,
     required this.onPlayerDied,
+    this.onPlayerLanded, // ✅ TAMBAH PARAMETER BARU (optional)
   });
 
   @override
@@ -63,6 +66,7 @@ class Player extends SpriteAnimationComponent
     if (_isOnGround && !isDead) {
       jumpVelocity = jumpStrength;
       _isOnGround = false;
+      _wasInAir = true; // ✅ Tandai sedang di udara
     }
   }
 
@@ -77,6 +81,7 @@ class Player extends SpriteAnimationComponent
     position.setValues(100, groundY - size.y - 20);
     jumpVelocity = 0;
     _isOnGround = false;
+    _wasInAir = false; // ✅ Reset juga
     currentInputDelta = Vector2.zero(); // Reset gerak saat hidup kembali
   }
 
@@ -99,6 +104,20 @@ class Player extends SpriteAnimationComponent
       position.y += jumpVelocity * dt;
     }
 
+    // ✅ DETEKSI MENDARAT DI TANAH DASAR
+    if (position.y >= groundY - size.y) {
+      position.y = groundY - size.y;
+
+      // ✅ Kalau tadinya di udara, sekarang mendarat → trigger SFX
+      if (_wasInAir && jumpVelocity >= 0) {
+        onPlayerLanded?.call(); // 🔊 SFX LAND
+        _wasInAir = false;
+      }
+
+      jumpVelocity = 0;
+      _isOnGround = true;
+    }
+
     if (position.y > 800) {
       die();
     }
@@ -113,13 +132,13 @@ class Player extends SpriteAnimationComponent
       if (!other.isCollected) {
         other.isCollected = true;
         other.removeFromParent();
-        onCoinCollected();
+        onCoinCollected(); // 🔊 SFX COIN (dipanggil di nusantara_dash_game.dart)
       }
       return;
     }
 
     if (other is RedObstacle) {
-      die();
+      die(); // 🔊 SFX GAME OVER (dipanggil di nusantara_dash_game.dart)
       return;
     }
 
@@ -136,6 +155,13 @@ class Player extends SpriteAnimationComponent
           position.y + size.y / 2 < platformTop) {
         position.y = platformTop - size.y + 0.1;
         jumpVelocity = 0;
+
+        // ✅ Trigger SFX land saat mendarat di platform
+        if (_wasInAir) {
+          onPlayerLanded?.call(); // 🔊 SFX LAND
+          _wasInAir = false;
+        }
+
         _isOnGround = true;
       } else if (playerBottom > platformTop + 10) {
         if (position.x < platformLeft && playerRight > platformLeft) {
@@ -152,6 +178,7 @@ class Player extends SpriteAnimationComponent
     super.onCollisionEnd(other);
     if (other is GroundPlatform) {
       _isOnGround = false;
+      _wasInAir = true; // ✅ Tandai di udara saat lepas dari platform
     }
   }
 

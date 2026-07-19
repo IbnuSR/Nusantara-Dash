@@ -67,6 +67,11 @@ class NusantaraDashGame extends FlameGame
     groundY = virtualHeight * 0.75;
     await _loadBackground();
 
+// 🔥 TAMBAHKAN BARIS INI: Putar BGM otomatis sesuai nama pulau!
+    // Kalau islandName-nya 'SUMATRA', dia akan memutar 'audio/bgm/bgm_sumatra.mp3'
+    String bgmFile = 'audio/bgm/bgm_${islandName.toLowerCase()}.mp3';
+    AudioManager.instance.playBGM(bgmFile);
+
     totalWalletCoins = await GamePrefs.getCoins();
 
     // ✅ INI BAGIAN PENTING: Colok SFX ke callback player
@@ -83,20 +88,20 @@ class NusantaraDashGame extends FlameGame
         coinText.text = '🪙 $totalWalletCoins';
         onCoinsUpdated(collectedCoins);
 
-        // 🔊 MAINKAN SFX KOIN (Cukup nama file saja)
         AudioManager.instance.playSFX('sfx_coin.mp3');
       },
 
       // 🔊 CALLBACK 2: Saat mati → main SFX game over
       onPlayerDied: () {
         pauseEngine();
-        // 🔊 MAINKAN SFX GAME OVER (Cukup nama file saja)
         AudioManager.instance.playSFX('sfx_gameover.mp3');
+
+        // ✅ INI YANG SEBELUMNYA HILANG! Memanggil UI pop-up Game Over
+        onGameOver();
       },
 
       // 🔊 CALLBACK 3: Saat mendarat → main SFX land
       onPlayerLanded: () {
-        // 🔊 MAINKAN SFX LAND (Cukup nama file saja)
         AudioManager.instance.playSFX('sfx_land.mp3');
       },
     )

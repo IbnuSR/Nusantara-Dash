@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart' hide Image;
-import 'package:nusantara_dash/game/data/sumatra_level_data.dart'; // ✅ Path absolut aman
+import 'package:nusantara_dash/game/data/sumatra_level_data.dart';
 
 class GroundPlatform extends SpriteComponent {
   GroundPlatform({super.sprite, super.position, super.size, super.anchor});
@@ -20,7 +20,7 @@ class CoinItem extends CircleComponent {
 class LevelBuilder extends PositionComponent with HasGameRef {
   final double groundY;
 
-  // ✅ ANGKA AMBLES: Efek gaya gravitasi menekan rumput (Bisa kamu utak-atik antara 6.0 sampai 10.0)
+  // Efek gaya gravitasi menekan rumput
   static const double obstacleSinkOffset = 8.0;
 
   LevelBuilder({required this.groundY});
@@ -65,12 +65,13 @@ class LevelBuilder extends PositionComponent with HasGameRef {
       double targetHeight = p['h']!;
       Sprite spriteTerpilih;
 
-      if (targetWidth >= 400)
+      if (targetWidth >= 400) {
         spriteTerpilih = g1;
-      else if (targetWidth >= 200)
+      } else if (targetWidth >= 200) {
         spriteTerpilih = g2;
-      else
+      } else {
         spriteTerpilih = g3;
+      }
 
       final platform = GroundPlatform(
         sprite: spriteTerpilih,
@@ -78,7 +79,9 @@ class LevelBuilder extends PositionComponent with HasGameRef {
         size: Vector2(targetWidth, targetHeight),
         anchor: Anchor.topLeft,
       );
-      platform.add(RectangleHitbox());
+
+      // 🔥 OPTIMASI HP KENTANG: Jadikan Passive! Tanah tidak usah cek tabrakan sesama tanah.
+      platform.add(RectangleHitbox(collisionType: CollisionType.passive));
       add(platform);
     }
   }
@@ -103,13 +106,13 @@ class LevelBuilder extends PositionComponent with HasGameRef {
 
       final obstacle = RedObstacle(
         sprite: spriteTerpilih,
-        // ✅ DI SINI TRIKNYA: Posisi Y kita dorong ke bawah sejauh +8 piksel!
         position: Vector2(o['x']!, groundY + o['y']! + obstacleSinkOffset),
         size: Vector2(lebarPresisi, patokanTinggi),
         anchor: Anchor.topLeft,
       );
 
-      obstacle.add(RectangleHitbox());
+      // 🔥 OPTIMASI HP KENTANG: Rintangan diam saja menunggu ditabrak pemain.
+      obstacle.add(RectangleHitbox(collisionType: CollisionType.passive));
       add(obstacle);
       urutan++;
     }
@@ -123,7 +126,9 @@ class LevelBuilder extends PositionComponent with HasGameRef {
         paint: Paint()..color = Colors.amber,
         anchor: Anchor.center,
       );
-      coin.add(CircleHitbox());
+
+      // 🔥 OPTIMASI HP KENTANG: Koin diam saja menunggu diambil pemain.
+      coin.add(CircleHitbox(collisionType: CollisionType.passive));
       add(coin);
     }
   }

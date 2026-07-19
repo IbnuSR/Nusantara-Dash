@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game_prefs.dart';
 
@@ -8,12 +9,10 @@ class AudioManager {
 
   AudioManager._internal();
 
-  // BGM tetap pakai AudioPlayer
   final AudioPlayer _bgmPlayer = AudioPlayer();
 
-  // ✅ PERBAIKAN: Pakai AudioCache khusus untuk SFX (Jauh lebih stabil)
-  // Prefix 'audio/sfx/' artinya kita cuma perlu panggil nama file saja nanti
-  final AudioCache _sfxCache = AudioCache(prefix: 'audio/sfx/');
+  // ✅ KUNCI SOLUSI: Menggunakan Map AudioPool khusus untuk SFX
+  final Map<String, AudioPool> _sfxPools = {};
 
   bool _bgmEnabled = true;
   bool _sfxEnabled = true;
@@ -46,16 +45,22 @@ class AudioManager {
       await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
       await _bgmPlayer.setVolume(_bgmEnabled ? _bgmVolume : 0.0);
 
-      // ✅ Pre-load semua SFX ke memori agar tidak ada delay saat diputar
-      await _sfxCache.loadAll([
-        'sfx_coin.mp3',
-        'sfx_jump.mp3',
-        'sfx_land.mp3',
-        'sfx_gameover.mp3',
-        'sfx_level_complete.mp3',
-      ]);
+      // ✅ PRE-LOAD MENGGUNAKAN AUDIO POOL (Anti-Macet)
+      // maxPlayers menentukan berapa suara maksimal yang bisa bunyi bersamaan.
+      // Koin diset 5 agar kalau karaktermu ambil banyak koin sekaligus, suaranya bertumpuk natural!
+      _sfxPools['sfx_coin.mp3'] =
+          await FlameAudio.createPool('sfx/sfx_coin.mp3', maxPlayers: 5);
+      _sfxPools['sfx_jump.mp3'] =
+          await FlameAudio.createPool('sfx/sfx_jump.mp3', maxPlayers: 3);
+      _sfxPools['sfx_land.mp3'] =
+          await FlameAudio.createPool('sfx/sfx_land.mp3', maxPlayers: 3);
+      _sfxPools['sfx_gameover.mp3'] =
+          await FlameAudio.createPool('sfx/sfx_gameover.mp3', maxPlayers: 1);
+      _sfxPools['sfx_level_complete.mp3'] = await FlameAudio.createPool(
+          'sfx/sfx_level_complete.mp3',
+          maxPlayers: 1);
 
-      print('✅ Audio Manager initialized & SFX pre-loaded!');
+      print('✅ Audio Manager initialized & AudioPool Ready (Anti-Macet)!');
     } catch (e) {
       print('❌ Audio Manager initialization failed: $e');
     }
@@ -111,14 +116,18 @@ class AudioManager {
     await GamePrefs.setSFXEnabled(_sfxEnabled);
   }
 
-  // ===== SFX CONTROLS (✅ DIPERBAIKI TOTAL) =====
+  // ===== SFX CONTROLS (✅ EKSEKUSI INSTAN DARI AUDIO POOL) =====
   Future<void> playSFX(String fileName) async {
     if (!_sfxEnabled || _sfxVolume == 0.0) return;
 
     try {
-      final player = AudioPlayer();
-      player.onPlayerComplete.listen((_) => player.dispose());
-      await player.play(AssetSource('audio/sfx/$fileName'), volume: _sfxVolume);
+      // Jika file sfx ada di dalam Pool RAM kita, langsung tembak!
+      if (_sfxPools.containsKey(fileName)) {
+        _sfxPools[fileName]!.start(volume: _sfxVolume);
+      } else {
+        // Fallback (cadangan) kalau kamu lupa nambahin nama file ke inisialisasi di atas
+        FlameAudio.play('sfx/$fileName', volume: _sfxVolume);
+      }
     } catch (e) {
       print('❌ Error playing SFX $fileName: $e');
     }
@@ -126,6 +135,10 @@ class AudioManager {
 
   void dispose() {
     _bgmPlayer.dispose();
-    _sfxCache.clearAll(); // Bersihkan cache SFX
+    // Bersihkan pool memori saat aplikasi ditutup agar RAM tidak bocor
+    for (var pool in _sfxPools.values) {
+      pool.dispose();
+    }
+    _sfxPools.clear();
   }
 }

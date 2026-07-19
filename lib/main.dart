@@ -30,6 +30,7 @@ void main() async {
   }
 
   try {
+    // Memanggil fungsi pre-load RAM di audio_manager
     await AudioManager.instance.initialize();
     print('✅ Audio Manager ready');
   } catch (e) {

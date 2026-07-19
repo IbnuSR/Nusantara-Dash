@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'nusantara_dash_game.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
+import 'package:nusantara_dash/utils/audio_manager.dart';
 
 class GameScreen extends StatefulWidget {
   final String islandName;
@@ -31,6 +32,15 @@ class _GameScreenState extends State<GameScreen> {
       DeviceOrientation.landscapeRight,
     ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+
+// 🔥 TAMBAHKAN FUNGSI DISPOSE INI:
+  @override
+  void dispose() {
+    // Ketika pemain keluar dari layar level (kembali ke Peta/Menu),
+    // otomatis putar kembali musik BGM Menu Utama!
+    AudioManager.instance.playBGM('audio/bgm/bgm_menu.mp3');
+    super.dispose();
   }
 
   Future<void> _loadInventory() async {

@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GamePrefs {
-  // Keys
+  // ===== 🔑 KEYS PENYIMPANAN =====
   static const String _prologueKey = 'has_watched_prologue';
   static const String _controlTypeKey = 'control_type';
   static const String _musicVolumeKey = 'music_volume';
@@ -12,8 +12,12 @@ class GamePrefs {
   static const String _livesKey = 'nusantara_dash_lives';
   static const String _cluesKey = 'nusantara_dash_clues';
   static const String _unlockedIslandsKey = 'nusantara_dash_unlocked';
+  static const String _museumUnlockedKey =
+      'museum_item_unlocked_list'; // ✅ Key Museum
 
-  // ===== 🎬 PROLOGUE =====
+  // ==========================================
+  // 🎬 1. PROLOGUE & TUTORIAL
+  // ==========================================
   static Future<bool> hasWatchedPrologue() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_prologueKey) ?? false;
@@ -29,7 +33,9 @@ class GamePrefs {
     await prefs.remove(_prologueKey);
   }
 
-  // ===== 🎮 CONTROL TYPE =====
+  // ==========================================
+  // 🎮 2. KONTROL
+  // ==========================================
   static Future<String> getControlType() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_controlTypeKey) ?? 'analog';
@@ -40,7 +46,9 @@ class GamePrefs {
     await prefs.setString(_controlTypeKey, type);
   }
 
-  // ===== 🎵 MUSIC VOLUME =====
+  // ==========================================
+  // 🎵 3. PENGATURAN AUDIO
+  // ==========================================
   static Future<double> getMusicVolume() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getDouble(_musicVolumeKey) ?? 1.0;
@@ -51,7 +59,6 @@ class GamePrefs {
     await prefs.setDouble(_musicVolumeKey, volume);
   }
 
-  // ===== 🔊 SFX VOLUME =====
   static Future<double> getSFXVolume() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getDouble(_sfxVolumeKey) ?? 1.0;
@@ -62,7 +69,6 @@ class GamePrefs {
     await prefs.setDouble(_sfxVolumeKey, volume);
   }
 
-  // ===== 🎵 MUSIC ENABLED TOGGLE =====
   static Future<bool> isMusicEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_musicEnabledKey) ?? true;
@@ -73,7 +79,6 @@ class GamePrefs {
     await prefs.setBool(_musicEnabledKey, enabled);
   }
 
-  // ===== 🔊 SFX ENABLED TOGGLE =====
   static Future<bool> isSFXEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_sfxEnabledKey) ?? true;
@@ -84,7 +89,6 @@ class GamePrefs {
     await prefs.setBool(_sfxEnabledKey, enabled);
   }
 
-  // ===== 🔄 RESET AUDIO SETTINGS =====
   static Future<void> resetAudioSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_musicVolumeKey, 1.0);
@@ -93,7 +97,9 @@ class GamePrefs {
     await prefs.setBool(_sfxEnabledKey, true);
   }
 
-  // ===== 🪙 KOIN =====
+  // ==========================================
+  // 🪙 4. EKONOMI (KOIN)
+  // ==========================================
   static Future<int> getCoins() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_coinsKey) ?? 500;
@@ -118,7 +124,9 @@ class GamePrefs {
     return false;
   }
 
-  // ===== ❤️ NYAWA =====
+  // ==========================================
+  // ❤️ 5. NYAWA (LIVES)
+  // ==========================================
   static Future<int> getExtraLives() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_livesKey) ?? 3;
@@ -138,7 +146,9 @@ class GamePrefs {
     }
   }
 
-  // ===== 💡 CLUE =====
+  // ==========================================
+  // 💡 6. CLUE / PETUNJUK
+  // ==========================================
   static Future<int> getClues() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_cluesKey) ?? 0;
@@ -158,7 +168,9 @@ class GamePrefs {
     }
   }
 
-  // ===== 🏝️ UNLOCKED ISLANDS =====
+  // ==========================================
+  // 🏝️ 7. PULAU (ISLANDS)
+  // ==========================================
   static Future<List<String>> getUnlockedIslands() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getStringList(_unlockedIslandsKey) ?? ['SUMATRA'];
@@ -167,20 +179,50 @@ class GamePrefs {
   static Future<void> unlockIsland(String islandCode) async {
     final prefs = await SharedPreferences.getInstance();
     final islands = await getUnlockedIslands();
-    if (!islands.contains(islandCode)) {
-      islands.add(islandCode);
+    if (!islands.contains(islandCode.toUpperCase())) {
+      islands.add(islandCode.toUpperCase());
       await prefs.setStringList(_unlockedIslandsKey, islands);
     }
   }
 
-  // ===== 🏛️ MUSEUM — UNLOCKED ITEMS =====
-  //
-  // Key menggunakan prefix 'museum_item_' agar tidak bertabrakan
-  // dengan key sistem lain (Coin, Lives, Islands).
-  // Seluruh item yang sudah di-unlock disimpan dalam satu List<String>
-  // yang berisi item ID, misalnya: ['aceh_001', 'bandung_001'].
-  static const String _museumUnlockedKey = 'museum_item_unlocked_list';
+  // ==========================================
+  // 👹 8. PROGRESS BOSS
+  // ==========================================
+  static Future<bool> isBossDefeated(String island) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('boss_defeated_$island') ?? false;
+  }
 
+  static Future<void> markBossDefeated(String island) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('boss_defeated_$island', true);
+  }
+
+  // ==========================================
+  // 🗡️ 9. SENJATA (WEAPONS)
+  // ==========================================
+  static Future<List<String>> getUnlockedWeapons() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('unlocked_weapons') ?? ['tangan_kosong'];
+  }
+
+  static Future<void> unlockWeapon(String weaponId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final weapons = await getUnlockedWeapons();
+    if (!weapons.contains(weaponId)) {
+      weapons.add(weaponId);
+      await prefs.setStringList('unlocked_weapons', weapons);
+    }
+  }
+
+  static Future<bool> isWeaponUnlocked(String weaponId) async {
+    final weapons = await getUnlockedWeapons();
+    return weapons.contains(weaponId);
+  }
+
+  // ==========================================
+  // 🏛️ 10. MUSEUM (FITUR DARI TEMANMU)
+  // ==========================================
   /// Mengembalikan daftar ID Cultural Item yang sudah di-unlock.
   /// Mengembalikan list kosong jika belum ada item yang terbuka.
   static Future<List<String>> getUnlockedMuseumItems() async {

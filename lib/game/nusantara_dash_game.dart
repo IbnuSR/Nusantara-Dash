@@ -12,7 +12,7 @@ import 'components/controllers/analog_controller.dart';
 import 'components/controllers/arrow_controller.dart';
 import 'data/sumatra_level_data.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
-import 'package:nusantara_dash/utils/audio_manager.dart'; // ✅ IMPORT INI
+import 'package:nusantara_dash/utils/audio_manager.dart';
 
 class NusantaraDashGame extends FlameGame
     with KeyboardEvents, HasCollisionDetection {
@@ -20,21 +20,23 @@ class NusantaraDashGame extends FlameGame
   final VoidCallback onGameOver;
   final VoidCallback onLevelComplete;
   final Function(int) onCoinsUpdated;
+  final VoidCallback onBossEncounter;
+  final VoidCallback onPlayerDied; // ✅ TAMBAHKAN INI
 
   late Player player;
   late double groundY;
 
   int collectedCoins = 0;
   int totalWalletCoins = 0;
-  int currentLives = 0;
+  int currentLives = 3;
   late TextComponent coinText;
   TextComponent? livesText;
   bool isLevelFinished = false;
+  bool _hasEnteredBossZone = false;
+  bool _hasDefeatedBoss = false;
 
   static const double virtualWidth = 1280;
   static const double virtualHeight = 720;
-
-  // ✅ ANGKA SAKTI: Zoom kamera (1.35 artinya kamera 35% lebih dekat ke karakter)
   static const double cameraZoom = 1.35;
 
   NusantaraDashGame({
@@ -42,6 +44,8 @@ class NusantaraDashGame extends FlameGame
     required this.onGameOver,
     required this.onLevelComplete,
     required this.onCoinsUpdated,
+    required this.onBossEncounter,
+    required this.onPlayerDied, // ✅ WAJIB ADA
   });
 
   void updateLives(int lives) {
@@ -56,51 +60,38 @@ class NusantaraDashGame extends FlameGame
     await super.onLoad();
 
     camera.viewport = FixedResolutionViewport(
-      resolution: Vector2(virtualWidth, virtualHeight),
-    );
+        resolution: Vector2(virtualWidth, virtualHeight));
     camera.viewfinder.anchor = Anchor.center;
     camera.viewfinder.position = Vector2(virtualWidth / 2, virtualHeight / 2);
-
-    // ✅ PASANG ZOOM KAMERA DI SINI:
     camera.viewfinder.zoom = cameraZoom;
 
     groundY = virtualHeight * 0.75;
     await _loadBackground();
 
-// 🔥 TAMBAHKAN BARIS INI: Putar BGM otomatis sesuai nama pulau!
-    // Kalau islandName-nya 'SUMATRA', dia akan memutar 'audio/bgm/bgm_sumatra.mp3'
     String bgmFile = 'audio/bgm/bgm_${islandName.toLowerCase()}.mp3';
     AudioManager.instance.playBGM(bgmFile);
 
     totalWalletCoins = await GamePrefs.getCoins();
+    currentLives = await GamePrefs.getExtraLives();
+    _hasDefeatedBoss = await GamePrefs.isBossDefeated(islandName);
+    updateLives(currentLives);
 
-    // ✅ INI BAGIAN PENTING: Colok SFX ke callback player
-    // ✅ PATH DIPERBAIKI: 'audio/sfx/...' bukan 'sfx/...'
     player = Player(
       size: Vector2(64, 96),
       groundY: groundY,
-
-      // 🔊 CALLBACK 1: Saat ambil koin → main SFX coin
       onCoinCollected: () async {
         collectedCoins += 10;
         totalWalletCoins += 10;
         await GamePrefs.saveCoins(totalWalletCoins);
         coinText.text = '🪙 $totalWalletCoins';
         onCoinsUpdated(collectedCoins);
-
         AudioManager.instance.playSFX('sfx_coin.mp3');
       },
-
-      // 🔊 CALLBACK 2: Saat mati → main SFX game over
       onPlayerDied: () {
         pauseEngine();
         AudioManager.instance.playSFX('sfx_gameover.mp3');
-
-        // ✅ INI YANG SEBELUMNYA HILANG! Memanggil UI pop-up Game Over
-        onGameOver();
+        onPlayerDied(); // ✅ Panggil callback ke GameScreen (BUKAN onGameOver langsung)
       },
-
-      // 🔊 CALLBACK 3: Saat mendarat → main SFX land
       onPlayerLanded: () {
         AudioManager.instance.playSFX('sfx_land.mp3');
       },
@@ -111,14 +102,12 @@ class NusantaraDashGame extends FlameGame
 
     world.add(LevelBuilder(groundY: groundY));
 
-    // ✅ Controller dengan SFX jump
     String controlType = await GamePrefs.getControlType();
     if (controlType == 'analog') {
       final analog = AnalogController(
         onJoystickUpdate: (delta) => player.currentInputDelta = delta,
         onJumpPressed: () {
           player.jump();
-          // 🔊 MAINKAN SFX LOMPAT (Cukup nama file saja)
           AudioManager.instance.playSFX('sfx_jump.mp3');
         },
       );
@@ -128,7 +117,6 @@ class NusantaraDashGame extends FlameGame
         onJoystickUpdate: (delta) => player.currentInputDelta = delta,
         onJumpPressed: () {
           player.jump();
-          // 🔊 MAINKAN SFX LOMPAT (Cukup nama file saja)
           AudioManager.instance.playSFX('sfx_jump.mp3');
         },
       );
@@ -139,11 +127,10 @@ class NusantaraDashGame extends FlameGame
       text: '🏝️ $islandName',
       textRenderer: TextPaint(
         style: const TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
-        ),
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            shadows: [Shadow(color: Colors.black, blurRadius: 4)]),
       ),
       position: Vector2(20, 20),
     );
@@ -153,11 +140,10 @@ class NusantaraDashGame extends FlameGame
       text: '🪙 $totalWalletCoins',
       textRenderer: TextPaint(
         style: const TextStyle(
-          color: Colors.amber,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
-        ),
+            color: Colors.amber,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            shadows: [Shadow(color: Colors.black, blurRadius: 4)]),
       ),
       position: Vector2(20, 55),
     );
@@ -167,11 +153,10 @@ class NusantaraDashGame extends FlameGame
       text: '❤️ $currentLives',
       textRenderer: TextPaint(
         style: const TextStyle(
-          color: Colors.redAccent,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
-        ),
+            color: Colors.redAccent,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            shadows: [Shadow(color: Colors.black, blurRadius: 4)]),
       ),
       position: Vector2(20, 90),
     );
@@ -193,38 +178,55 @@ class NusantaraDashGame extends FlameGame
           (targetY - camera.viewfinder.position.y) * 0.1,
     );
 
-    // ✅ RUMUS BATAS KAMERA BARU (Menyesuaikan zoom agar ujung kiri map tidak tembus keluar)
     double visibleWorldWidth = virtualWidth / cameraZoom;
     double minCamX = visibleWorldWidth / 2;
     double maxCamX = SumatraLevelData.levelLength - (visibleWorldWidth / 2);
 
     if (maxCamX > minCamX) {
-      camera.viewfinder.position.x = camera.viewfinder.position.x.clamp(
-        minCamX,
-        maxCamX,
-      );
+      camera.viewfinder.position.x =
+          camera.viewfinder.position.x.clamp(minCamX, maxCamX);
     } else {
       camera.viewfinder.position.x = minCamX;
     }
 
-    // ✅ Level complete dengan SFX
-    if (player.position.x >= SumatraLevelData.levelLength - 150 &&
-        !isLevelFinished) {
+    // 🔥 PRIORITAS 1: BOSS ZONE TRIGGER
+    if (player.position.x >= 5000 &&
+        player.position.x < 5900 &&
+        !_hasEnteredBossZone &&
+        !_hasDefeatedBoss) {
+      print('🔥🔥 BOSS ZONE TRIGGERED! Posisi: ${player.position.x.toInt()}');
+      _hasEnteredBossZone = true;
+      pauseEngine();
+      onBossEncounter();
+      return;
+    }
+
+    // ✅ PRIORITAS 2: Level Complete (HANYA jika boss sudah dikalahkan)
+    if (player.position.x >= SumatraLevelData.levelLength - 100 &&
+        !isLevelFinished &&
+        _hasDefeatedBoss) {
+      print('✅ LEVEL COMPLETE! Boss sudah dikalahkan.');
       isLevelFinished = true;
       pauseEngine();
-      // 🔊 MAINKAN SFX LEVEL COMPLETE (Cukup nama file saja)
       AudioManager.instance.playSFX('sfx_level_complete.mp3');
+      onLevelComplete();
+      return;
+    }
+
+    // ⛔ PRIORITAS 3: Player mencoba finish TANPA mengalahkan boss
+    if (player.position.x >= SumatraLevelData.levelLength - 50 &&
+        !isLevelFinished &&
+        !_hasDefeatedBoss) {
+      print(
+          '⛔ ACCESS DENIED! Player di x=${player.position.x.toInt()} tapi boss belum dikalahkan!');
     }
   }
 
   @override
   KeyEventResult onKeyEvent(
-    KeyEvent event,
-    Set<LogicalKeyboardKey> keysPressed,
-  ) {
+      KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
       player.jump();
-      // 🔊 MAINKAN SFX LOMPAT (keyboard) (Cukup nama file saja)
       AudioManager.instance.playSFX('sfx_jump.mp3');
     }
     return KeyEventResult.handled;
@@ -233,25 +235,24 @@ class NusantaraDashGame extends FlameGame
   Future<void> _loadBackground() async {
     final paths = [
       'background/bg_${islandName.toLowerCase()}.png',
-      'background/bg_${islandName.toLowerCase()}.jpg',
+      'background/bg_${islandName.toLowerCase()}.jpg'
     ];
     for (final p in paths) {
       try {
         final img = await images.load(p);
-        camera.backdrop.add(
-          SpriteComponent(
-            sprite: Sprite(img),
-            size: Vector2(virtualWidth, virtualHeight),
-          ),
-        );
+        camera.backdrop.add(SpriteComponent(
+            sprite: Sprite(img), size: Vector2(virtualWidth, virtualHeight)));
         return;
       } catch (_) {}
     }
-    camera.backdrop.add(
-      RectangleComponent(
+    camera.backdrop.add(RectangleComponent(
         size: Vector2(virtualWidth, virtualHeight),
-        paint: Paint()..color = Colors.blue[300]!,
-      ),
-    );
+        paint: Paint()..color = Colors.blue[300]!));
+  }
+
+  @override
+  void onRemove() {
+    AudioManager.instance.stopBGM();
+    super.onRemove();
   }
 }

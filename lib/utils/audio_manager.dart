@@ -141,4 +141,15 @@ class AudioManager {
     }
     _sfxPools.clear();
   }
+
+  // ✅ METHOD BARU: Stop BGM secara eksplisit
+  Future<void> stopBGM() async {
+    try {
+      await _bgmPlayer.stop();
+      _currentBGMPath = null;
+      print('⏹️ BGM stopped');
+    } catch (e) {
+      print('Error stopping BGM: $e');
+    }
+  }
 }

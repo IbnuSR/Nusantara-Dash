@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
-import '../level_builder.dart'; // Sesuaikan jika path level_builder berbeda
+import '../level_builder.dart';
 
 class Player extends SpriteAnimationComponent
     with HasGameRef, CollisionCallbacks {
@@ -20,8 +20,10 @@ class Player extends SpriteAnimationComponent
 
   final double gravity = 2000;
   final double jumpStrength = -700;
-
   static const int totalFrames = 14;
+
+  // ✅ TAMBAHKAN INI: Untuk menyimpan posisi checkpoint terakhir
+  late Vector2 _checkpointPosition;
 
   Player({
     required super.size,
@@ -36,9 +38,10 @@ class Player extends SpriteAnimationComponent
     await super.onLoad();
     await _loadAnimation();
 
-    // 🔥 SOLUSI ANTI MELAYANG: Hitbox dirampingkan!
-    // Lebar dipotong dari 64 jadi cuma 28, lalu digeser ke tengah (x = 18).
-    // Sekarang sensor tabrakan pas mengenai tubuh & kaki asli Satria!
+    // ✅ Set checkpoint awal saat game mulai
+    _checkpointPosition = position.clone();
+
+    // Hitbox dirampingkan agar pas di tubuh Satria
     add(
       RectangleHitbox(
         size: Vector2(28, 96),
@@ -50,9 +53,8 @@ class Player extends SpriteAnimationComponent
 
   Future<void> _loadAnimation() async {
     try {
-      final spriteSheetImage = await gameRef.images.load(
-        'player/satria_run.png',
-      );
+      final spriteSheetImage =
+          await gameRef.images.load('player/satria_run.png');
       final double frameWidth = spriteSheetImage.width / totalFrames;
       final double frameHeight = spriteSheetImage.height.toDouble();
 
@@ -82,12 +84,13 @@ class Player extends SpriteAnimationComponent
   void die() {
     if (isDead) return;
     isDead = true;
-    onPlayerDied();
+    onPlayerDied(); // Panggil callback ke GameScreen
   }
 
+  // ✅ UPDATE: Respawn ke posisi checkpoint terakhir, bukan ke awal
   void respawn() {
     isDead = false;
-    position.setValues(100, groundY - size.y - 50);
+    position.setFrom(_checkpointPosition);
     jumpVelocity = 0;
     _isOnGround = false;
     _wasInAir = true;
@@ -99,7 +102,6 @@ class Player extends SpriteAnimationComponent
     super.update(dt);
     if (gameRef.paused || isDead) return;
 
-    // 1. Gerakan Kiri/Kanan
     double input = currentInputDelta.x;
     if (input.abs() > 10) {
       double normalizedInput = (input / 70.0).clamp(-1.0, 1.0);
@@ -107,13 +109,12 @@ class Player extends SpriteAnimationComponent
       scale = Vector2(normalizedInput > 0 ? 1 : -1, 1);
     }
 
-    // 2. Gravitasi & Lompatan
     if (!_isOnGround) {
       jumpVelocity += gravity * dt;
       position.y += jumpVelocity * dt;
     }
 
-    // 3. Batas kematian jika jatuh ke jurang
+    // Batas kematian jika jatuh ke jurang
     if (position.y > groundY + 150) {
       die();
     }
@@ -138,11 +139,8 @@ class Player extends SpriteAnimationComponent
       return;
     }
 
-    // 4. Deteksi Tanah (Menggunakan batas tubuh asli yang sudah dirampingkan)
     if (other is GroundPlatform) {
       double playerBottom = position.y + size.y;
-
-      // Menggunakan batas kaki (x + 18 sampai x + 46), bukan batas sprite transparan
       double bodyLeft = position.x + 18;
       double bodyRight = position.x + 46;
 
@@ -162,15 +160,15 @@ class Player extends SpriteAnimationComponent
           onPlayerLanded?.call();
           _wasInAir = false;
         }
-
         _isOnGround = true;
-      }
-      // Cek menabrak dinding tanah dari samping
-      else if (playerBottom > platformTop + 15) {
+
+        // ✅ SIMPAN CHECKPOINT: Setiap kali mendarat aman, update posisi
+        _checkpointPosition = Vector2(position.x, position.y);
+      } else if (playerBottom > platformTop + 15) {
         if (bodyLeft < platformLeft && bodyRight > platformLeft) {
-          position.x = platformLeft - 46; // Tertahan di dinding kiri
+          position.x = platformLeft - 46;
         } else if (bodyLeft > platformLeft && bodyLeft < platformRight) {
-          position.x = platformRight - 18; // Tertahan di dinding kanan
+          position.x = platformRight - 18;
         }
       }
     }
@@ -179,7 +177,6 @@ class Player extends SpriteAnimationComponent
   @override
   void onCollisionEnd(PositionComponent other) {
     super.onCollisionEnd(other);
-    // 5. Begitu hitbox tubuh asli lepas dari pinggiran tanah, langsung jatuh!
     if (other is GroundPlatform) {
       _isOnGround = false;
       _wasInAir = true;

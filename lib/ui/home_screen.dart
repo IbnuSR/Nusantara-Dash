@@ -7,6 +7,7 @@ import 'package:nusantara_dash/utils/audio_manager.dart';
 import 'package:nusantara_dash/game/features/shop/shop_screen.dart';
 import 'package:nusantara_dash/game/features/weapons/weapon_screen.dart';
 import 'package:nusantara_dash/screens/settings/settings_screen.dart';
+import 'museum/museum_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -317,10 +318,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       iconSize: 50,
                       color: const Color(0xFF2196F3),
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Museum Budaya - Coming Soon!'),
-                            duration: Duration(seconds: 2),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MuseumHomeScreen(),
                           ),
                         );
                       },

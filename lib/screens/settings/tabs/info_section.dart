@@ -82,7 +82,7 @@ class InfoSection extends StatelessWidget {
           _buildTeamMember(
             name: 'M. Masrukhin Ferdian',
             role: 'Lead Developer',
-            instagram: '@....',
+            instagram: '@ffrrrr__',
             photoAsset: 'assets/images/team/member2.jpeg',
             color: const Color(0xFF4CAF50),
           ),

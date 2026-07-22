@@ -1,1 +1,497 @@
-[]
+[
+  {
+    "id": "sumatra",
+    "name": "Sumatra",
+    "provinces": [
+      {
+        "id": "aceh",
+        "name": "Aceh",
+        "island_id": "sumatra",
+        "items": [
+          {
+            "id": "aceh_001",
+            "name": "Tari Saman",
+            "description": "Tari Saman adalah tari tradisional khas suku Gayo dari Aceh. Dikenal dengan gerakan tangan, kepala, dan tubuh yang cepat dan serentak oleh banyak penari. Tari ini diakui sebagai Warisan Budaya Tak Benda oleh UNESCO pada tahun 2011.",
+            "image": "assets/images/items/sumatra/aceh.png",
+            "province": "Aceh",
+            "island": "Sumatra"
+          }
+        ]
+      },
+      {
+        "id": "bengkulu",
+        "name": "Bengkulu",
+        "island_id": "sumatra",
+        "items": [
+          {
+            "id": "bengkulu_001",
+            "name": "Bunga Rafflesia",
+            "description": "Rafflesia arnoldii adalah bunga terbesar di dunia yang tumbuh di hutan Bengkulu. Bunga ini tidak memiliki akar, batang, maupun daun sejati, dan hanya muncul sebagai parasit pada tanaman inang. Diameter bunga bisa mencapai 1 meter dengan berat hingga 10 kg.",
+            "image": "assets/images/items/sumatra/bengkulu.png",
+            "province": "Bengkulu",
+            "island": "Sumatra"
+          }
+        ]
+      },
+      {
+        "id": "jambi",
+        "name": "Jambi",
+        "island_id": "sumatra",
+        "items": [
+          {
+            "id": "jambi_001",
+            "name": "Candi Muaro Jambi",
+            "description": "Candi Muaro Jambi adalah kompleks percandian Buddha terluas di Asia Tenggara, berlokasi di tepi Sungai Batanghari, Jambi. Diperkirakan dibangun antara abad ke-7 hingga ke-12 Masehi sebagai pusat pendidikan agama Buddha Kerajaan Sriwijaya.",
+            "image": "assets/images/items/sumatra/jambi.png",
+            "province": "Jambi",
+            "island": "Sumatra"
+          }
+        ]
+      },
+      {
+        "id": "lampung",
+        "name": "Lampung",
+        "island_id": "sumatra",
+        "items": [
+          {
+            "id": "lampung_001",
+            "name": "Kain Tapis",
+            "description": "Kain Tapis adalah kain tenun tradisional khas Lampung yang dihiasi benang emas atau perak. Kain ini biasanya digunakan dalam upacara adat dan pernikahan. Motifnya mencerminkan alam, flora, fauna, dan kehidupan masyarakat Lampung.",
+            "image": "assets/images/items/sumatra/lampung.png",
+            "province": "Lampung",
+            "island": "Sumatra"
+          }
+        ]
+      },
+      {
+        "id": "medan",
+        "name": "Sumatera Utara",
+        "island_id": "sumatra",
+        "items": [
+          {
+            "id": "medan_001",
+            "name": "Istana Maimun",
+            "description": "Istana Maimun adalah istana Kesultanan Deli yang berdiri megah di Medan, Sumatera Utara. Dibangun pada tahun 1888 oleh Sultan Makmun Al Rasyid Perkasa Alam, istana ini memadukan arsitektur Melayu, Islam, Spanyol, dan India dalam satu bangunan yang menakjubkan.",
+            "image": "assets/images/items/sumatra/medan.png",
+            "province": "Sumatera Utara",
+            "island": "Sumatra"
+          }
+        ]
+      },
+      {
+        "id": "padang",
+        "name": "Sumatera Barat",
+        "island_id": "sumatra",
+        "items": [
+          {
+            "id": "padang_001",
+            "name": "Rumah Gadang",
+            "description": "Rumah Gadang adalah rumah adat suku Minangkabau dari Sumatera Barat. Bentuk atapnya yang melengkung ke atas menyerupai tanduk kerbau, melambangkan kemenangan. Rumah ini menjadi simbol matrilineal Minangkabau, di mana garis keturunan diturunkan melalui ibu.",
+            "image": "assets/images/items/sumatra/padang.png",
+            "province": "Sumatera Barat",
+            "island": "Sumatra"
+          }
+        ]
+      },
+      {
+        "id": "palembang",
+        "name": "Sumatera Selatan",
+        "island_id": "sumatra",
+        "items": [
+          {
+            "id": "palembang_001",
+            "name": "Jembatan Ampera",
+            "description": "Jembatan Ampera adalah ikon kota Palembang yang membentang di atas Sungai Musi. Dibangun pada tahun 1962, jembatan sepanjang 1.177 meter ini pernah menjadi jembatan terpanjang di Asia Tenggara. Nama Ampera singkatan dari Amanat Penderitaan Rakyat.",
+            "image": "assets/images/items/sumatra/palembang.png",
+            "province": "Sumatera Selatan",
+            "island": "Sumatra"
+          }
+        ]
+      },
+      {
+        "id": "pekanbaru",
+        "name": "Riau",
+        "island_id": "sumatra",
+        "items": [
+          {
+            "id": "pekanbaru_001",
+            "name": "Lancang Kuning",
+            "description": "Lancang Kuning adalah perahu kebesaran Raja-raja Melayu Riau yang menjadi simbol keagungan budaya Melayu. Perahu ini berwarna kuning keemasan dan dihiasi ukiran indah. Kini menjadi ikon kebudayaan Provinsi Riau yang terpatri dalam berbagai kesenian dan lagu daerah.",
+            "image": "assets/images/items/sumatra/pekanbaru.png",
+            "province": "Riau",
+            "island": "Sumatra"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "jawa",
+    "name": "Jawa",
+    "provinces": [
+      {
+        "id": "bandung",
+        "name": "Jawa Barat",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "bandung_001",
+            "name": "Angklung",
+            "description": "Angklung adalah alat musik tradisional Sunda dari Jawa Barat yang terbuat dari bambu. Cara memainkannya dengan digoyangkan sehingga menghasilkan bunyi dari gesekan dan benturan tabung bambu. Angklung telah diakui UNESCO sebagai Warisan Budaya Tak Benda pada tahun 2010.",
+            "image": "assets/images/items/jawa/bandung.png",
+            "province": "Jawa Barat",
+            "island": "Jawa"
+          }
+        ]
+      },
+      {
+        "id": "banten",
+        "name": "Banten",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "banten_001",
+            "name": "Debus",
+            "description": "Debus adalah seni pertunjukan tradisional Banten yang menampilkan kemampuan luar biasa manusia menahan senjata tajam dan api. Seni ini berakar pada tradisi Islam lokal dan dipercaya melibatkan kekuatan spiritual. Debus biasanya ditampilkan dalam perayaan besar dan upacara adat.",
+            "image": "assets/images/items/jawa/banten.png",
+            "province": "Banten",
+            "island": "Jawa"
+          }
+        ]
+      },
+      {
+        "id": "cirebon",
+        "name": "Cirebon",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "cirebon_001",
+            "name": "Tari Topeng Cirebon",
+            "description": "Tari Topeng Cirebon adalah seni pertunjukan tradisional khas Cirebon yang menggunakan topeng sebagai medium ekspresi. Setiap topeng mewakili karakter berbeda dari tokoh mitologi Jawa. Tarian ini merupakan perpaduan antara seni tari, teater, dan spiritualitas Jawa-Sunda.",
+            "image": "assets/images/items/jawa/cirebon.png",
+            "province": "Cirebon",
+            "island": "Jawa"
+          }
+        ]
+      },
+      {
+        "id": "jakarta",
+        "name": "DKI Jakarta",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "jakarta_001",
+            "name": "Ondel-Ondel",
+            "description": "Ondel-ondel adalah boneka raksasa khas suku Betawi yang menjadi ikon budaya Jakarta. Tingginya bisa mencapai 2,5 meter dengan wajah merah untuk laki-laki dan putih untuk perempuan. Ondel-ondel awalnya digunakan sebagai penolak bala, kini menjadi simbol kesenian Betawi.",
+            "image": "assets/images/items/jawa/jakarta.png",
+            "province": "DKI Jakarta",
+            "island": "Jawa"
+          }
+        ]
+      },
+      {
+        "id": "semarang",
+        "name": "Jawa Tengah",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "semarang_001",
+            "name": "Warak Ngendog",
+            "description": "Warak Ngendog adalah makhluk mitologi khas Semarang yang berwujud perpaduan tiga hewan: naga (kepala), buraq (badan), dan kambing (kaki). Warak Ngendog hadir setiap perayaan Dugderan sebagai simbol keberagaman budaya Arab, Tionghoa, dan Jawa yang melebur di Semarang.",
+            "image": "assets/images/items/jawa/semarang.png",
+            "province": "Jawa Tengah",
+            "island": "Jawa"
+          }
+        ]
+      },
+      {
+        "id": "solo",
+        "name": "Solo",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "solo_001",
+            "name": "Batik Solo",
+            "description": "Batik Solo adalah kain batik tradisional yang berasal dari kota Surakarta (Solo). Ciri khasnya menggunakan warna sogan (cokelat keemasan) dengan motif kawung, parang, dan sido mukti. Batik Solo telah diwariskan turun-temurun sebagai identitas budaya Keraton Surakarta.",
+            "image": "assets/images/items/jawa/solo.png",
+            "province": "Solo",
+            "island": "Jawa"
+          }
+        ]
+      },
+      {
+        "id": "surabaya",
+        "name": "Jawa Timur",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "surabaya_001",
+            "name": "Ludruk",
+            "description": "Ludruk adalah seni pertunjukan teater rakyat khas Jawa Timur yang menggabungkan drama, tari, dan lawak. Semua peran, termasuk tokoh perempuan, dimainkan oleh laki-laki. Pertunjukan Ludruk biasanya mengangkat tema kehidupan rakyat biasa dengan bahasa Jawa Timuran yang khas.",
+            "image": "assets/images/items/jawa/surabaya.png",
+            "province": "Jawa Timur",
+            "island": "Jawa"
+          }
+        ]
+      },
+      {
+        "id": "yogyakarta",
+        "name": "DI Yogyakarta",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "yogyakarta_001",
+            "name": "Wayang Kulit",
+            "description": "Wayang Kulit adalah seni pertunjukan boneka bayangan dari kulit yang dimainkan oleh dalang. Pertunjukan ini diiringi gamelan dan sinden, menampilkan kisah-kisah dari Mahabharata dan Ramayana. Wayang Kulit telah diakui UNESCO sebagai Warisan Budaya Tak Benda sejak tahun 2003.",
+            "image": "assets/images/items/jawa/yogyakarta.png",
+            "province": "DI Yogyakarta",
+            "island": "Jawa"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "kalimantan",
+    "name": "Kalimantan",
+    "provinces": [
+      {
+        "id": "balikpapan",
+        "name": "Kalimantan Timur",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "balikpapan_001",
+            "name": "Tari Giring-Giring",
+            "description": "Tari Giring-Giring adalah tarian tradisional suku Dayak Maanyan dari Kalimantan Timur. Penari mengenakan pakaian adat lengkap sambil memegang tongkat yang dihiasi bulu burung enggang. Tarian ini melambangkan kegembiraan dan syukur masyarakat Dayak atas hasil panen yang melimpah.",
+            "image": "assets/images/items/kalimantan/balikpapan.png",
+            "province": "Kalimantan Timur",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "banjarmasin",
+        "name": "Kalimantan Selatan",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "banjarmasin_001",
+            "name": "Pasar Terapung",
+            "description": "Pasar Terapung adalah pasar tradisional unik di atas sungai Kalimantan Selatan, di mana para pedagang berjualan menggunakan perahu kecil (jukung). Pasar ini aktif sejak subuh dan menjadi salah satu warisan budaya paling ikonik dari suku Banjar. Lokasinya yang terkenal adalah Lok Baintan di Banjar.",
+            "image": "assets/images/items/kalimantan/banjarmasin.png",
+            "province": "Kalimantan Selatan",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "palangkaraya",
+        "name": "Kalimantan Tengah",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "palangkaraya_001",
+            "name": "Tari Kinyah Mandau",
+            "description": "Tari Kinyah Mandau adalah tarian perang tradisional suku Dayak dari Kalimantan Tengah. Penari membawa mandau (senjata khas Dayak) dan tameng, menampilkan gerakan-gerakan yang menggambarkan keberanian seorang ksatria Dayak di medan pertempuran. Kostumnya menggunakan bulu burung Enggang.",
+            "image": "assets/images/items/kalimantan/palangkaraya.png",
+            "province": "Kalimantan Tengah",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "pontianak",
+        "name": "Kalimantan Barat",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "pontianak_001",
+            "name": "Kain Tenun Dayak",
+            "description": "Kain Tenun Dayak adalah kain tradisional yang dihasilkan oleh berbagai sub-suku Dayak di Kalimantan Barat. Dibuat dengan teknik tenun ikat yang rumit, kain ini dihiasi motif-motif khas seperti burung enggang, naga, dan pakis. Setiap motif memiliki makna filosofis yang dalam bagi masyarakat Dayak.",
+            "image": "assets/images/items/kalimantan/pontianak.png",
+            "province": "Kalimantan Barat",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "samarinda",
+        "name": "Samarinda",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "samarinda_001",
+            "name": "Sarung Samarinda",
+            "description": "Sarung Samarinda adalah kain tenun tradisional khas Samarinda, Kalimantan Timur, yang dikenal dengan motif kotak-kotak berwarna cerah. Ditenun menggunakan alat tenun tradisional oleh komunitas Suku Bugis yang menetap di Samarinda, kain ini menjadi simbol perpaduan budaya Bugis dan Kalimantan.",
+            "image": "assets/images/items/kalimantan/samarinda.png",
+            "province": "Samarinda",
+            "island": "Kalimantan"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sulawesi",
+    "name": "Sulawesi",
+    "provinces": [
+      {
+        "id": "gorontalo",
+        "name": "Gorontalo",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "gorontalo_001",
+            "name": "Pakaian Adat Bili'u",
+            "description": "Bili'u adalah pakaian adat kebesaran pengantin wanita dari Gorontalo. Pakaian ini terdiri dari baju berwarna kuning keemasan yang dihiasi payet dan sulaman indah, melambangkan keagungan dan kemurnian. Warna kuning pada Bili'u mencerminkan identitas budaya Gorontalo yang kuat dengan tradisi kerajaan.",
+            "image": "assets/images/items/sulawesi/gorontalo.png",
+            "province": "Gorontalo",
+            "island": "Sulawesi"
+          }
+        ]
+      },
+      {
+        "id": "makasar",
+        "name": "Sulawesi Selatan",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "makasar_001",
+            "name": "Baju Bodo",
+            "description": "Baju Bodo adalah pakaian adat tradisional perempuan suku Bugis-Makassar dari Sulawesi Selatan. Baju ini berbentuk sederhana, bersegi empat, dengan lengan pendek dan bahan tipis menyerupai kasa. Warna baju menunjukkan status sosial pemakainya dalam stratifikasi masyarakat Bugis.",
+            "image": "assets/images/items/sulawesi/makasar.png",
+            "province": "Sulawesi Selatan",
+            "island": "Sulawesi"
+          }
+        ]
+      },
+      {
+        "id": "manado",
+        "name": "Sulawesi Utara",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "manado_001",
+            "name": "Tari Maengket",
+            "description": "Tari Maengket adalah tarian tradisional suku Minahasa dari Sulawesi Utara yang dilakukan secara massal oleh banyak penari. Tarian ini merupakan ungkapan syukur kepada Tuhan atas hasil panen padi yang baik. Gerakan Maengket mengandung nilai kebersamaan, gotong royong, dan kegembiraan masyarakat Minahasa.",
+            "image": "assets/images/items/sulawesi/manado.png",
+            "province": "Sulawesi Utara",
+            "island": "Sulawesi"
+          }
+        ]
+      },
+      {
+        "id": "palu",
+        "name": "Sulawesi Tengah",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "palu_001",
+            "name": "Kain Donggala",
+            "description": "Kain Donggala adalah kain tenun tradisional dari Sulawesi Tengah yang terkenal dengan motif geometris berwarna cerah. Kain ini ditenun dari benang sutra dengan teknik yang diwariskan turun-temurun. Motif khasnya mencerminkan hubungan masyarakat Donggala dengan alam laut dan daratan Sulawesi Tengah.",
+            "image": "assets/images/items/sulawesi/palu.png",
+            "province": "Sulawesi Tengah",
+            "island": "Sulawesi"
+          }
+        ]
+      },
+      {
+        "id": "toraja",
+        "name": "Tana Toraja",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "toraja_001",
+            "name": "Tongkonan",
+            "description": "Tongkonan adalah rumah adat tradisional suku Toraja dari Sulawesi Selatan bagian utara. Ciri khasnya adalah atap berbentuk perahu melengkung dramatis yang mengarah ke langit. Tongkonan bukan sekadar tempat tinggal, melainkan pusat kehidupan sosial, budaya, dan spiritual masyarakat Toraja.",
+            "image": "assets/images/items/sulawesi/toraja.png",
+            "province": "Tana Toraja",
+            "island": "Sulawesi"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "papua",
+    "name": "Papua",
+    "provinces": [
+      {
+        "id": "biak",
+        "name": "Papua",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "biak_001",
+            "name": "Tari Yospan",
+            "description": "Tari Yospan adalah tarian pergaulan khas Papua yang merupakan gabungan dari dua tarian, yaitu Yosim dan Pancar. Tarian ini menggambarkan kegembiraan dan persaudaraan masyarakat Papua. Yospan biasanya dibawakan oleh banyak penari muda dengan gerakan lincah dan dinamis yang mencerminkan semangat Papua.",
+            "image": "assets/images/items/papua/biak.png",
+            "province": "Papua",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "jayapura",
+        "name": "Papua (Jayapura)",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "jayapura_001",
+            "name": "Tari Musyoh",
+            "description": "Tari Musyoh adalah tari sakral suku Mee di Papua yang bertujuan mengusir roh jahat dari jiwa seseorang yang meninggal karena kecelakaan. Tarian ini diiringi tifa dan dilakukan oleh para tetua adat. Musyoh merupakan wujud kepercayaan spiritual masyarakat Papua tentang keseimbangan alam dan roh.",
+            "image": "assets/images/items/papua/jayapura.png",
+            "province": "Papua (Jayapura)",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "merauke",
+        "name": "Papua Selatan",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "merauke_001",
+            "name": "Patung Mbis",
+            "description": "Mbis adalah tiang atau patung leluhur kayu yang diukir oleh suku Asmat dari Papua Selatan. Patung ini dibuat untuk menghormati arwah leluhur dan digunakan dalam upacara pembuatan perdamaian. Ukiran Asmat diakui sebagai salah satu seni ukir tradisional terbaik di dunia karena kerumitan dan keindahannya.",
+            "image": "assets/images/items/papua/merauke.png",
+            "province": "Papua Selatan",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "sorong",
+        "name": "Papua Barat",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "sorong_001",
+            "name": "Tari Perang Arfak",
+            "description": "Tari Perang Arfak adalah tarian tradisional suku Arfak dari Papua Barat yang menggambarkan keberanian para ksatria dalam mempertahankan tanah adat. Penari mengenakan hiasan kepala bulu burung cenderawasih yang megah dan membawa busur serta tombak. Tarian ini menjadi simbol kebanggaan dan identitas budaya Papua Barat.",
+            "image": "assets/images/items/papua/sorong.png",
+            "province": "Papua Barat",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "wamena",
+        "name": "Papua Pegunungan",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "wamena_001",
+            "name": "Tradisi Mumi Dani",
+            "description": "Suku Dani di Lembah Baliem, Papua, memiliki tradisi pengawetan jenazah leluhur menjadi mumi yang berusia ratusan tahun. Mumi dijaga dan dirawat oleh keluarga sebagai bentuk penghormatan dan agar roh leluhur terus melindungi suku. Tradisi ini mencerminkan ikatan spiritual yang kuat antara orang Dani dengan para leluhurnya.",
+            "image": "assets/images/items/papua/wamena.png",
+            "province": "Papua Pegunungan",
+            "island": "Papua"
+          }
+        ]
+      }
+    ]
+  }
+]

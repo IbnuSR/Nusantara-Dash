@@ -172,4 +172,37 @@ class GamePrefs {
       await prefs.setStringList(_unlockedIslandsKey, islands);
     }
   }
+
+  // ===== 🏛️ MUSEUM — UNLOCKED ITEMS =====
+  //
+  // Key menggunakan prefix 'museum_item_' agar tidak bertabrakan
+  // dengan key sistem lain (Coin, Lives, Islands).
+  // Seluruh item yang sudah di-unlock disimpan dalam satu List<String>
+  // yang berisi item ID, misalnya: ['aceh_001', 'bandung_001'].
+  static const String _museumUnlockedKey = 'museum_item_unlocked_list';
+
+  /// Mengembalikan daftar ID Cultural Item yang sudah di-unlock.
+  /// Mengembalikan list kosong jika belum ada item yang terbuka.
+  static Future<List<String>> getUnlockedMuseumItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_museumUnlockedKey) ?? [];
+  }
+
+  /// Menambahkan [itemId] ke daftar item yang sudah di-unlock.
+  /// Tidak melakukan apa-apa jika [itemId] sudah ada di dalam daftar.
+  static Future<void> unlockMuseumItem(String itemId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getStringList(_museumUnlockedKey) ?? [];
+    if (!current.contains(itemId)) {
+      current.add(itemId);
+      await prefs.setStringList(_museumUnlockedKey, current);
+    }
+  }
+
+  /// Mengembalikan true jika [itemId] sudah ada di daftar item yang terbuka.
+  static Future<bool> isMuseumItemUnlocked(String itemId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getStringList(_museumUnlockedKey) ?? [];
+    return current.contains(itemId);
+  }
 }

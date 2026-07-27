@@ -49,11 +49,10 @@ class _GameScreenState extends State<GameScreen> {
       onCoinsUpdated: (coins) {
         if (mounted) setState(() => _sessionCoins = coins);
       },
-      onGameOver:
-          _showFinalGameOverDialog, // Dipanggil hanya jika nyawa benar-benar 0
+      onGameOver: _showFinalGameOverDialog,
       onLevelComplete: _showLevelCompleteDialog,
       onBossEncounter: _showBossBattle,
-      onPlayerDied: _handlePlayerDeath, // ✅ CALLBACK BARU UNTUK CHECKPOINT
+      onPlayerDied: _handlePlayerDeath,
     );
   }
 
@@ -72,7 +71,6 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  // ✅ METHOD BARU: Menangani logika kematian & Checkpoint
   Future<void> _handlePlayerDeath() async {
     await GamePrefs.useExtraLife();
     int remainingLives = await GamePrefs.getExtraLives();
@@ -89,7 +87,6 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  // ✅ DIALOG LANJUTKAN DARI CHECKPOINT
   void _showContinueDialog() {
     showDialog(
       context: context,
@@ -113,8 +110,8 @@ class _GameScreenState extends State<GameScreen> {
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pop(ctx);
-                _game.player.respawn(); // Muncul di posisi terakhir aman
-                _game.resumeEngine(); // Lanjut main
+                _game.player.respawn();
+                _game.resumeEngine();
               },
               icon: const Icon(Icons.refresh),
               label: const Text('LANJUT (-1 Nyawa)'),
@@ -127,7 +124,7 @@ class _GameScreenState extends State<GameScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                _saveDataAndExit(false); // Menyerah dan keluar ke peta
+                _saveDataAndExit(false);
               },
               child: const Text('MENYERAH & KELUAR',
                   style: TextStyle(color: Colors.white70)),
@@ -138,7 +135,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  // ✅ DIALOG GAME OVER FINAL (Nyawa Habis)
   void _showFinalGameOverDialog() {
     showDialog(
       context: context,
@@ -189,9 +185,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  // ... (Method _showBossBattle, _showVictoryDialog, _showLevelCompleteDialog, _toggleSettings, dan build tetap SAMA seperti kode kamu sebelumnya) ...
-  // (Saya singkat di sini agar tidak terlalu panjang, pastikan method-method itu tetap ada di file kamu)
-
   void _showBossBattle() {
     showDialog(
       context: context,
@@ -229,12 +222,14 @@ class _GameScreenState extends State<GameScreen> {
               islandName: widget.islandName,
               currentLives: _totalLives,
               onBattleWin: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Tutup layar battle
                 _showVictoryDialog();
               },
+              // 🔥 INI KUNCINYA: Saat kalah kuis, reset sensor bos & perlakukan seperti mati rintangan!
               onBattleLose: () {
-                Navigator.pop(context);
-                _game.resumeEngine();
+                Navigator.pop(context); // Tutup layar battle
+                _game.resetBossTrigger(); // Reset zona bos & mundurkan Satria
+                _handlePlayerDeath(); // Tampilkan pop-up "Lanjut dari Checkpoint?"
               },
               onExit: () {
                 Navigator.pop(context);
@@ -245,6 +240,22 @@ class _GameScreenState extends State<GameScreen> {
         );
       }
     });
+  }
+
+  // ✅ HELPER DINAMIS: NAMA SENJATA PER PULAU
+  String _getWeaponName(String island) {
+    switch (island.toUpperCase()) {
+      case 'JAWA':
+        return '🗡️ Keris Pusaka';
+      case 'KALIMANTAN':
+        return '🗡️ Mandau Sakti';
+      case 'SULAWESI':
+        return '🗡️ Badik Keramat';
+      case 'PAPUA':
+        return '🏹 Busur Kasuari';
+      default:
+        return '🗡️ Rencong Suci';
+    }
   }
 
   void _showVictoryDialog() {
@@ -267,7 +278,8 @@ class _GameScreenState extends State<GameScreen> {
               const Text('Selamat! Kamu mendapatkan:',
                   style: TextStyle(color: Colors.white)),
               const SizedBox(height: 10),
-              Text('🗡️ Rencong Suci',
+              // 🔥 UPDATE DINAMIS: Teks senjata mengikuti nama pulau
+              Text(_getWeaponName(widget.islandName),
                   style: GoogleFonts.pressStart2p(
                       color: Colors.amber, fontSize: 14)),
               Text('🪙 +500 Koin',
@@ -277,7 +289,8 @@ class _GameScreenState extends State<GameScreen> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.pop(context);
+                  Navigator.pop(
+                      context); // Balik ke Peta (mengaktifkan .then refresh)
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
@@ -407,25 +420,27 @@ class _GameScreenState extends State<GameScreen> {
                             '$_sessionCoins', Colors.amber),
                         const SizedBox(height: 20),
                         ElevatedButton.icon(
-                            onPressed: _toggleSettings,
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('LANJUTKAN'),
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size(double.infinity, 40))),
+                          onPressed: _toggleSettings,
+                          icon: const Icon(Icons.play_arrow),
+                          label: const Text('LANJUTKAN'),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 40)),
+                        ),
                         const SizedBox(height: 10),
                         ElevatedButton.icon(
-                            onPressed: () {
-                              _toggleSettings();
-                              _saveDataAndExit(false);
-                            },
-                            icon: const Icon(Icons.exit_to_app),
-                            label: const Text('KELUAR'),
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size(double.infinity, 40))),
+                          onPressed: () {
+                            _toggleSettings();
+                            _saveDataAndExit(false);
+                          },
+                          icon: const Icon(Icons.exit_to_app),
+                          label: const Text('KELUAR'),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 40)),
+                        ),
                       ],
                     ),
                   ),

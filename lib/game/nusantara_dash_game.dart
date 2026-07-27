@@ -10,7 +10,14 @@ import 'components/player/player.dart';
 import 'components/level_builder.dart';
 import 'components/controllers/analog_controller.dart';
 import 'components/controllers/arrow_controller.dart';
+
+// ✅ 1. IMPORT SEMUA DATA LEVEL PULAU
 import 'data/sumatra_level_data.dart';
+import 'data/jawa_level_data.dart';
+import 'data/kalimantan_level_data.dart';
+import 'data/sulawesi_level_data.dart';
+import 'data/papua_level_data.dart';
+
 import 'package:nusantara_dash/utils/game_prefs.dart';
 import 'package:nusantara_dash/utils/audio_manager.dart';
 
@@ -21,7 +28,7 @@ class NusantaraDashGame extends FlameGame
   final VoidCallback onLevelComplete;
   final Function(int) onCoinsUpdated;
   final VoidCallback onBossEncounter;
-  final VoidCallback onPlayerDied; // ✅ TAMBAHKAN INI
+  final VoidCallback onPlayerDied; // ✅ WAJIB ADA
 
   late Player player;
   late double groundY;
@@ -45,7 +52,7 @@ class NusantaraDashGame extends FlameGame
     required this.onLevelComplete,
     required this.onCoinsUpdated,
     required this.onBossEncounter,
-    required this.onPlayerDied, // ✅ WAJIB ADA
+    required this.onPlayerDied,
   });
 
   void updateLives(int lives) {
@@ -55,12 +62,40 @@ class NusantaraDashGame extends FlameGame
     }
   }
 
+  // ==========================================================
+  // 🧠 2. HELPER PINTAR: AMBIL PANJANG MAP DINAMIS PER PULAU
+  // ==========================================================
+  double getLevelLength() {
+    switch (islandName.toUpperCase()) {
+      case 'JAWA':
+        return JawaLevelData.levelLength;
+      case 'KALIMANTAN':
+        return KalimantanLevelData.levelLength;
+      case 'SULAWESI':
+        return SulawesiLevelData.levelLength;
+      case 'PAPUA':
+        return PapuaLevelData.levelLength;
+      default:
+        return SumatraLevelData.levelLength;
+    }
+  }
+
+  // 🔥 METHOD BARU: Reset zona bos kalau pemain kalah kuis
+  void resetBossTrigger() {
+    _hasEnteredBossZone = false;
+    // Mundurkan Satria 600px ke belakang (ke daerah aman sebelum kotak ungu)
+    player.position.x = getLevelLength() - 600;
+    print('🔄 Boss Zone di-reset! Satria dimundurkan siap lawan bos lagi.');
+  }
+  // ==========================================================
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
     camera.viewport = FixedResolutionViewport(
-        resolution: Vector2(virtualWidth, virtualHeight));
+      resolution: Vector2(virtualWidth, virtualHeight),
+    );
     camera.viewfinder.anchor = Anchor.center;
     camera.viewfinder.position = Vector2(virtualWidth / 2, virtualHeight / 2);
     camera.viewfinder.zoom = cameraZoom;
@@ -90,7 +125,7 @@ class NusantaraDashGame extends FlameGame
       onPlayerDied: () {
         pauseEngine();
         AudioManager.instance.playSFX('sfx_gameover.mp3');
-        onPlayerDied(); // ✅ Panggil callback ke GameScreen (BUKAN onGameOver langsung)
+        onPlayerDied(); // ✅ Panggil callback ke GameScreen
       },
       onPlayerLanded: () {
         AudioManager.instance.playSFX('sfx_land.mp3');
@@ -100,7 +135,8 @@ class NusantaraDashGame extends FlameGame
       ..priority = 100;
     world.add(player);
 
-    world.add(LevelBuilder(groundY: groundY));
+    // ✅ Lempar nama pulau ke LevelBuilder agar rintangan menyesuaikan
+    world.add(LevelBuilder(groundY: groundY, islandName: islandName));
 
     String controlType = await GamePrefs.getControlType();
     if (controlType == 'analog') {
@@ -127,10 +163,11 @@ class NusantaraDashGame extends FlameGame
       text: '🏝️ $islandName',
       textRenderer: TextPaint(
         style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            shadows: [Shadow(color: Colors.black, blurRadius: 4)]),
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+        ),
       ),
       position: Vector2(20, 20),
     );
@@ -140,10 +177,11 @@ class NusantaraDashGame extends FlameGame
       text: '🪙 $totalWalletCoins',
       textRenderer: TextPaint(
         style: const TextStyle(
-            color: Colors.amber,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            shadows: [Shadow(color: Colors.black, blurRadius: 4)]),
+          color: Colors.amber,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+        ),
       ),
       position: Vector2(20, 55),
     );
@@ -153,10 +191,11 @@ class NusantaraDashGame extends FlameGame
       text: '❤️ $currentLives',
       textRenderer: TextPaint(
         style: const TextStyle(
-            color: Colors.redAccent,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            shadows: [Shadow(color: Colors.black, blurRadius: 4)]),
+          color: Colors.redAccent,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+        ),
       ),
       position: Vector2(20, 90),
     );
@@ -178,9 +217,11 @@ class NusantaraDashGame extends FlameGame
           (targetY - camera.viewfinder.position.y) * 0.1,
     );
 
+    // ✅ 3. AMBIL PANJANG LEVEL SECARA DINAMIS
+    final double totalLength = getLevelLength();
     double visibleWorldWidth = virtualWidth / cameraZoom;
     double minCamX = visibleWorldWidth / 2;
-    double maxCamX = SumatraLevelData.levelLength - (visibleWorldWidth / 2);
+    double maxCamX = totalLength - (visibleWorldWidth / 2);
 
     if (maxCamX > minCamX) {
       camera.viewfinder.position.x =
@@ -189,11 +230,10 @@ class NusantaraDashGame extends FlameGame
       camera.viewfinder.position.x = minCamX;
     }
 
-    // 🔥 PRIORITAS 1: BOSS ZONE TRIGGER
-    if (player.position.x >= 5000 &&
-        player.position.x < 5900 &&
-        !_hasEnteredBossZone &&
-        !_hasDefeatedBoss) {
+    // 🔥 PRIORITAS 1: BOSS ZONE TRIGGER (Koordinat pas di kotak ungu, tanpa syarat !_hasDefeatedBoss)
+    if (player.position.x >= totalLength - 280 &&
+        player.position.x < totalLength - 100 &&
+        !_hasEnteredBossZone) {
       print('🔥🔥 BOSS ZONE TRIGGERED! Posisi: ${player.position.x.toInt()}');
       _hasEnteredBossZone = true;
       pauseEngine();
@@ -201,11 +241,9 @@ class NusantaraDashGame extends FlameGame
       return;
     }
 
-    // ✅ PRIORITAS 2: Level Complete (HANYA jika boss sudah dikalahkan)
-    if (player.position.x >= SumatraLevelData.levelLength - 100 &&
-        !isLevelFinished &&
-        _hasDefeatedBoss) {
-      print('✅ LEVEL COMPLETE! Boss sudah dikalahkan.');
+    // ✅ PRIORITAS 2: Level Complete (Di ujung map)
+    if (player.position.x >= totalLength - 100 && !isLevelFinished) {
+      print('✅ LEVEL COMPLETE!');
       isLevelFinished = true;
       pauseEngine();
       AudioManager.instance.playSFX('sfx_level_complete.mp3');
@@ -214,17 +252,20 @@ class NusantaraDashGame extends FlameGame
     }
 
     // ⛔ PRIORITAS 3: Player mencoba finish TANPA mengalahkan boss
-    if (player.position.x >= SumatraLevelData.levelLength - 50 &&
+    if (player.position.x >= totalLength - 50 &&
         !isLevelFinished &&
         !_hasDefeatedBoss) {
       print(
-          '⛔ ACCESS DENIED! Player di x=${player.position.x.toInt()} tapi boss belum dikalahkan!');
+        '⛔ ACCESS DENIED! Player di x=${player.position.x.toInt()} tapi boss belum dikalahkan!',
+      );
     }
   }
 
   @override
   KeyEventResult onKeyEvent(
-      KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    KeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
       player.jump();
       AudioManager.instance.playSFX('sfx_jump.mp3');
@@ -235,19 +276,26 @@ class NusantaraDashGame extends FlameGame
   Future<void> _loadBackground() async {
     final paths = [
       'background/bg_${islandName.toLowerCase()}.png',
-      'background/bg_${islandName.toLowerCase()}.jpg'
+      'background/bg_${islandName.toLowerCase()}.jpg',
     ];
     for (final p in paths) {
       try {
         final img = await images.load(p);
-        camera.backdrop.add(SpriteComponent(
-            sprite: Sprite(img), size: Vector2(virtualWidth, virtualHeight)));
+        camera.backdrop.add(
+          SpriteComponent(
+            sprite: Sprite(img),
+            size: Vector2(virtualWidth, virtualHeight),
+          ),
+        );
         return;
       } catch (_) {}
     }
-    camera.backdrop.add(RectangleComponent(
+    camera.backdrop.add(
+      RectangleComponent(
         size: Vector2(virtualWidth, virtualHeight),
-        paint: Paint()..color = Colors.blue[300]!));
+        paint: Paint()..color = Colors.blue[300]!,
+      ),
+    );
   }
 
   @override

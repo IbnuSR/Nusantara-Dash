@@ -2,7 +2,12 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart' hide Image;
+// ✅ 1. IMPORT SEMUA DATA PULAU DI SINI:
 import 'package:nusantara_dash/game/data/sumatra_level_data.dart';
+import 'package:nusantara_dash/game/data/jawa_level_data.dart';
+import 'package:nusantara_dash/game/data/kalimantan_level_data.dart';
+import 'package:nusantara_dash/game/data/sulawesi_level_data.dart';
+import 'package:nusantara_dash/game/data/papua_level_data.dart';
 
 class GroundPlatform extends SpriteComponent {
   GroundPlatform({super.sprite, super.position, super.size, super.anchor});
@@ -19,11 +24,13 @@ class CoinItem extends CircleComponent {
 
 class LevelBuilder extends PositionComponent with HasGameRef {
   final double groundY;
+  final String islandName; // ✅ 2. TAMBAHKAN PARAMETER NAMA PULAU
 
   // Efek gaya gravitasi menekan rumput
   static const double obstacleSinkOffset = 8.0;
 
-  LevelBuilder({required this.groundY});
+  // ✅ Wajib menerima islandName saat dipanggil di NusantaraDashGame
+  LevelBuilder({required this.groundY, required this.islandName});
 
   Future<Image> _safeLoad(String fileName) async {
     try {
@@ -32,6 +39,70 @@ class LevelBuilder extends PositionComponent with HasGameRef {
       return await gameRef.images.load('obstacles/$fileName.jpg');
     }
   }
+
+  // ==========================================
+  // 🧠 3. FUNGSI HELPER PINTAR (PEMILIH DATA)
+  // ==========================================
+  List<Map<String, double>> _getPlatforms() {
+    switch (islandName.toUpperCase()) {
+      case 'JAWA':
+        return JawaLevelData.platforms;
+      case 'KALIMANTAN':
+        return KalimantanLevelData.platforms;
+      case 'SULAWESI':
+        return SulawesiLevelData.platforms;
+      case 'PAPUA':
+        return PapuaLevelData.platforms;
+      default:
+        return SumatraLevelData.platforms;
+    }
+  }
+
+  List<Map<String, double>> _getObstacles() {
+    switch (islandName.toUpperCase()) {
+      case 'JAWA':
+        return JawaLevelData.obstacles;
+      case 'KALIMANTAN':
+        return KalimantanLevelData.obstacles;
+      case 'SULAWESI':
+        return SulawesiLevelData.obstacles;
+      case 'PAPUA':
+        return PapuaLevelData.obstacles;
+      default:
+        return SumatraLevelData.obstacles;
+    }
+  }
+
+  List<Map<String, double>> _getCoins() {
+    switch (islandName.toUpperCase()) {
+      case 'JAWA':
+        return JawaLevelData.coins;
+      case 'KALIMANTAN':
+        return KalimantanLevelData.coins;
+      case 'SULAWESI':
+        return SulawesiLevelData.coins;
+      case 'PAPUA':
+        return PapuaLevelData.coins;
+      default:
+        return SumatraLevelData.coins;
+    }
+  }
+
+  double _getLevelLength() {
+    switch (islandName.toUpperCase()) {
+      case 'JAWA':
+        return JawaLevelData.levelLength;
+      case 'KALIMANTAN':
+        return KalimantanLevelData.levelLength;
+      case 'SULAWESI':
+        return SulawesiLevelData.levelLength;
+      case 'PAPUA':
+        return PapuaLevelData.levelLength;
+      default:
+        return SumatraLevelData.levelLength;
+    }
+  }
+  // ==========================================
 
   @override
   Future<void> onLoad() async {
@@ -60,7 +131,8 @@ class LevelBuilder extends PositionComponent with HasGameRef {
   }
 
   void _spawnGroundAndPlatforms(Sprite g1, Sprite g2, Sprite g3) {
-    for (final p in SumatraLevelData.platforms) {
+    // ✅ 4. GANTI SumatraLevelData DENGAN _getPlatforms()
+    for (final p in _getPlatforms()) {
       double targetWidth = p['w']!;
       double targetHeight = p['h']!;
       Sprite spriteTerpilih;
@@ -88,7 +160,8 @@ class LevelBuilder extends PositionComponent with HasGameRef {
 
   void _spawnObstacles(Sprite kayu, Sprite batu, Sprite oyot) {
     int urutan = 0;
-    for (final o in SumatraLevelData.obstacles) {
+    // ✅ 5. GANTI SumatraLevelData DENGAN _getObstacles()
+    for (final o in _getObstacles()) {
       Sprite spriteTerpilih;
       double patokanTinggi = o['h']!;
       double lebarPresisi;
@@ -119,7 +192,8 @@ class LevelBuilder extends PositionComponent with HasGameRef {
   }
 
   void _spawnCoins() {
-    for (final c in SumatraLevelData.coins) {
+    // ✅ 6. GANTI SumatraLevelData DENGAN _getCoins()
+    for (final c in _getCoins()) {
       final coin = CoinItem(
         position: Vector2(c['x']!, groundY + c['y']!),
         radius: 14,
@@ -134,9 +208,12 @@ class LevelBuilder extends PositionComponent with HasGameRef {
   }
 
   void _spawnBossMarker() {
+    // ✅ 7. GANTI SumatraLevelData DENGAN _getLevelLength()
+    final double totalLength = _getLevelLength();
+
     add(
       RectangleComponent(
-        position: Vector2(SumatraLevelData.levelLength - 250, groundY - 180),
+        position: Vector2(totalLength - 250, groundY - 180),
         size: Vector2(200, 180),
         paint: Paint()..color = Colors.purple.withOpacity(0.25),
         anchor: Anchor.topLeft,
@@ -153,7 +230,7 @@ class LevelBuilder extends PositionComponent with HasGameRef {
             fontWeight: FontWeight.bold,
           ),
         ),
-        position: Vector2(SumatraLevelData.levelLength - 200, groundY - 200),
+        position: Vector2(totalLength - 200, groundY - 200),
       ),
     );
   }

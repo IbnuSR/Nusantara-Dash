@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../prologue_screen.dart';
 import '../../game/game_screen.dart';
 import 'package:nusantara_dash/utils/audio_manager.dart';
-
+import 'package:nusantara_dash/utils/game_prefs.dart'; // ✅ WAJIB: Untuk membaca progres dari HP
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -21,21 +21,22 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   final double _mapWidth = 1672.0;
   final double _mapHeight = 941.0;
 
-  // ✅ DITAMBAHKAN: 'boss_image' untuk menggantikan emoticon
+  // ✅ STATE BARU: Menyimpan daftar pulau yang sudah terbuka di database
+  List<String> _unlockedIslands = ['SUMATRA'];
+
   final List<Map<String, dynamic>> _islands = [
     {
       'name': 'SUMATRA',
       'subtitle': 'Rimba Harimau',
-      'icon': '🐯', // Sebagai cadangan (fallback) jika gambar belum ada
+      'icon': '🐯',
       'boss': 'Sang Belang',
       'weapon': 'Rencong Suci',
-      'unlocked': true,
       'description': 'Hutan lebat penuh misteri, tempat Sang Belang mengaum',
       'x': 0.17,
       'y': 0.40,
       'size': 260.0,
       'image_path': 'assets/images/ui/sumatra_active.png',
-      'boss_image': 'assets/images/ui/avatar_sumatra.png', // Aset baru
+      'boss_image': 'assets/images/ui/avatar_sumatra.png',
     },
     {
       'name': 'JAWA',
@@ -43,13 +44,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'icon': '👹',
       'boss': 'Buto Amuka',
       'weapon': 'Keris Pusaka',
-      'unlocked': false,
       'description': 'Gunung berapi yang mengamuk, rumah Buto Amuka',
       'x': 0.34,
       'y': 0.60,
       'size': 240.0,
       'image_path': 'assets/images/ui/jawa_locked.png',
-      'boss_image': 'assets/images/ui/avatar_jawa.png', // Aset baru
+      'boss_image': 'assets/images/ui/avatar_jawa.png',
     },
     {
       'name': 'KALIMANTAN',
@@ -57,13 +57,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'icon': '🦅',
       'boss': 'Enggang Gading',
       'weapon': 'Mandau Sakti',
-      'unlocked': false,
       'description': 'Hutan belantara tempat Enggang Gading menebar racun',
       'x': 0.46,
       'y': 0.38,
       'size': 240.0,
       'image_path': 'assets/images/ui/kalimantan_locked.png',
-      'boss_image': 'assets/images/ui/avatar_kalimantan.png', // Aset baru
+      'boss_image': 'assets/images/ui/avatar_kalimantan.png',
     },
     {
       'name': 'SULAWESI',
@@ -71,13 +70,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'icon': '🌊',
       'boss': 'Naga Phinisi',
       'weapon': 'Badik Keramat',
-      'unlocked': false,
       'description': 'Perairan luas tempat Naga Phinisi menguasai lautan',
       'x': 0.65,
       'y': 0.46,
       'size': 240.0,
       'image_path': 'assets/images/ui/sulawesi_locked.png',
-      'boss_image': 'assets/images/ui/avatar_sulawesi.png', // Aset baru
+      'boss_image': 'assets/images/ui/avatar_sulawesi.png',
     },
     {
       'name': 'PAPUA',
@@ -85,19 +83,21 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       'icon': '🦜',
       'boss': 'Sang Cendrawasih',
       'weapon': 'Busur Kasuari',
-      'unlocked': false,
       'description': 'Puncak Jayawijaya tempat Sang Cendrawasih menebar ilusi',
       'x': 0.85,
       'y': 0.45,
       'size': 240.0,
       'image_path': 'assets/images/ui/papua_locked.png',
-      'boss_image': 'assets/images/ui/avatar_papua.png', // Aset baru
+      'boss_image': 'assets/images/ui/avatar_papua.png',
     },
   ];
 
   @override
   void initState() {
     super.initState();
+    AudioManager.instance.playBGM('audio/bgm/main_menu.mp3');
+    _loadUnlockedIslands(); // ✅ Panggil database saat layar pertama kali dibuka
+
     _fadeInController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -114,6 +114,17 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
     );
+  }
+
+  // ✅ METHOD BARU: Ambil data pulau yang terbuka dari database HP
+  Future<void> _loadUnlockedIslands() async {
+    final unlocked = await GamePrefs.getUnlockedIslands();
+    if (mounted) {
+      setState(() {
+        _unlockedIslands = unlocked;
+      });
+      print('🗺️ Peta diperbarui! Pulau aktif saat ini: $_unlockedIslands');
+    }
   }
 
   void _tontonUlangPrologue() {
@@ -194,17 +205,38 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildIslandMarker(Map<String, dynamic> island) {
+    final String name = island['name'] as String;
+    // ✅ DINAMIS: Cek langsung ke list database apakah pulau ini terbuka
+    final bool isUnlocked = _unlockedIslands.contains(name.toUpperCase());
+
     final x = (island['x'] as double) * _mapWidth;
     final y = (island['y'] as double) * _mapHeight;
     final size = island['size'] as double;
-    final imagePath = island['image_path'] as String;
-    final isUnlocked = island['unlocked'] as bool;
+
+    // ✅ DINAMIS: Ganti gambar sprite (aktif vs gembok) sesuai status
+    final imagePath = isUnlocked
+        ? 'assets/images/ui/${name.toLowerCase()}_active.png'
+        : 'assets/images/ui/${name.toLowerCase()}_locked.png';
 
     Widget islandButton = BouncyImageButton(
       width: size,
       height: size,
       imagePath: imagePath,
-      onPressed: () => _showIslandDetail(island),
+      onPressed: () {
+        if (isUnlocked) {
+          _showIslandDetail(island, isUnlocked);
+        } else {
+          // ⛔ Cegah klik pada pulau terkunci & beri tahu pemain
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  '🔒 Pulau $name masih terkunci! Selesaikan pulau sebelumnya terlebih dahulu.'),
+              backgroundColor: Colors.red[800],
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
     );
 
     return Positioned(
@@ -245,7 +277,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildBottomInfo() {
-    int pulauSelesai = 1;
+    // ✅ DINAMIS: Menghitung berapa pulau yang sudah berhasil dibuka
+    int pulauSelesai = _unlockedIslands.length;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Container(
@@ -286,7 +319,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ],
               ),
               child: Text(
-                '$pulauSelesai/5 SELESAI',
+                '$pulauSelesai/5 TERBUKA',
                 style:
                     GoogleFonts.pressStart2p(color: Colors.white, fontSize: 8),
               ),
@@ -297,10 +330,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-// ✅ MODAL DIROMBAK TOTAL MENJADI TEMA DARK RETRO RPG
-  void _showIslandDetail(Map<String, dynamic> island) {
-    final isUnlocked = island['unlocked'] as bool;
-
+  void _showIslandDetail(Map<String, dynamic> island, bool isUnlocked) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -315,7 +345,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           child: Container(
             margin: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              // ✅ TEMA GELAP: Gradasi Biru Dongker ke Hitam (seperti dasar laut/malam)
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -323,17 +352,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ? [const Color(0xFF0F172A), const Color(0xFF020617)]
                     : [Colors.grey[900]!, Colors.black],
               ),
-              // Sudut kotak tegas khas pixel art
               borderRadius: BorderRadius.circular(0),
-              // Bingkai emas (Amber) jika terbuka, abu-abu jika terkunci
               border: Border.all(
                 color: isUnlocked ? const Color(0xFFD4AF37) : Colors.grey[700]!,
                 width: 4,
               ),
               boxShadow: const [
-                BoxShadow(
-                    color: Colors.black,
-                    offset: Offset(8, 8)), // Hard shadow khas retro
+                BoxShadow(color: Colors.black, offset: Offset(8, 8)),
               ],
             ),
             child: SingleChildScrollView(
@@ -341,7 +366,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // WADAH GAMBAR BOS/IKON
                   Container(
                     width: 90,
                     height: 90,
@@ -360,8 +384,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ),
                     child: Image.asset(
                       island['boss_image'] as String,
-                      fit: BoxFit
-                          .contain, // ✅ Menampilkan seluruh foto tanpa crop
+                      fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) => Center(
                         child: Text(island['icon'] as String,
                             style: const TextStyle(fontSize: 40)),
@@ -369,8 +392,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // NAMA PULAU (Warna Emas)
                   Text(
                     island['name'] as String,
                     style: GoogleFonts.pressStart2p(
@@ -382,8 +403,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  // SUBTITLE (Warna Abu-abu Terang)
                   Text(
                     island['subtitle'] as String,
                     style: GoogleFonts.pressStart2p(
@@ -393,8 +412,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // DESKRIPSI (Warna Putih)
                   Text(
                     island['description'] as String,
                     style: GoogleFonts.pressStart2p(
@@ -405,8 +422,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 30),
-
-                  // INFO BOSS & SENJATA
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,23 +441,32 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ],
                   ),
                   const SizedBox(height: 35),
-
-                  // TOMBOL MULAI (Warna Emas dengan Teks Hitam agar mencolok)
                   if (isUnlocked)
                     GestureDetector(
                       onTap: () {
-                        Navigator.pop(context);
+                        Navigator.pop(context); // Tutup modal detail
+
+                        // 🔥 INI DIA KUNCINYA: Pasang sensor .then() !
+                        // Begitu kamu klik "Kembali ke Peta" dari layar kuis/game over,
+                        // kode di dalam .then() ini akan otomatis dijalankan untuk me-refresh layar peta!
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => GameScreen(
-                                    islandName: island['name'] as String)));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GameScreen(
+                              islandName: island['name'] as String,
+                            ),
+                          ),
+                        ).then((_) {
+                          print(
+                              '🔄 Pulang dari petualangan! Membaca ulang progres dari HP...');
+                          _loadUnlockedIslands();
+                        });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 15),
                         decoration: BoxDecoration(
-                          color: Colors.amber, // Tombol emas
+                          color: Colors.amber,
                           border: Border.all(color: Colors.white, width: 2),
                           boxShadow: const [
                             BoxShadow(color: Colors.black, offset: Offset(4, 4))
@@ -497,7 +521,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-// ✅ DESAIN INFO ITEM (TEKS BOSS & SENJATA)
   Widget _buildInfoItem(String label, String value, bool isUnlocked) {
     return Column(
       children: [
@@ -505,9 +528,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           label,
           style: GoogleFonts.pressStart2p(
             fontSize: 7,
-            color: isUnlocked
-                ? Colors.amber
-                : Colors.grey[600], // Label warna emas
+            color: isUnlocked ? Colors.amber : Colors.grey[600],
           ),
           textAlign: TextAlign.center,
         ),
@@ -516,9 +537,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           value,
           style: GoogleFonts.pressStart2p(
             fontSize: 9,
-            color: isUnlocked
-                ? Colors.white
-                : Colors.grey[500], // Value warna putih
+            color: isUnlocked ? Colors.white : Colors.grey[500],
             height: 1.5,
           ),
           textAlign: TextAlign.center,
@@ -528,9 +547,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 }
 
-// =====================================================================
-// KELAS WIDGET: Efek Tombol Gambar Memantul (Bouncy Effect saat Ditekan)
-// =====================================================================
 class BouncyImageButton extends StatefulWidget {
   final double width;
   final double height;

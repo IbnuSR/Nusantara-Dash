@@ -22,7 +22,6 @@ class Player extends SpriteAnimationComponent
   final double jumpStrength = -700;
   static const int totalFrames = 14;
 
-  // ✅ TAMBAHKAN INI: Untuk menyimpan posisi checkpoint terakhir
   late Vector2 _checkpointPosition;
 
   Player({
@@ -38,10 +37,8 @@ class Player extends SpriteAnimationComponent
     await super.onLoad();
     await _loadAnimation();
 
-    // ✅ Set checkpoint awal saat game mulai
     _checkpointPosition = position.clone();
 
-    // Hitbox dirampingkan agar pas di tubuh Satria
     add(
       RectangleHitbox(
         size: Vector2(28, 96),
@@ -84,17 +81,25 @@ class Player extends SpriteAnimationComponent
   void die() {
     if (isDead) return;
     isDead = true;
-    onPlayerDied(); // Panggil callback ke GameScreen
+    onPlayerDied();
   }
 
-  // ✅ UPDATE: Respawn ke posisi checkpoint terakhir, bukan ke awal
+  // 🔥 PERBAIKAN FINAL: Respawn PERSIS di koordinat x mendarat yang aman (TANPA -120px!)
+  // Dijatuhkan ringan dari 10px di atas tanah agar fisika berpijak dengan sempurna.
   void respawn() {
     isDead = false;
-    position.setFrom(_checkpointPosition);
+
+    double safeX = _checkpointPosition.x;
+    double safeY = _checkpointPosition.y - 10;
+
+    position.setValues(safeX, safeY);
     jumpVelocity = 0;
     _isOnGround = false;
-    _wasInAir = true;
+    _wasInAir =
+        false; // ✅ PENTING: Jangan anggap sedang lompat agar tidak merusak posisi checkpoint saat mendarat
     currentInputDelta = Vector2.zero();
+    debugPrint(
+        '✨ Satria bangkit di tanah aman: x=${position.x.toInt()}, y=${position.y.toInt()}');
   }
 
   @override
@@ -114,7 +119,6 @@ class Player extends SpriteAnimationComponent
       position.y += jumpVelocity * dt;
     }
 
-    // Batas kematian jika jatuh ke jurang
     if (position.y > groundY + 150) {
       die();
     }
@@ -148,7 +152,6 @@ class Player extends SpriteAnimationComponent
       double platformLeft = other.position.x;
       double platformRight = other.position.x + other.size.x;
 
-      // Cek mendarat di atas tanah
       if (jumpVelocity >= 0 &&
           playerBottom >= platformTop - 20 &&
           playerBottom <= platformTop + 35 &&
@@ -159,11 +162,11 @@ class Player extends SpriteAnimationComponent
         if (_wasInAir) {
           onPlayerLanded?.call();
           _wasInAir = false;
+
+          // ✅ Rekam Checkpoint HANYA saat pertama kali mendarat dari udara!
+          _checkpointPosition = Vector2(position.x, position.y);
         }
         _isOnGround = true;
-
-        // ✅ SIMPAN CHECKPOINT: Setiap kali mendarat aman, update posisi
-        _checkpointPosition = Vector2(position.x, position.y);
       } else if (playerBottom > platformTop + 15) {
         if (bodyLeft < platformLeft && bodyRight > platformLeft) {
           position.x = platformLeft - 46;

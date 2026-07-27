@@ -12,8 +12,7 @@ class GamePrefs {
   static const String _livesKey = 'nusantara_dash_lives';
   static const String _cluesKey = 'nusantara_dash_clues';
   static const String _unlockedIslandsKey = 'nusantara_dash_unlocked';
-  static const String _museumUnlockedKey =
-      'museum_item_unlocked_list'; // ✅ Key Museum
+  static const String _museumUnlockedKey = 'museum_item_unlocked_list';
 
   // ==========================================
   // 🎬 1. PROLOGUE & TUTORIAL
@@ -179,9 +178,32 @@ class GamePrefs {
   static Future<void> unlockIsland(String islandCode) async {
     final prefs = await SharedPreferences.getInstance();
     final islands = await getUnlockedIslands();
-    if (!islands.contains(islandCode.toUpperCase())) {
-      islands.add(islandCode.toUpperCase());
+    final code = islandCode.trim().toUpperCase();
+    if (!islands.contains(code)) {
+      islands.add(code);
       await prefs.setStringList(_unlockedIslandsKey, islands);
+      print('💾 Tersimpan ke database HP! Daftar pulau terbuka: $islands');
+    }
+  }
+
+  // 🔥 UPDATE: Buka pulau berikutnya (Anti-Gagal & Ada Log Terminal)
+  static Future<void> unlockNextIsland(String currentIsland) async {
+    String nextIsland = '';
+    String current = currentIsland.trim().toUpperCase();
+
+    if (current == 'SUMATRA')
+      nextIsland = 'JAWA';
+    else if (current == 'JAWA')
+      nextIsland = 'KALIMANTAN';
+    else if (current == 'KALIMANTAN')
+      nextIsland = 'SULAWESI';
+    else if (current == 'SULAWESI') nextIsland = 'PAPUA';
+
+    if (nextIsland.isNotEmpty) {
+      await unlockIsland(nextIsland);
+      print('🎉 BERHASIL! Pulau $nextIsland resmi terbuka di database!');
+    } else {
+      print('⚠️ Semua pulau sudah terbuka atau pulau tidak dikenali: $current');
     }
   }
 
@@ -190,12 +212,13 @@ class GamePrefs {
   // ==========================================
   static Future<bool> isBossDefeated(String island) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('boss_defeated_$island') ?? false;
+    return prefs.getBool('boss_defeated_${island.trim().toUpperCase()}') ??
+        false;
   }
 
   static Future<void> markBossDefeated(String island) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('boss_defeated_$island', true);
+    await prefs.setBool('boss_defeated_${island.trim().toUpperCase()}', true);
   }
 
   // ==========================================
@@ -221,17 +244,13 @@ class GamePrefs {
   }
 
   // ==========================================
-  // 🏛️ 10. MUSEUM (FITUR DARI TEMANMU)
+  // 🏛️ 10. MUSEUM
   // ==========================================
-  /// Mengembalikan daftar ID Cultural Item yang sudah di-unlock.
-  /// Mengembalikan list kosong jika belum ada item yang terbuka.
   static Future<List<String>> getUnlockedMuseumItems() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getStringList(_museumUnlockedKey) ?? [];
   }
 
-  /// Menambahkan [itemId] ke daftar item yang sudah di-unlock.
-  /// Tidak melakukan apa-apa jika [itemId] sudah ada di dalam daftar.
   static Future<void> unlockMuseumItem(String itemId) async {
     final prefs = await SharedPreferences.getInstance();
     final current = prefs.getStringList(_museumUnlockedKey) ?? [];
@@ -241,7 +260,6 @@ class GamePrefs {
     }
   }
 
-  /// Mengembalikan true jika [itemId] sudah ada di daftar item yang terbuka.
   static Future<bool> isMuseumItemUnlocked(String itemId) async {
     final prefs = await SharedPreferences.getInstance();
     final current = prefs.getStringList(_museumUnlockedKey) ?? [];

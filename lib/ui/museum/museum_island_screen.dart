@@ -52,13 +52,40 @@ class _MuseumIslandScreenState extends State<MuseumIslandScreen>
       curve: Curves.easeOutCubic,
     );
 
+    // Subscribe: refresh tampilan ketika ada item baru yang di-unlock
+    MuseumManager.instance.addListener(_onMuseumChanged);
     _loadData();
   }
 
   @override
   void dispose() {
+    MuseumManager.instance.removeListener(_onMuseumChanged);
     _animController.dispose();
     super.dispose();
+  }
+
+  /// Dipanggil oleh MuseumManager.notifyListeners() ketika terjadi unlock.
+  void _onMuseumChanged() {
+    if (mounted) _silentRefresh();
+  }
+
+  /// Memperbarui data progress tanpa menampilkan loading spinner.
+  Future<void> _silentRefresh() async {
+    if (_island == null) return;
+    final islandProgress =
+        await MuseumManager.instance.getIslandProgress(widget.islandId);
+    final Map<String, MuseumProgress> progressMap = {};
+    for (final province in _island!.provinces) {
+      progressMap[province.id] =
+          await MuseumManager.instance.getProvinceProgress(province.id);
+    }
+    if (!mounted) return;
+    setState(() {
+      _islandProgress = islandProgress;
+      _provinceProgressMap
+        ..clear()
+        ..addAll(progressMap);
+    });
   }
 
   Future<void> _loadData() async {

@@ -95,4 +95,33 @@ class SumatraLevelData {
     {'x': 5750, 'y': -160}, {'x': 5800, 'y': -160},
     {'x': 5900, 'y': -160}, {'x': 5950, 'y': -160},
   ];
+
+  // ======================================================================
+  // 🏛️ HIDDEN CULTURAL ITEM — Spawn Candidate Locations (Multi-Item)
+  //
+  // Setiap entri mendefinisikan lokasi kandidat di mana
+  // HiddenCulturalItemComponent di-spawn di level gameplay.
+  //
+  // Diurutkan berdasarkan koordinat X (kiri ke kanan) agar item muncul
+  // secara bertahap seiring dengan progres penjelajahan pemain.
+  //
+  // Verifikasi koordinat:
+  // - Item 1 (x:2100, y:-210): Platform Section 2 (x:1950, y:-150, w:200).
+  //   60px di atas platform top.
+  // - Item 2 (x:3500, y:-240): Platform Section 3 (x:3500, y:-180, w:200).
+  //   60px di atas platform top.
+  // - Item 3 (x:4900, y:-190): Platform Section 4 (x:4900, y:-130, w:200).
+  //   60px di atas platform top.
+  // ======================================================================
+  static final List<Map<String, double>> hiddenItemSpawnCandidates = [
+    // Item 1 — Ledge Section 2 (Medium Jump area)
+    {'x': 2100, 'y': -210},
+
+    // Item 2 — Peak Section 3 (Gap & Tantangan area)
+    {'x': 3500, 'y': -240},
+
+    // Item 3 — Pre-Boss Ledge Section 4 (Precision Jump area)
+    {'x': 4900, 'y': -190},
+  ];
 }
+

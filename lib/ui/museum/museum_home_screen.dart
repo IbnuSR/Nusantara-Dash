@@ -44,13 +44,40 @@ class _MuseumHomeScreenState extends State<MuseumHomeScreen>
       curve: Curves.easeOutCubic,
     );
 
+    // Subscribe: refresh tampilan ketika ada item baru yang di-unlock
+    MuseumManager.instance.addListener(_onMuseumChanged);
     _loadData();
   }
 
   @override
   void dispose() {
+    MuseumManager.instance.removeListener(_onMuseumChanged);
     _animController.dispose();
     super.dispose();
+  }
+
+  /// Dipanggil oleh MuseumManager.notifyListeners() ketika ada item baru
+  /// yang di-unlock dari Gameplay. Refresh dilakukan secara senyap (tanpa
+  /// menampilkan loading spinner).
+  void _onMuseumChanged() {
+    if (mounted) _silentRefresh();
+  }
+
+  /// Memperbarui data progress tanpa mengubah state loading.
+  Future<void> _silentRefresh() async {
+    final indProgress = await MuseumManager.instance.getIndonesiaProgress();
+    final Map<String, MuseumProgress> progressMap = {};
+    for (final island in _islands) {
+      progressMap[island.id] =
+          await MuseumManager.instance.getIslandProgress(island.id);
+    }
+    if (!mounted) return;
+    setState(() {
+      _indonesiaProgress = indProgress;
+      _islandProgressMap
+        ..clear()
+        ..addAll(progressMap);
+    });
   }
 
   Future<void> _loadData() async {

@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 import '../level_builder.dart';
+import 'package:nusantara_dash/game/components/items/hidden_cultural_item.dart';
 
 class Player extends SpriteAnimationComponent
     with HasGameRef, CollisionCallbacks {
@@ -134,6 +135,17 @@ class Player extends SpriteAnimationComponent
         other.isCollected = true;
         other.removeFromParent();
         onCoinCollected();
+      }
+      return;
+    }
+
+    // 🏛️ SPRINT 6.4: Hidden Cultural Item pickup
+    // Pola identik dengan CoinItem: guard isCollected + delegate ke whenCollected().
+    // Player tidak mengetahui Museum, GamePrefs, maupun Audio —
+    // semua side effect diatur oleh callback chain (HCI → LevelBuilder → NusantaraDashGame).
+    if (other is HiddenCulturalItemComponent) {
+      if (!other.isCollected) {
+        other.whenCollected();
       }
       return;
     }

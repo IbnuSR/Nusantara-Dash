@@ -8,6 +8,9 @@ import 'package:nusantara_dash/game/data/jawa_level_data.dart';
 import 'package:nusantara_dash/game/data/kalimantan_level_data.dart';
 import 'package:nusantara_dash/game/data/sulawesi_level_data.dart';
 import 'package:nusantara_dash/game/data/papua_level_data.dart';
+// 🏛️ SPRINT 6.3: Hidden Cultural Item
+import 'package:nusantara_dash/game/components/items/hidden_cultural_item.dart';
+import 'package:nusantara_dash/game/config/island_province_config.dart';
 
 class GroundPlatform extends SpriteComponent {
   GroundPlatform({super.sprite, super.position, super.size, super.anchor});
@@ -26,11 +29,20 @@ class LevelBuilder extends PositionComponent with HasGameRef {
   final double groundY;
   final String islandName; // ✅ 2. TAMBAHKAN PARAMETER NAMA PULAU
 
+  // 🏛️ SPRINT 6.3: Callback yang dipanggil saat Hidden Cultural Item diambil.
+  // Opsional — jika null, item tetap di-spawn namun tidak ada side effect.
+  // Caller: NusantaraDashGame (Sprint 6.6 mengisi dengan Museum integration).
+  final void Function(String provinceId)? onCulturalItemFound;
+
   // Efek gaya gravitasi menekan rumput
   static const double obstacleSinkOffset = 8.0;
 
   // ✅ Wajib menerima islandName saat dipanggil di NusantaraDashGame
-  LevelBuilder({required this.groundY, required this.islandName});
+  LevelBuilder({
+    required this.groundY,
+    required this.islandName,
+    this.onCulturalItemFound, // opsional — null-safe
+  });
 
   Future<Image> _safeLoad(String fileName) async {
     try {
@@ -127,6 +139,7 @@ class LevelBuilder extends PositionComponent with HasGameRef {
     _spawnGroundAndPlatforms(t1Sprite, t2Sprite, t3Sprite);
     _spawnObstacles(kayuSprite, batuSprite, oyotSprite);
     _spawnCoins();
+    _spawnHiddenCulturalItem(); // 🏛️ SPRINT 6.3
     _spawnBossMarker();
   }
 
@@ -206,6 +219,86 @@ class LevelBuilder extends PositionComponent with HasGameRef {
       add(coin);
     }
   }
+
+  // =========================================================================
+  // 🏛️ SPRINT 6.3: Hidden Cultural Item Spawning
+  // =========================================================================
+
+  /// Mengembalikan daftar kandidat spawn Hidden Cultural Item untuk pulau
+  /// yang sedang aktif, atau null jika pulau belum memiliki data kandidat.
+  ///
+  /// Mengikuti pola switch-case yang sama dengan [_getPlatforms],
+  /// [_getObstacles], dan [_getCoins] — mudah diperluas untuk pulau baru.
+  List<Map<String, double>>? _getCandidatesForIsland() {
+    switch (islandName.toUpperCase()) {
+      case 'SUMATRA':
+        return SumatraLevelData.hiddenItemSpawnCandidates;
+      // Pulau lain diaktifkan saat level dan data kandidatnya tersedia:
+      // case 'JAWA':
+      //   return JawaLevelData.hiddenItemSpawnCandidates;
+      // case 'KALIMANTAN':
+      //   return KalimantanLevelData.hiddenItemSpawnCandidates;
+      // case 'SULAWESI':
+      //   return SulawesiLevelData.hiddenItemSpawnCandidates;
+      // case 'PAPUA':
+      //   return PapuaLevelData.hiddenItemSpawnCandidates;
+      default:
+        return null; // Pulau belum dikonfigurasi — silent no-op
+    }
+  }
+
+  /// Menambahkan seluruh [HiddenCulturalItemComponent] kandidat
+  /// ke dalam level gameplay (Multi-Item Spawning per Level).
+  ///
+  /// Guard clause:
+  /// 1. Jika pulau tidak memiliki konfigurasi provinsi → skip.
+  /// 2. Jika pulau tidak memiliki data kandidat spawn → skip.
+  /// 3. Jika daftar kandidat kosong → skip.
+  ///
+  /// Semua guard menggunakan early return — tidak ada exception.
+  void _spawnHiddenCulturalItem() {
+    // Guard 1: Cek apakah pulau ini memiliki konfigurasi provinsi.
+    final String? provinceId =
+        IslandProvinceConfig.getProvinceId(islandName);
+    if (provinceId == null) return;
+
+    // Guard 2 & 3: Cek apakah ada kandidat spawn untuk pulau ini.
+    final List<Map<String, double>>? candidates = _getCandidatesForIsland();
+    if (candidates == null || candidates.isEmpty) return;
+
+    // 🏛️ SPRINT 6.6: Spawn seluruh item kandidat yang tersedia di level.
+    // Menghasilkan pengalaman multi-item per level (Sumatra Vertical Slice).
+    for (int i = 0; i < candidates.length; i++) {
+      final Map<String, double> chosen = candidates[i];
+
+      // Hitung posisi world space.
+      // Format kandidat: {'x': posX, 'y': offsetDariGroundY}
+      final Vector2 spawnPosition = Vector2(
+        chosen['x']!,
+        groundY + chosen['y']!,
+      );
+
+      // Buat dan tambahkan komponen.
+      // onCollected diteruskan dari constructor — NusantaraDashGame
+      // yang menyediakan implementasinya via MuseumGameplayBridge.
+      add(
+        HiddenCulturalItemComponent(
+          provinceId: provinceId,
+          position: spawnPosition,
+          onCollected: onCulturalItemFound != null
+              ? () => onCulturalItemFound!(provinceId)
+              : null,
+        ),
+      );
+
+      debugPrint(
+        '🏛️ Hidden Cultural Item #${i + 1}/${candidates.length} spawned: '
+        'provinceId=$provinceId at (${spawnPosition.x}, ${spawnPosition.y})',
+      );
+    }
+  }
+
+  // =========================================================================
 
   void _spawnBossMarker() {
     // ✅ 7. GANTI SumatraLevelData DENGAN _getLevelLength()

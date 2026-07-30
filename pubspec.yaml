@@ -37,6 +37,15 @@ flutter:
     - assets/images/background/
     - assets/images/obstacles/
     - assets/images/items/
+    - assets/images/items/sumatra/
+    - assets/images/items/sumatra/aceh/
+    - assets/images/items/sumatra/bengkulu/
+    - assets/images/items/sumatra/jambi/
+    - assets/images/items/sumatra/lampung/
+    - assets/images/items/sumatra/riau/
+    - assets/images/items/sumatra/sumbar/
+    - assets/images/items/sumatra/sumsel/
+    - assets/images/items/sumatra/sumut/
     - assets/images/ui/
     - assets/images/ui/buttons/
     - assets/images/ui/icons/

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nusantara_dash/game/nusantara_dash_game.dart';
+import 'package:nusantara_dash/game/data/museum_item_model.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
 import 'package:nusantara_dash/utils/audio_manager.dart';
 import 'package:nusantara_dash/screens/battle_screen.dart';
@@ -53,6 +54,7 @@ class _GameScreenState extends State<GameScreen> {
       onLevelComplete: _showLevelCompleteDialog,
       onBossEncounter: _showBossBattle,
       onPlayerDied: _handlePlayerDeath,
+      onCulturalItemUnlocked: _showCulturalItemRewardDialog, // 🏛️ SPRINT 6.5
     );
   }
 
@@ -177,6 +179,113 @@ class _GameScreenState extends State<GameScreen> {
                 },
                 child: const Text('KELUAR KE PETA',
                     style: TextStyle(color: Colors.white70)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 🏛️ SPRINT 6.5: Popup Reward Hidden Cultural Item
+  void _showCulturalItemRewardDialog(CulturalItem item) {
+    AudioManager.instance.playSFX('sfx_coin.mp3');
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A237E),
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Colors.amber, width: 3),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '🏛️ ITEM BUDAYA DITEMUKAN!',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.pressStart2p(
+                  color: Colors.amber,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber, width: 1),
+                ),
+                child: Text(
+                  '📍 ${item.province.toUpperCase()} - ${item.island.toUpperCase()}',
+                  style: const TextStyle(
+                    color: Colors.amberAccent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.amberAccent, width: 2),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Image.asset(
+                  item.imagePath,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.account_balance_outlined,
+                      color: Colors.amber,
+                      size: 50,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                item.name,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.pressStart2p(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                item.description,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _game.resumeEngine();
+                },
+                icon: const Icon(Icons.museum_outlined),
+                label: const Text('SIMPAN KE MUSEUM'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                  minimumSize: const Size(double.infinity, 42),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
             ],
           ),

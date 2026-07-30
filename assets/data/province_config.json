@@ -11,8 +11,8 @@
           {
             "id": "aceh_001",
             "name": "Tari Saman",
-            "description": "Tari Saman adalah tari tradisional khas suku Gayo dari Aceh. Dikenal dengan gerakan tangan, kepala, dan tubuh yang cepat dan serentak oleh banyak penari. Tari ini diakui sebagai Warisan Budaya Tak Benda oleh UNESCO pada tahun 2011.",
-            "image": "assets/images/items/sumatra/aceh.png",
+            "description": "Tari Saman adalah tari tradisional khas suku Gayo dari Aceh yang terkenal dengan gerakan serentak penarinya. Tarian ini diakui oleh UNESCO sebagai Warisan Budaya Takbenda Dunia pada tahun 2011.",
+            "image": "assets/images/items/sumatra/aceh/tari_saman.png",
             "province": "Aceh",
             "island": "Sumatra"
           }
@@ -25,9 +25,9 @@
         "items": [
           {
             "id": "bengkulu_001",
-            "name": "Bunga Rafflesia",
-            "description": "Rafflesia arnoldii adalah bunga terbesar di dunia yang tumbuh di hutan Bengkulu. Bunga ini tidak memiliki akar, batang, maupun daun sejati, dan hanya muncul sebagai parasit pada tanaman inang. Diameter bunga bisa mencapai 1 meter dengan berat hingga 10 kg.",
-            "image": "assets/images/items/sumatra/bengkulu.png",
+            "name": "Rafflesia Arnoldii",
+            "description": "Rafflesia Arnoldii adalah bunga raksasa langka khas hutan Bengkulu yang diakui sebagai salah satu bunga terbesar di dunia. Bunga ini tidak memiliki daun, akar, maupun batang sejati dan mengeluarkan aroma khas saat mekar.",
+            "image": "assets/images/items/sumatra/bengkulu/rafflesia_arnoldii.png",
             "province": "Bengkulu",
             "island": "Sumatra"
           }
@@ -41,8 +41,8 @@
           {
             "id": "jambi_001",
             "name": "Candi Muaro Jambi",
-            "description": "Candi Muaro Jambi adalah kompleks percandian Buddha terluas di Asia Tenggara, berlokasi di tepi Sungai Batanghari, Jambi. Diperkirakan dibangun antara abad ke-7 hingga ke-12 Masehi sebagai pusat pendidikan agama Buddha Kerajaan Sriwijaya.",
-            "image": "assets/images/items/sumatra/jambi.png",
+            "description": "Candi Muaro Jambi adalah kompleks percandian Buddha terluas di Asia Tenggara yang terletak di tepi Sungai Batanghari, Jambi. Kompleks sejarah ini menjadi pusat pendidikan dan kebudayaan agama Buddha pada masa Kerajaan Sriwijaya.",
+            "image": "assets/images/items/sumatra/jambi/candi_muaro_jambi.png",
             "province": "Jambi",
             "island": "Sumatra"
           }
@@ -55,9 +55,9 @@
         "items": [
           {
             "id": "lampung_001",
-            "name": "Kain Tapis",
-            "description": "Kain Tapis adalah kain tenun tradisional khas Lampung yang dihiasi benang emas atau perak. Kain ini biasanya digunakan dalam upacara adat dan pernikahan. Motifnya mencerminkan alam, flora, fauna, dan kehidupan masyarakat Lampung.",
-            "image": "assets/images/items/sumatra/lampung.png",
+            "name": "Siger",
+            "description": "Siger adalah mahkota kehormatan khas wanita Lampung yang menjadi simbol keagungan dan mahkota adat masyarakat Lampung. Bentuknya yang khas memiliki sembilan lekukan yang melambangkan sembilan marga keadatan.",
+            "image": "assets/images/items/sumatra/lampung/siger.png",
             "province": "Lampung",
             "island": "Sumatra"
           }
@@ -70,9 +70,9 @@
         "items": [
           {
             "id": "medan_001",
-            "name": "Istana Maimun",
-            "description": "Istana Maimun adalah istana Kesultanan Deli yang berdiri megah di Medan, Sumatera Utara. Dibangun pada tahun 1888 oleh Sultan Makmun Al Rasyid Perkasa Alam, istana ini memadukan arsitektur Melayu, Islam, Spanyol, dan India dalam satu bangunan yang menakjubkan.",
-            "image": "assets/images/items/sumatra/medan.png",
+            "name": "Danau Toba",
+            "description": "Danau Toba adalah danau vulkanik terbesar di Indonesia dan Asia Tenggara yang terbentuk dari letusan gunung berapi dahsyat purba. Di tengah danau ini terdapat Pulau Samosir yang kaya akan sejarah dan kebudayaan suku Batak.",
+            "image": "assets/images/items/sumatra/sumut/danau_toba.png",
             "province": "Sumatera Utara",
             "island": "Sumatra"
           }
@@ -86,8 +86,8 @@
           {
             "id": "padang_001",
             "name": "Rumah Gadang",
-            "description": "Rumah Gadang adalah rumah adat suku Minangkabau dari Sumatera Barat. Bentuk atapnya yang melengkung ke atas menyerupai tanduk kerbau, melambangkan kemenangan. Rumah ini menjadi simbol matrilineal Minangkabau, di mana garis keturunan diturunkan melalui ibu.",
-            "image": "assets/images/items/sumatra/padang.png",
+            "description": "Rumah Gadang adalah rumah adat suku Minangkabau dari Sumatera Barat dengan bentuk atap melengkung menyerupai tanduk kerbau. Arsitektur panggung kayu ini melambangkan filosofi keharmonisan alam dan tatanan sosial Minangkabau.",
+            "image": "assets/images/items/sumatra/sumbar/rumah_gadang.png",
             "province": "Sumatera Barat",
             "island": "Sumatra"
           }
@@ -100,9 +100,9 @@
         "items": [
           {
             "id": "palembang_001",
-            "name": "Jembatan Ampera",
-            "description": "Jembatan Ampera adalah ikon kota Palembang yang membentang di atas Sungai Musi. Dibangun pada tahun 1962, jembatan sepanjang 1.177 meter ini pernah menjadi jembatan terpanjang di Asia Tenggara. Nama Ampera singkatan dari Amanat Penderitaan Rakyat.",
-            "image": "assets/images/items/sumatra/palembang.png",
+            "name": "Pempek",
+            "description": "Pempek adalah kuliner tradisional khas Palembang, Sumatera Selatan yang terbuat dari olahan daging ikan dan tepung sagu. Hidangan lezat ini disajikan bersama kuah cuko yang gurih, asam, dan pedas berminyak cabai.",
+            "image": "assets/images/items/sumatra/sumsel/pempek.png",
             "province": "Sumatera Selatan",
             "island": "Sumatra"
           }
@@ -115,9 +115,9 @@
         "items": [
           {
             "id": "pekanbaru_001",
-            "name": "Lancang Kuning",
-            "description": "Lancang Kuning adalah perahu kebesaran Raja-raja Melayu Riau yang menjadi simbol keagungan budaya Melayu. Perahu ini berwarna kuning keemasan dan dihiasi ukiran indah. Kini menjadi ikon kebudayaan Provinsi Riau yang terpatri dalam berbagai kesenian dan lagu daerah.",
-            "image": "assets/images/items/sumatra/pekanbaru.png",
+            "name": "Zapin Melayu",
+            "description": "Zapin Melayu adalah tarian tradisional rumpun Melayu dari Provinsi Riau yang diiringi musik gambus dan marwas. Tarian ini kaya akan gerakan kaki yang riang, santun, dan sarat akan nilai-nilai edukasi serta kebudayaan.",
+            "image": "assets/images/items/sumatra/riau/zapin_melayu.png",
             "province": "Riau",
             "island": "Sumatra"
           }

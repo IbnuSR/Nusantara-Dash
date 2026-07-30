@@ -44,13 +44,41 @@ class _MuseumProvinceScreenState extends State<MuseumProvinceScreen>
       curve: Curves.easeOutCubic,
     );
 
+    // Subscribe: refresh tampilan ketika ada item baru yang di-unlock
+    MuseumManager.instance.addListener(_onMuseumChanged);
     _loadData();
   }
 
   @override
   void dispose() {
+    MuseumManager.instance.removeListener(_onMuseumChanged);
     _animController.dispose();
     super.dispose();
+  }
+
+  /// Dipanggil oleh MuseumManager.notifyListeners() ketika terjadi unlock.
+  void _onMuseumChanged() {
+    if (mounted) _silentRefresh();
+  }
+
+  /// Memperbarui status unlock setiap item dan progress provinsi
+  /// tanpa menampilkan loading spinner.
+  Future<void> _silentRefresh() async {
+    if (_province == null) return;
+    final progress =
+        await MuseumManager.instance.getProvinceProgress(widget.provinceId);
+    final Map<String, bool> unlockedMap = {};
+    for (final item in _province!.items) {
+      unlockedMap[item.id] =
+          await MuseumManager.instance.isItemUnlocked(item.id);
+    }
+    if (!mounted) return;
+    setState(() {
+      _provinceProgress = progress;
+      _unlockedMap
+        ..clear()
+        ..addAll(unlockedMap);
+    });
   }
 
   Future<void> _loadData() async {

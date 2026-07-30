@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../data/museum_item_model.dart';
 import '../repository/museum_repository.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
@@ -12,12 +14,14 @@ import 'package:nusantara_dash/utils/game_prefs.dart';
 ///   - Menghitung progress pada tiga level (Indonesia, Pulau, Provinsi).
 ///   - Mendelegasikan operasi unlock ke [GamePrefs].
 ///   - Menyediakan lookup (island, province, item) untuk UI.
+///   - Memberitahu semua listener aktif (UI Screens) ketika terjadi perubahan
+///     unlock melalui [ChangeNotifier].
 ///
 /// MuseumManager TIDAK:
 ///   - Membaca JSON langsung.
 ///   - Menggunakan rootBundle.
 ///   - Menggunakan SharedPreferences langsung.
-class MuseumManager {
+class MuseumManager with ChangeNotifier {
   // ---------------------------------------------------------------------------
   // Singleton
   // ---------------------------------------------------------------------------
@@ -162,10 +166,37 @@ class MuseumManager {
 
   /// Membuka (unlock) satu Cultural Item berdasarkan [itemId].
   ///
-  /// Operasi ini didelegasikan sepenuhnya ke [GamePrefs].
+  /// Setelah item berhasil disimpan ke [GamePrefs], [notifyListeners] dipanggil
+  /// sehingga semua Museum Screen yang aktif dapat memperbarui tampilan secara
+  /// real-time tanpa restart.
+  ///
   /// Tidak melakukan apa-apa jika item sudah terbuka sebelumnya.
   Future<void> unlockItem(String itemId) async {
     await GamePrefs.unlockMuseumItem(itemId);
+    notifyListeners();
+  }
+
+  /// Membuka item dengan aman dan mengembalikan apakah item tersebut
+  /// merupakan unlock baru (belum pernah terbuka sebelumnya).
+  ///
+  /// - Mengembalikan `true` jika item berhasil dibuka untuk pertama kali.
+  /// - Mengembalikan `false` jika item sudah pernah terbuka atau tidak ditemukan.
+  ///
+  /// Ini adalah method yang direkomendasikan untuk dipanggil dari Gameplay,
+  /// karena return value-nya dapat digunakan untuk menampilkan popup reward.
+  Future<bool> tryUnlockItem(String itemId) async {
+    // Pastikan item ada dalam data Museum
+    final item = await getItem(itemId);
+    if (item == null) return false;
+
+    // Jika sudah terbuka, kembalikan false tanpa melakukan apa-apa
+    final alreadyUnlocked = await GamePrefs.isMuseumItemUnlocked(itemId);
+    if (alreadyUnlocked) return false;
+
+    // Lakukan unlock dan broadcast perubahan ke UI
+    await GamePrefs.unlockMuseumItem(itemId);
+    notifyListeners();
+    return true;
   }
 
   /// Mengembalikan true jika [itemId] sudah di-unlock oleh pemain.
@@ -176,6 +207,46 @@ class MuseumManager {
   /// Mengembalikan daftar ID dari seluruh item yang sudah di-unlock.
   Future<List<String>> getUnlockedItems() async {
     return GamePrefs.getUnlockedMuseumItems();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Gameplay Helper Methods
+  // ---------------------------------------------------------------------------
+
+  /// Mengembalikan Cultural Item pertama yang BELUM terbuka di provinsi [provinceId].
+  ///
+  /// Digunakan oleh Gameplay untuk menentukan item mana yang akan di-unlock
+  /// ketika pemain menyelesaikan level di provinsi tersebut.
+  ///
+  /// Mengembalikan null jika semua item sudah terbuka atau provinsi tidak ditemukan.
+  Future<CulturalItem?> getFirstLockedItemInProvince(String provinceId) async {
+    final province = await getProvince(provinceId);
+    if (province == null) return null;
+
+    final unlockedIds = await GamePrefs.getUnlockedMuseumItems();
+    try {
+      return province.items
+          .firstWhere((item) => !unlockedIds.contains(item.id));
+    } catch (_) {
+      return null; // Semua item sudah terbuka
+    }
+  }
+
+  /// Mengembalikan Cultural Item pertama yang BELUM terbuka di pulau [islandId].
+  ///
+  /// Iterasi dimulai dari provinsi pertama hingga ditemukan item terkunci.
+  /// Mengembalikan null jika semua item di pulau sudah terbuka.
+  Future<CulturalItem?> getFirstLockedItemInIsland(String islandId) async {
+    final island = await getIsland(islandId);
+    if (island == null) return null;
+
+    final unlockedIds = await GamePrefs.getUnlockedMuseumItems();
+    for (final province in island.provinces) {
+      for (final item in province.items) {
+        if (!unlockedIds.contains(item.id)) return item;
+      }
+    }
+    return null; // Semua item sudah terbuka
   }
 
   // ---------------------------------------------------------------------------

@@ -20,6 +20,9 @@ import 'data/papua_level_data.dart';
 
 import 'package:nusantara_dash/utils/game_prefs.dart';
 import 'package:nusantara_dash/utils/audio_manager.dart';
+import 'package:nusantara_dash/game/data/museum_item_model.dart';
+// 🏛️ SPRINT 6.4: Museum integration via bridge
+import 'package:nusantara_dash/game/managers/museum_gameplay_bridge.dart';
 
 class NusantaraDashGame extends FlameGame
     with KeyboardEvents, HasCollisionDetection {
@@ -29,6 +32,7 @@ class NusantaraDashGame extends FlameGame
   final Function(int) onCoinsUpdated;
   final VoidCallback onBossEncounter;
   final VoidCallback onPlayerDied; // ✅ WAJIB ADA
+  final void Function(CulturalItem item)? onCulturalItemUnlocked; // 🏛️ SPRINT 6.5
 
   late Player player;
   late double groundY;
@@ -53,6 +57,7 @@ class NusantaraDashGame extends FlameGame
     required this.onCoinsUpdated,
     required this.onBossEncounter,
     required this.onPlayerDied,
+    this.onCulturalItemUnlocked,
   });
 
   void updateLives(int lives) {
@@ -136,7 +141,33 @@ class NusantaraDashGame extends FlameGame
     world.add(player);
 
     // ✅ Lempar nama pulau ke LevelBuilder agar rintangan menyesuaikan
-    world.add(LevelBuilder(groundY: groundY, islandName: islandName));
+    // 🏛️ SPRINT 6.4: onCulturalItemFound terhubung ke MuseumGameplayBridge.
+    world.add(LevelBuilder(
+      groundY: groundY,
+      islandName: islandName,
+      onCulturalItemFound: (_) {
+        // Jalankan async — tidak perlu await di Flame game loop.
+        // MuseumManager.notifyListeners() dipanggil secara internal oleh
+        // tryUnlockItem(), sehingga semua Museum screen terupdate otomatis.
+        // 🏛️ SPRINT REFACTOR 2: Unlock sekuensial tingkat pulau (Sumatra: Aceh -> Bengkulu -> Jambi -> Lampung -> Sumut -> Sumbar -> Sumsel -> Riau)
+        MuseumGameplayBridge.unlockNextItemInIsland(islandName.toLowerCase()).then((result) {
+          if (result.hasNewItem && result.item != null) {
+            debugPrint(
+              '🏛️ [Museum] Item baru terbuka! '
+              '${result.item!.name} (${result.item!.province} - ${result.item!.island})',
+            );
+            pauseEngine(); // 🏛️ SPRINT 6.5: Pause gameplay saat popup muncul
+            onCulturalItemUnlocked?.call(result.item!);
+          } else {
+            debugPrint(
+              '🏛️ [Museum] islandName=$islandName — '
+              'semua item di pulau ini sudah terbuka atau item tidak ditemukan.',
+            );
+          }
+        });
+      },
+    ));
+
 
     String controlType = await GamePrefs.getControlType();
     if (controlType == 'analog') {

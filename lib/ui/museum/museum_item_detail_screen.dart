@@ -40,13 +40,32 @@ class _MuseumItemDetailScreenState extends State<MuseumItemDetailScreen>
       curve: Curves.easeOutCubic,
     );
 
+    // Subscribe: refresh ketika status unlock item berubah
+    MuseumManager.instance.addListener(_onMuseumChanged);
     _loadData();
   }
 
   @override
   void dispose() {
+    MuseumManager.instance.removeListener(_onMuseumChanged);
     _animController.dispose();
     super.dispose();
+  }
+
+  /// Dipanggil ketika ada unlock baru. Refresh status unlock item ini
+  /// secara senyap — gambar dan deskripsi akan muncul jika item baru dibuka.
+  void _onMuseumChanged() {
+    if (mounted) _silentRefresh();
+  }
+
+  /// Memperbarui status unlock item tanpa menampilkan loading spinner.
+  Future<void> _silentRefresh() async {
+    final isUnlocked =
+        await MuseumManager.instance.isItemUnlocked(widget.itemId);
+    if (!mounted) return;
+    if (isUnlocked != _isUnlocked) {
+      setState(() => _isUnlocked = isUnlocked);
+    }
   }
 
   Future<void> _loadData() async {

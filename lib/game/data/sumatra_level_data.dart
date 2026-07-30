@@ -97,31 +97,45 @@ class SumatraLevelData {
   ];
 
   // ======================================================================
-  // 🏛️ HIDDEN CULTURAL ITEM — Spawn Candidate Locations (Multi-Item)
-  //
-  // Setiap entri mendefinisikan lokasi kandidat di mana
-  // HiddenCulturalItemComponent di-spawn di level gameplay.
-  //
-  // Diurutkan berdasarkan koordinat X (kiri ke kanan) agar item muncul
-  // secara bertahap seiring dengan progres penjelajahan pemain.
-  //
-  // Verifikasi koordinat:
-  // - Item 1 (x:2100, y:-210): Platform Section 2 (x:1950, y:-150, w:200).
-  //   60px di atas platform top.
-  // - Item 2 (x:3500, y:-240): Platform Section 3 (x:3500, y:-180, w:200).
-  //   60px di atas platform top.
-  // - Item 3 (x:4900, y:-190): Platform Section 4 (x:4900, y:-130, w:200).
-  //   60px di atas platform top.
+  // 🏛️ HIDDEN CULTURAL ITEM — All 8 Sumatra Items & Safe Spawn Points
   // ======================================================================
+
+  /// 8 Item Budaya Baku Pulau Sumatra (1 Item per Provinsi)
+  static const List<String> hiddenItemIds = [
+    'aceh_001', // Tari Saman (Aceh)
+    'bengkulu_001', // Rafflesia Arnoldii (Bengkulu)
+    'jambi_001', // Candi Muaro Jambi (Jambi)
+    'lampung_001', // Siger (Lampung)
+    'medan_001', // Danau Toba (Sumatera Utara)
+    'padang_001', // Rumah Gadang (Sumatera Barat)
+    'palembang_001', // Pempek (Sumatera Selatan)
+    'pekanbaru_001', // Zapin Melayu (Riau)
+  ];
+
+  /// 12 Safe Spawn Candidate Locations
+  ///
+  /// Setiap lokasi divalidasi presisi di atas platform padat dengan margin
+  /// standing area aman di kiri & kanan, jauh dari jurang dan obstacle.
   static final List<Map<String, double>> hiddenItemSpawnCandidates = [
-    // Item 1 — Ledge Section 2 (Medium Jump area)
-    {'x': 2100, 'y': -210},
+    // 🟢 Section 1
+    {'x': 300, 'y': -60}, // Ground 1 (x:0..600, y:0)
+    {'x': 820, 'y': -110}, // Platform 2 (x:700..900, y:-50)
 
-    // Item 2 — Peak Section 3 (Gap & Tantangan area)
-    {'x': 3500, 'y': -240},
+    // 🟡 Section 2
+    {'x': 1300, 'y': -60}, // Ground 4 (x:1200..1600, y:0)
+    {'x': 1790, 'y': -140}, // Platform 5 (x:1700..1880, y:-80)
+    {'x': 2050, 'y': -210}, // Platform 6 (x:1950..2150, y:-150)
+    {'x': 2375, 'y': -140}, // Platform 7 (x:2250..2500, y:-80)
 
-    // Item 3 — Pre-Boss Ledge Section 4 (Precision Jump area)
-    {'x': 4900, 'y': -190},
+    // 🔵 Section 3
+    {'x': 2680, 'y': -60}, // Ground 8 (x:2600..2900, y:0)
+    {'x': 3330, 'y': -180}, // Platform 10 (x:3250..3410, y:-120)
+    {'x': 3600, 'y': -240}, // Platform 11 (x:3500..3700, y:-180)
+    {'x': 3900, 'y': -160}, // Ground 12 (x:3800..4000, y:-100)
+
+    // 🔴 Section 4
+    {'x': 4190, 'y': -110}, // Platform 13 (x:4100..4280, y:-50)
+    {'x': 4990, 'y': -190}, // Platform 16 (x:4900..5100, y:-130)
   ];
 }
 

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
@@ -10,7 +11,6 @@ import 'package:nusantara_dash/game/data/sulawesi_level_data.dart';
 import 'package:nusantara_dash/game/data/papua_level_data.dart';
 // 🏛️ SPRINT 6.3: Hidden Cultural Item
 import 'package:nusantara_dash/game/components/items/hidden_cultural_item.dart';
-import 'package:nusantara_dash/game/config/island_province_config.dart';
 
 class GroundPlatform extends SpriteComponent {
   GroundPlatform({super.sprite, super.position, super.size, super.anchor});
@@ -226,74 +226,76 @@ class LevelBuilder extends PositionComponent with HasGameRef {
 
   /// Mengembalikan daftar kandidat spawn Hidden Cultural Item untuk pulau
   /// yang sedang aktif, atau null jika pulau belum memiliki data kandidat.
-  ///
-  /// Mengikuti pola switch-case yang sama dengan [_getPlatforms],
-  /// [_getObstacles], dan [_getCoins] — mudah diperluas untuk pulau baru.
   List<Map<String, double>>? _getCandidatesForIsland() {
     switch (islandName.toUpperCase()) {
       case 'SUMATRA':
         return SumatraLevelData.hiddenItemSpawnCandidates;
-      // Pulau lain diaktifkan saat level dan data kandidatnya tersedia:
-      // case 'JAWA':
-      //   return JawaLevelData.hiddenItemSpawnCandidates;
-      // case 'KALIMANTAN':
-      //   return KalimantanLevelData.hiddenItemSpawnCandidates;
-      // case 'SULAWESI':
-      //   return SulawesiLevelData.hiddenItemSpawnCandidates;
-      // case 'PAPUA':
-      //   return PapuaLevelData.hiddenItemSpawnCandidates;
       default:
         return null; // Pulau belum dikonfigurasi — silent no-op
     }
   }
 
-  /// Menambahkan seluruh [HiddenCulturalItemComponent] kandidat
-  /// ke dalam level gameplay (Multi-Item Spawning per Level).
-  ///
-  /// Guard clause:
-  /// 1. Jika pulau tidak memiliki konfigurasi provinsi → skip.
-  /// 2. Jika pulau tidak memiliki data kandidat spawn → skip.
-  /// 3. Jika daftar kandidat kosong → skip.
-  ///
-  /// Semua guard menggunakan early return — tidak ada exception.
-  void _spawnHiddenCulturalItem() {
-    // Guard 1: Cek apakah pulau ini memiliki konfigurasi provinsi.
-    final String? provinceId =
-        IslandProvinceConfig.getProvinceId(islandName);
-    if (provinceId == null) return;
+  /// Mengembalikan daftar 8 ID item baku untuk pulau yang sedang aktif.
+  List<String>? _getItemIdsForIsland() {
+    switch (islandName.toUpperCase()) {
+      case 'SUMATRA':
+        return SumatraLevelData.hiddenItemIds;
+      default:
+        return null;
+    }
+  }
 
-    // Guard 2 & 3: Cek apakah ada kandidat spawn untuk pulau ini.
+  /// Menambahkan seluruh 8 [HiddenCulturalItemComponent] (Mystery Collectibles)
+  /// ke Safe Spawn Points pilihan dalam 1 sesi level runner.
+  ///
+  /// Mekanisme Spawning:
+  /// 1. Ambil 8 ID item baku pulau & 12 Safe Spawn Points terverifikasi.
+  /// 2. ACAK (shuffle) urutan item sehingga setiap gameplay terasa fresh.
+  /// 3. ACAK (shuffle) Safe Spawn Points, ambil 8 titik, dan URUTKAN berdasarkan X
+  ///    agar item muncul secara alami dari awal hingga akhir level (0..6000px).
+  /// 4. Hubungkan setiap item ke [onCulturalItemFound] callback.
+  void _spawnHiddenCulturalItem() {
     final List<Map<String, double>>? candidates = _getCandidatesForIsland();
     if (candidates == null || candidates.isEmpty) return;
 
-    // 🏛️ SPRINT 6.6: Spawn seluruh item kandidat yang tersedia di level.
-    // Menghasilkan pengalaman multi-item per level (Sumatra Vertical Slice).
-    for (int i = 0; i < candidates.length; i++) {
-      final Map<String, double> chosen = candidates[i];
+    final List<String>? itemIds = _getItemIdsForIsland();
+    if (itemIds == null || itemIds.isEmpty) return;
 
-      // Hitung posisi world space.
-      // Format kandidat: {'x': posX, 'y': offsetDariGroundY}
+    // 🎲 1. Acak urutan item budaya untuk sesi gameplay ini (Random Item Order)
+    final List<String> shuffledItemIds = List<String>.from(itemIds)..shuffle();
+
+    // 🎲 2. Acak Safe Spawn Points, ambil N titik (N = 8), dan urutkan berdasarkan koordinat X
+    final List<Map<String, double>> availableSpawns =
+        List<Map<String, double>>.from(candidates)..shuffle();
+    final int spawnCount = min(shuffledItemIds.length, availableSpawns.length);
+    final List<Map<String, double>> chosenSpawns = availableSpawns
+        .take(spawnCount)
+        .toList()
+      ..sort((a, b) => a['x']!.compareTo(b['x']!));
+
+    // 🏛️ 3. Spawn seluruh 8 Mystery Collectibles di Safe Spawn Points
+    for (int i = 0; i < spawnCount; i++) {
+      final Map<String, double> spawn = chosenSpawns[i];
+      final String itemId = shuffledItemIds[i];
+
       final Vector2 spawnPosition = Vector2(
-        chosen['x']!,
-        groundY + chosen['y']!,
+        spawn['x']!,
+        groundY + spawn['y']!,
       );
 
-      // Buat dan tambahkan komponen.
-      // onCollected diteruskan dari constructor — NusantaraDashGame
-      // yang menyediakan implementasinya via MuseumGameplayBridge.
       add(
         HiddenCulturalItemComponent(
-          provinceId: provinceId,
+          provinceId: itemId,
           position: spawnPosition,
           onCollected: onCulturalItemFound != null
-              ? () => onCulturalItemFound!(provinceId)
+              ? () => onCulturalItemFound!(itemId)
               : null,
         ),
       );
 
       debugPrint(
-        '🏛️ Hidden Cultural Item #${i + 1}/${candidates.length} spawned: '
-        'provinceId=$provinceId at (${spawnPosition.x}, ${spawnPosition.y})',
+        '🏛️ Safe Spawn Mystery Collectible #${i + 1}/$spawnCount: '
+        'itemId=$itemId at (${spawnPosition.x}, ${spawnPosition.y})',
       );
     }
   }

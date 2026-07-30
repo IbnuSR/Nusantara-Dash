@@ -145,24 +145,34 @@ class NusantaraDashGame extends FlameGame
     world.add(LevelBuilder(
       groundY: groundY,
       islandName: islandName,
-      onCulturalItemFound: (_) {
+      onCulturalItemFound: (itemIdOrProvinceId) {
         // Jalankan async — tidak perlu await di Flame game loop.
-        // MuseumManager.notifyListeners() dipanggil secara internal oleh
-        // tryUnlockItem(), sehingga semua Museum screen terupdate otomatis.
-        // 🏛️ SPRINT REFACTOR 2: Unlock sekuensial tingkat pulau (Sumatra: Aceh -> Bengkulu -> Jambi -> Lampung -> Sumut -> Sumbar -> Sumsel -> Riau)
-        MuseumGameplayBridge.unlockNextItemInIsland(islandName.toLowerCase()).then((result) {
+        // 🏛️ SPRINT GAMEPLAY EXPERIENCE: Coba unlock item spesifik (acak), dengan fallback ke next item di pulau
+        MuseumGameplayBridge.unlockItem(itemIdOrProvinceId).then((result) {
           if (result.hasNewItem && result.item != null) {
             debugPrint(
               '🏛️ [Museum] Item baru terbuka! '
               '${result.item!.name} (${result.item!.province} - ${result.item!.island})',
             );
-            pauseEngine(); // 🏛️ SPRINT 6.5: Pause gameplay saat popup muncul
+            pauseEngine(); // Jeda gameplay saat popup reward aktif
             onCulturalItemUnlocked?.call(result.item!);
           } else {
-            debugPrint(
-              '🏛️ [Museum] islandName=$islandName — '
-              'semua item di pulau ini sudah terbuka atau item tidak ditemukan.',
-            );
+            // Fallback: Jika item ini sudah pernah terbuka, buka item lain di pulau ini yang belum terbuka
+            MuseumGameplayBridge.unlockNextItemInIsland(islandName.toLowerCase()).then((fallbackResult) {
+              if (fallbackResult.hasNewItem && fallbackResult.item != null) {
+                debugPrint(
+                  '🏛️ [Museum] Fallback item baru terbuka! '
+                  '${fallbackResult.item!.name} (${fallbackResult.item!.province} - ${fallbackResult.item!.island})',
+                );
+                pauseEngine();
+                onCulturalItemUnlocked?.call(fallbackResult.item!);
+              } else {
+                debugPrint(
+                  '🏛️ [Museum] islandName=$islandName — '
+                  'semua item di pulau ini sudah terbuka.',
+                );
+              }
+            });
           }
         });
       },

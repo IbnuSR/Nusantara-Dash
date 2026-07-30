@@ -23,6 +23,12 @@ class Player extends SpriteAnimationComponent
   final double jumpStrength = -700;
   static const int totalFrames = 14;
 
+  // ✅ GOD MODE SWITCH - MATIKAN SAAT TESTING, NYALAKAN SAAT MAIN NORMAL
+  // Set true = Player TIDAK BISA MATI (obstacle & jurang aman)
+  // Set false = Player BISA MATI (mode normal)
+  static const bool godMode =
+      false; // 🔥 UBAH INI: true = invincible, false = bisa mati
+
   late Vector2 _checkpointPosition;
 
   Player({
@@ -85,8 +91,7 @@ class Player extends SpriteAnimationComponent
     onPlayerDied();
   }
 
-  // 🔥 PERBAIKAN FINAL: Respawn PERSIS di koordinat x mendarat yang aman (TANPA -120px!)
-  // Dijatuhkan ringan dari 10px di atas tanah agar fisika berpijak dengan sempurna.
+  // 🔥 RESPAWN: Satria bangkit di checkpoint terakhir
   void respawn() {
     isDead = false;
 
@@ -96,8 +101,7 @@ class Player extends SpriteAnimationComponent
     position.setValues(safeX, safeY);
     jumpVelocity = 0;
     _isOnGround = false;
-    _wasInAir =
-        false; // ✅ PENTING: Jangan anggap sedang lompat agar tidak merusak posisi checkpoint saat mendarat
+    _wasInAir = false;
     currentInputDelta = Vector2.zero();
     debugPrint(
         '✨ Satria bangkit di tanah aman: x=${position.x.toInt()}, y=${position.y.toInt()}');
@@ -120,8 +124,16 @@ class Player extends SpriteAnimationComponent
       position.y += jumpVelocity * dt;
     }
 
+    // ✅ CEK JURANG - Bisa dimatikan dengan godMode
     if (position.y > groundY + 150) {
-      die();
+      if (!godMode) {
+        die(); // Mati kalau jatuh ke jurang
+      } else {
+        // God mode aktif: teleport ke atas agar tidak hilang
+        position.y = groundY - 100;
+        jumpVelocity = 0;
+        debugPrint('🛡️ GOD MODE: Jatuh ke jurang tapi tidak mati!');
+      }
     }
   }
 
@@ -150,8 +162,13 @@ class Player extends SpriteAnimationComponent
       return;
     }
 
+    // ✅ CEK OBSTACLE MEMATIKAN - Bisa dimatikan dengan godMode
     if (other is RedObstacle) {
-      die();
+      if (!godMode) {
+        die(); // Mati kalau nabrak obstacle
+      } else {
+        debugPrint('🛡️ GOD MODE: Nabrak obstacle tapi tidak mati!');
+      }
       return;
     }
 
@@ -175,7 +192,7 @@ class Player extends SpriteAnimationComponent
           onPlayerLanded?.call();
           _wasInAir = false;
 
-          // ✅ Rekam Checkpoint HANYA saat pertama kali mendarat dari udara!
+          // ✅ SIMPAN CHECKPOINT saat mendarat
           _checkpointPosition = Vector2(position.x, position.y);
         }
         _isOnGround = true;

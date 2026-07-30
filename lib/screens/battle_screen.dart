@@ -131,6 +131,21 @@ class _BattleScreenState extends State<BattleScreen>
     return allQuestions;
   }
 
+  String _getWeaponId(String island) {
+    switch (island.toUpperCase()) {
+      case 'JAWA':
+        return 'keris_jawa';
+      case 'KALIMANTAN':
+        return 'mandau_kalimantan';
+      case 'SULAWESI':
+        return 'badik_sulawesi';
+      case 'PAPUA':
+        return 'busur_papua';
+      default:
+        return 'rencong_sumatra';
+    }
+  }
+
   void _startCountdown() {
     Timer.periodic(const Duration(seconds: 1), (timer) {
       if (countdown <= 0) {
@@ -224,6 +239,39 @@ class _BattleScreenState extends State<BattleScreen>
   void _battleLose() {
     setState(() => isBattleOver = true);
     AudioManager.instance.playSFX('sfx_gameover.mp3');
+  }
+
+  // --- 🔥 LOGIKA BARU: Menyimpan Progres dan Membuka Map Selanjutnya ---
+  Future<void> _proceedToNext() async {
+    // 1. Tandai bos di pulau ini sudah dikalahkan
+    await GamePrefs.markBossDefeated(widget.islandName);
+
+    // 2. Buka pulau selanjutnya secara berurutan
+    String currentIsland = widget.islandName.toUpperCase();
+    if (currentIsland == 'SUMATRA') {
+      await GamePrefs.unlockIsland('JAWA');
+      print('🔓 PULAU JAWA TELAH DIBUKA!');
+    } else if (currentIsland == 'JAWA') {
+      await GamePrefs.unlockIsland('KALIMANTAN');
+      print('🔓 PULAU KALIMANTAN TELAH DIBUKA!');
+    } else if (currentIsland == 'KALIMANTAN') {
+      await GamePrefs.unlockIsland('SULAWESI');
+      print('🔓 PULAU SULAWESI TELAH DIBUKA!');
+    } else if (currentIsland == 'SULAWESI') {
+      await GamePrefs.unlockIsland('PAPUA');
+      print('🔓 PULAU PAPUA TELAH DIBUKA!');
+    }
+
+    // 3. Tambahkan senjata baru ke inventory
+    await GamePrefs.unlockWeapon(_getWeaponId(widget.islandName));
+
+    // 4. Berikan hadiah koin kemenangan
+    await GamePrefs.addCoins(500);
+
+    // 5. Memicu fungsi onBattleWin yang akan kembali ke MapScreen
+    if (mounted) {
+      widget.onBattleWin();
+    }
   }
 
   @override
@@ -483,7 +531,7 @@ class _BattleScreenState extends State<BattleScreen>
     );
   }
 
-// --- DESAIN PAPAN KUIS BARU ---
+  // --- DESAIN PAPAN KUIS BARU ---
   Widget _buildWoodenQuizPopup() {
     final question = _questions[currentQuestionIndex];
     final letters = ['[A]', '[B]', '[C]', '[D]'];
@@ -500,9 +548,6 @@ class _BattleScreenState extends State<BattleScreen>
           color: Colors.brown[800],
           borderRadius: BorderRadius.circular(16),
         ),
-        // PERUBAHAN UTAMA DI SINI:
-        // top: 115 -> Mendorong semuanya turun agar benar-benar lepas dari ornamen atas
-        // bottom: 45 -> Menjaga agar tombol tidak keluar dari batas bawah papan
         padding:
             const EdgeInsets.only(top: 115, bottom: 30, left: 45, right: 45),
         child: Column(
@@ -512,7 +557,7 @@ class _BattleScreenState extends State<BattleScreen>
               style:
                   GoogleFonts.pressStart2p(fontSize: 10, color: Colors.amber),
             ),
-            const SizedBox(height: 10), // Jarak dirapatkan sedikit menjadi 10
+            const SizedBox(height: 10),
             Expanded(
               child: Center(
                 child: Text(
@@ -523,14 +568,13 @@ class _BattleScreenState extends State<BattleScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 10), // Jarak dirapatkan sedikit menjadi 10
+            const SizedBox(height: 10),
             // GRID BUTTONS 2x2
             SizedBox(
-              height: 95, // Tinggi wadah Grid dikurangi sedikit agar pas
+              height: 95,
               child: GridView.count(
                 crossAxisCount: 2,
-                childAspectRatio:
-                    4.5, // Ratio dinaikkan (tombol menjadi lebih pipih secara proporsional)
+                childAspectRatio: 4.5,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
                 padding: EdgeInsets.zero,
@@ -577,7 +621,7 @@ class _BattleScreenState extends State<BattleScreen>
     );
   }
 
-  // --- LAYAR SELESAI (Simpel, panggil fungsi aslimu) ---
+  // --- LAYAR SELESAI ---
   Widget _buildEndScreen() {
     return Container(
       color: Colors.black87,
@@ -593,7 +637,8 @@ class _BattleScreenState extends State<BattleScreen>
             ElevatedButton(
               onPressed: () {
                 if (bossHP <= 0) {
-                  widget.onBattleWin();
+                  // 🔥 MODIFIKASI: Memanggil _proceedToNext() untuk membuka map selanjutnya
+                  _proceedToNext();
                 } else {
                   widget.onBattleLose();
                 }

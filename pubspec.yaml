@@ -33,6 +33,8 @@ flutter:
     - assets/images/player/
     - assets/images/boss/final/
     - assets/images/boss/mini/
+    
+    - assets/images/battle/
     - assets/videos/
     - assets/images/background/
     - assets/images/obstacles/
@@ -48,8 +50,6 @@ flutter:
     - assets/images/items/sumatra/sumut/
     - assets/images/ui/
     - assets/images/ui/buttons/
-    - assets/images/ui/icons/
-    - assets/images/ui/hud/
     - assets/data/quiz_data.json
     - assets/data/province_config.json
     - assets/data/weapon_data.json

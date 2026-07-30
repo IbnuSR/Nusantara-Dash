@@ -5,25 +5,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
 import 'package:nusantara_dash/utils/audio_manager.dart';
 
-enum QuestionType {
-  singleChoice,
-  multipleChoice,
-  essay,
-}
-
 class QuizQuestion {
   final String question;
   final List<String> options;
-  final List<int> correctAnswers;
-  final QuestionType type;
-  final String? essayAnswer;
+  final int correctAnswer;
 
   QuizQuestion({
     required this.question,
     required this.options,
-    required this.correctAnswers,
-    this.type = QuestionType.singleChoice,
-    this.essayAnswer,
+    required this.correctAnswer,
   });
 }
 
@@ -51,214 +41,106 @@ class _BattleScreenState extends State<BattleScreen>
     with TickerProviderStateMixin {
   int playerHP = 100;
   int bossHP = 100;
-  int correctAnswersCount = 0;
-  final int targetCorrectAnswers = 5;
-
-  int _keysUsedInSession = 0;
   int currentQuestionIndex = 0;
+
+  // Total soal yang ditampilkan (Sesuai gambar "Pertanyaan 1/10")
+  int totalQuestions = 10;
 
   int countdown = 3;
   bool isCountingDown = true;
-  bool isQuizVisible = true;
+  bool isQuizVisible = false;
   bool isAnswering = false;
   bool isBattleOver = false;
+  int _sessionCoins = 0;
 
+  late List<QuizQuestion> _questions;
+
+  // Animasi Serangan
   late AnimationController _satriaAttackController;
   late AnimationController _bossAttackController;
   late Animation<double> _satriaAttackAnimation;
   late Animation<double> _bossAttackAnimation;
 
-  bool _isSatriaAttacking = false;
-  bool _isBossAttacking = false;
-
-  final TextEditingController _essayController = TextEditingController();
-  List<int> _selectedOptions = [];
-
-  late List<QuizQuestion> _questions;
-
   @override
   void initState() {
     super.initState();
+    _loadInitialData();
+    _questions = _getSumatraQuestions();
 
+    // Setup Animasi Serangan
     _satriaAttackController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
+        duration: const Duration(milliseconds: 500), vsync: this);
     _bossAttackController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
+        duration: const Duration(milliseconds: 500), vsync: this);
     _satriaAttackAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _satriaAttackController, curve: Curves.easeOut),
-    );
+        CurvedAnimation(
+            parent: _satriaAttackController, curve: Curves.easeInOutBack));
     _bossAttackAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _bossAttackController, curve: Curves.easeOut),
-    );
+        CurvedAnimation(
+            parent: _bossAttackController, curve: Curves.easeInOutBack));
 
-    _initializeBattle();
+    _startCountdown();
+  }
+
+  Future<void> _loadInitialData() async {
+    int coins = await GamePrefs.getCoins();
+    setState(() {
+      _sessionCoins = coins;
+    });
   }
 
   @override
   void dispose() {
     _satriaAttackController.dispose();
     _bossAttackController.dispose();
-    _essayController.dispose();
     super.dispose();
   }
 
-  void _initializeBattle() {
-    _questions = _getQuestionsByIsland(widget.islandName);
-    _questions.shuffle(Random());
-
-    setState(() {
-      playerHP = 100;
-      bossHP = 100;
-      correctAnswersCount = 0;
-      _keysUsedInSession = 0;
-      currentQuestionIndex = 0;
-      countdown = 3;
-      isCountingDown = true;
-      isQuizVisible = true;
-      isAnswering = false;
-      isBattleOver = false;
-      _isSatriaAttacking = false;
-      _isBossAttacking = false;
-      _selectedOptions.clear();
-    });
-
-    _startCountdown();
-  }
-
-  List<QuizQuestion> _getQuestionsByIsland(String island) {
-    switch (island.toUpperCase()) {
-      case 'JAWA':
-        return [
-          QuizQuestion(
-            question:
-                'Candi Budha terbesar di dunia yang terletak di Magelang adalah?',
-            options: ['Candi Borobudur', 'Candi Prambanan', 'Candi Mendut'],
-            correctAnswers: [0],
-            type: QuestionType.singleChoice,
-          ),
-          QuizQuestion(
-            question:
-                'Manakah yang termasuk senjata tradisional Jawa? (Pilih 2)',
-            options: ['Keris', 'Mandau', 'Kujang', 'Rencong'],
-            correctAnswers: [0, 2],
-            type: QuestionType.multipleChoice,
-          ),
-          QuizQuestion(
-            question: 'Sebutkan nama tarian tradisional Jawa yang terkenal!',
-            options: [],
-            correctAnswers: [],
-            type: QuestionType.essay,
-            essayAnswer: 'wayang',
-          ),
-        ];
-
-      case 'KALIMANTAN':
-        return [
-          QuizQuestion(
-            question: 'Suku asli yang mendiami pedalaman Kalimantan adalah?',
-            options: ['Suku Dayak', 'Suku Asmat', 'Suku Bugis'],
-            correctAnswers: [0],
-            type: QuestionType.singleChoice,
-          ),
-          QuizQuestion(
-            question: 'Manakah yang termasuk rumah adat Kalimantan? (Pilih 2)',
-            options: ['Rumah Betang', 'Rumah Gadang', 'Honai', 'Rumah Lamin'],
-            correctAnswers: [0, 3],
-            type: QuestionType.multipleChoice,
-          ),
-        ];
-
-      case 'SULAWESI':
-        return [
-          QuizQuestion(
-            question: 'Perahu layar tradisional khas Bugis-Makassar adalah?',
-            options: ['Perahu Phinisi', 'Perahu Jukung', 'Perahu Biduk'],
-            correctAnswers: [0],
-            type: QuestionType.singleChoice,
-          ),
-        ];
-
-      case 'PAPUA':
-        return [
-          QuizQuestion(
-            question: 'Rumah adat Papua yang berbentuk kerucut adalah?',
-            options: ['Honai', 'Kariwari', 'Lamin'],
-            correctAnswers: [0],
-            type: QuestionType.singleChoice,
-          ),
-        ];
-
-      default:
-        return [
-          QuizQuestion(
-            question:
-                'Rumah adat Minangkabau yang memiliki atap melengkung adalah?',
-            options: ['Rumah Gadang', 'Joglo', 'Rumah Betang'],
-            correctAnswers: [0],
-            type: QuestionType.singleChoice,
-          ),
-          QuizQuestion(
-            question:
-                'Manakah yang termasuk senjata tradisional Sumatra? (Pilih 2)',
-            options: ['Rencong', 'Mandau', 'Badik', 'Keris'],
-            correctAnswers: [0, 2],
-            type: QuestionType.multipleChoice,
-          ),
-          QuizQuestion(
-            question: 'Sebutkan nama danau vulkanik terbesar di Sumatra!',
-            options: [],
-            correctAnswers: [],
-            type: QuestionType.essay,
-            essayAnswer: 'toba',
-          ),
-        ];
-    }
-  }
-
-  String _getWeaponId(String island) {
-    switch (island.toUpperCase()) {
-      case 'JAWA':
-        return 'keris_jawa';
-      case 'KALIMANTAN':
-        return 'mandau_kalimantan';
-      case 'SULAWESI':
-        return 'badik_sulawesi';
-      case 'PAPUA':
-        return 'busur_papua';
-      default:
-        return 'rencong_sumatra';
-    }
-  }
-
-  String _getWeaponName(String island) {
-    switch (island.toUpperCase()) {
-      case 'JAWA':
-        return '🗡️ Keris Pusaka';
-      case 'KALIMANTAN':
-        return '🗡️ Mandau Sakti';
-      case 'SULAWESI':
-        return '🗡️ Badik Keramat';
-      case 'PAPUA':
-        return ' Busur Kasuari';
-      default:
-        return '🗡️ Rencong Suci';
-    }
+  // Khusus Sumatra sesuai permintaan
+  List<QuizQuestion> _getSumatraQuestions() {
+    List<QuizQuestion> allQuestions = [
+      QuizQuestion(
+        question:
+            'Manakah di bawah ini yang merupakan senjata tradisional khas Aceh?',
+        options: ['Rencong', 'Mandau', 'Keris', 'Badik'],
+        correctAnswer: 0,
+      ),
+      QuizQuestion(
+        question: 'Rumah adat khas Minangkabau disebut?',
+        options: ['Honai', 'Rumah Gadang', 'Joglo', 'Tongkonan'],
+        correctAnswer: 1,
+      ),
+      QuizQuestion(
+        question: 'Danau vulkanik terbesar di Sumatra Utara adalah?',
+        options: [
+          'Danau Singkarak',
+          'Danau Maninjau',
+          'Danau Toba',
+          'Danau Ranau'
+        ],
+        correctAnswer: 2,
+      ),
+      QuizQuestion(
+        question: 'Tari Saman yang sangat dinamis berasal dari daerah?',
+        options: ['Sumatra Barat', 'Riau', 'Lampung', 'Aceh'],
+        correctAnswer: 3,
+      ),
+      // Tambahkan soal lain hingga cukup...
+    ];
+    allQuestions.shuffle(Random());
+    return allQuestions;
   }
 
   void _startCountdown() {
-    if (isBattleOver) return;
     Timer.periodic(const Duration(seconds: 1), (timer) {
       if (countdown <= 0) {
         timer.cancel();
         if (mounted) {
           setState(() {
             isCountingDown = false;
+            isQuizVisible = true;
           });
+          AudioManager.instance.playSFX('sfx_question.mp3');
         }
       } else {
         if (mounted) setState(() => countdown--);
@@ -266,107 +148,72 @@ class _BattleScreenState extends State<BattleScreen>
     });
   }
 
-  void _checkAnswer() {
+  void _handleAnswer(int selectedIndex) {
     if (isAnswering || isBattleOver) return;
     setState(() => isAnswering = true);
 
-    final currentQ = _questions[currentQuestionIndex];
-    bool isCorrect = false;
-
-    if (currentQ.type == QuestionType.singleChoice) {
-      isCorrect = _selectedOptions.isNotEmpty &&
-          _selectedOptions[0] == currentQ.correctAnswers[0];
-    } else if (currentQ.type == QuestionType.multipleChoice) {
-      _selectedOptions.sort();
-      List<int> sortedCorrect = List.from(currentQ.correctAnswers)..sort();
-      isCorrect = _selectedOptions.toString() == sortedCorrect.toString();
-    } else if (currentQ.type == QuestionType.essay) {
-      String userAnswer = _essayController.text.toLowerCase().trim();
-      String correctAnswer = (currentQ.essayAnswer ?? '').toLowerCase();
-      isCorrect = userAnswer.contains(correctAnswer) ||
-          correctAnswer.contains(userAnswer);
-    }
+    bool isCorrect =
+        (selectedIndex == _questions[currentQuestionIndex].correctAnswer);
 
     setState(() {
       isQuizVisible = false;
-      _selectedOptions.clear();
-      _essayController.clear();
     });
 
     if (isCorrect) {
-      AudioManager.instance.playSFX('sfx_boss_hit.mp3');
       _performSatriaAttack();
     } else {
-      AudioManager.instance.playSFX('sfx_hit_flesh.mp3');
       _performBossAttack();
     }
   }
 
-  void _performSatriaAttack() async {
-    setState(() {
-      _isSatriaAttacking = true;
-    });
-
+  void _performSatriaAttack() {
+    AudioManager.instance.playSFX('sfx_jump.mp3'); // Suara dash
     _satriaAttackController.forward().then((_) {
+      _satriaAttackController.reverse();
+      AudioManager.instance.playSFX('sfx_boss_hit.mp3');
+
       setState(() {
-        correctAnswersCount++;
-        bossHP = (100 - (correctAnswersCount * 20)).clamp(0, 100);
-        _isSatriaAttacking = false;
+        bossHP = (bossHP - 20).clamp(0, 100);
       });
 
-      _satriaAttackController.reset();
-
-      if (correctAnswersCount >= targetCorrectAnswers) {
-        _battleWin();
-      } else {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && !isBattleOver) {
-            setState(() {
-              currentQuestionIndex++;
-              if (currentQuestionIndex >= _questions.length) {
-                _questions.shuffle(Random());
-                currentQuestionIndex = 0;
-              }
-              isQuizVisible = true;
-              isAnswering = false;
-            });
-          }
-        });
-      }
+      _checkBattleStatus();
     });
   }
 
-  void _performBossAttack() async {
-    setState(() {
-      _isBossAttacking = true;
-    });
-
+  void _performBossAttack() {
+    AudioManager.instance.playSFX('sfx_boss_roar.mp3'); // Suara harimau
     _bossAttackController.forward().then((_) {
+      _bossAttackController.reverse();
+      AudioManager.instance.playSFX('sfx_hit_flesh.mp3');
+
       setState(() {
         playerHP = (playerHP - 25).clamp(0, 100);
-        _isBossAttacking = false;
       });
 
-      _bossAttackController.reset();
-
-      if (playerHP <= 0) {
-        _showDeathDialog();
-      } else {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && !isBattleOver) {
-            setState(() {
-              currentQuestionIndex++;
-              if (currentQuestionIndex >= _questions.length) {
-                _questions.shuffle(Random());
-                currentQuestionIndex = 0;
-              }
-              isQuizVisible = true;
-              isAnswering = false;
-            });
-          }
-        });
-      }
+      _checkBattleStatus();
     });
+  }
+
+  void _checkBattleStatus() {
+    if (bossHP <= 0) {
+      _battleWin();
+    } else if (playerHP <= 0) {
+      _battleLose();
+    } else {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          setState(() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= _questions.length) {
+              _questions.shuffle();
+              currentQuestionIndex = 0;
+            }
+            isQuizVisible = true;
+            isAnswering = false;
+          });
+        }
+      });
+    }
   }
 
   void _battleWin() {
@@ -374,418 +221,358 @@ class _BattleScreenState extends State<BattleScreen>
     AudioManager.instance.playSFX('sfx_victory_fanfare.mp3');
   }
 
-  void _showDeathDialog() {
+  void _battleLose() {
     setState(() => isBattleOver = true);
     AudioManager.instance.playSFX('sfx_gameover.mp3');
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A0000),
-        shape: RoundedRectangleBorder(
-            side: const BorderSide(color: Colors.red, width: 3),
-            borderRadius: BorderRadius.circular(20)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('💀 SATRIA ROBOH!',
-                  style: GoogleFonts.pressStart2p(
-                      color: Colors.red, fontSize: 16)),
-              const SizedBox(height: 15),
-              Text('Kunci Terpakai: $_keysUsedInSession / 3',
-                  style: const TextStyle(
-                      color: Colors.amber,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              if (widget.currentLives > 0 && _keysUsedInSession < 3) ...[
-                const Text('Gunakan 1 Kunci untuk memulihkan 50% HP!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white)),
-                const SizedBox(height: 15),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _useKeyAndContinue();
-                  },
-                  icon: const Icon(Icons.vpn_key),
-                  label: const Text('PAKAI KUNCI (+50% HP)'),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
-                      foregroundColor: Colors.black,
-                      minimumSize: const Size(double.infinity, 40)),
-                ),
-                const SizedBox(height: 10),
-              ] else ...[
-                Text(
-                  _keysUsedInSession >= 3
-                      ? 'Batas penggunaan Kunci (3x) tercapai!'
-                      : 'Nyawa cadangan habis!',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      color: Colors.redAccent, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 15),
-              ],
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _initializeBattle();
-                },
-                icon: const Icon(Icons.replay),
-                label: const Text('ULANG KUIS DARI AWAL'),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 40)),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  widget.onExit();
-                },
-                child: const Text('MENYERAH & KELUAR',
-                    style: TextStyle(color: Colors.white70)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _useKeyAndContinue() async {
-    await GamePrefs.useExtraLife();
-
-    setState(() {
-      _keysUsedInSession++;
-      playerHP = (playerHP + 50).clamp(0, 100);
-      isBattleOver = false;
-      isAnswering = false;
-
-      currentQuestionIndex++;
-      if (currentQuestionIndex >= _questions.length) {
-        _questions.shuffle(Random());
-        currentQuestionIndex = 0;
-      }
-      isQuizVisible = true;
-    });
-  }
-
-  void _proceedToNext() async {
-    await GamePrefs.markBossDefeated(widget.islandName);
-
-    if (widget.islandName.toUpperCase() == 'SUMATRA') {
-      await GamePrefs.unlockIsland('JAWA');
-      print('🔓 PULAU JAWA TELAH DIBUKA!');
-    } else if (widget.islandName.toUpperCase() == 'JAWA') {
-      await GamePrefs.unlockIsland('KALIMANTAN');
-      print('🔓 PULAU KALIMANTAN TELAH DIBUKA!');
-    }
-
-    await GamePrefs.unlockWeapon(_getWeaponId(widget.islandName));
-    await GamePrefs.addCoins(500);
-
-    if (mounted) {
-      widget.onBattleWin();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1B2A),
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          Container(color: const Color(0xFF1A237E)),
-          _buildBattleArena(),
-          if (isCountingDown && !isBattleOver) _buildCountdown(),
-          if (isQuizVisible && !isBattleOver) _buildQuizPopup(),
-          if (isBattleOver) _buildBattleOverScreen(),
-          _buildLivesIndicator(),
+          // 1. BACKGROUND (Gambar Pegunungan & Air Terjun)
+          Image.asset(
+            'assets/images/battle/bg_sumatra.png',
+            fit: BoxFit.cover,
+            errorBuilder: (ctx, err, stack) =>
+                Container(color: const Color(0xFF4A86E8)),
+          ),
+
+          // 2. TANAH / GROUND
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Image.asset(
+              'assets/images/battle/ground_battle.png',
+              fit: BoxFit.fitWidth,
+              height: 80,
+              errorBuilder: (ctx, err, stack) =>
+                  Container(height: 80, color: const Color(0xFF5D4037)),
+            ),
+          ),
+
+          // 3. KARAKTER SATRIA (Dengan Animasi Maju Mundur)
+          AnimatedBuilder(
+            animation: _satriaAttackAnimation,
+            builder: (context, child) {
+              return Positioned(
+                bottom: 60,
+                left: 100 +
+                    (_satriaAttackAnimation.value *
+                        200), // Maju 200px saat serang
+                child: Image.asset(
+                  'assets/images/battle/satria_idle.png',
+                  height: 120,
+                  errorBuilder: (ctx, err, stack) =>
+                      const Icon(Icons.person, size: 100, color: Colors.blue),
+                ),
+              );
+            },
+          ),
+
+          // 4. KARAKTER BOSS (SANG BELANG)
+          AnimatedBuilder(
+            animation: _bossAttackAnimation,
+            builder: (context, child) {
+              return Positioned(
+                bottom: 60,
+                right: 50 +
+                    (_bossAttackAnimation.value *
+                        200), // Maju ke kiri saat serang
+                child: Image.asset(
+                  'assets/images/battle/boss_sang_belang.png',
+                  height: 250,
+                  errorBuilder: (ctx, err, stack) =>
+                      const Icon(Icons.pets, size: 150, color: Colors.red),
+                ),
+              );
+            },
+          ),
+
+          // 5. HUD ATAS (Koin, Kunci, Nyawa, Tombol)
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // KIRI: Koin & Kunci & Nyawa Satria
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              _buildAssetBox(
+                                  'assets/images/battle/ui_coin_box.png',
+                                  '$_sessionCoins',
+                                  Icons.monetization_on,
+                                  Colors.amber),
+                              const SizedBox(width: 10),
+                              _buildAssetBox(
+                                  'assets/images/battle/ui_key_box.png',
+                                  '${widget.currentLives}',
+                                  Icons.vpn_key,
+                                  Colors.amber),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          _buildCustomHPBar('SATRIA', playerHP,
+                              'assets/images/battle/hp_frame_player.png', true),
+                        ],
+                      ),
+
+                      // KANAN: Tombol Setting & Nyawa Bos
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Row(
+                            children: [
+                              _buildImageButton(
+                                  'assets/images/battle/btn_settings.png',
+                                  Icons.settings),
+                              const SizedBox(width: 10),
+                              _buildImageButton(
+                                  'assets/images/battle/btn_help.png',
+                                  Icons.help),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          _buildCustomHPBar('SANG BELANG', bossHP,
+                              'assets/images/battle/hp_frame_boss.png', false),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 6. COUNTDOWN MUNCUL DI TENGAH
+          if (isCountingDown && !isBattleOver)
+            Center(
+              child: Text(
+                '$countdown',
+                style: GoogleFonts.pressStart2p(
+                    fontSize: 100,
+                    color: Colors.amber,
+                    shadows: const [
+                      Shadow(color: Colors.black, blurRadius: 10)
+                    ]),
+              ),
+            ),
+
+          // 7. PAPAN KUIS (MUNCUL DENGAN DESAIN KAYU)
+          if (isQuizVisible && !isBattleOver) _buildWoodenQuizPopup(),
+
+          // 8. LAYAR GAME OVER / WIN (Sementara pakai desain lama, bisa kamu ganti kotaknya nanti)
+          if (isBattleOver) _buildEndScreen(),
         ],
       ),
     );
   }
 
-  Widget _buildBattleArena() {
-    return Positioned(
-      top: 40,
-      left: 0,
-      right: 0,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text('SATRIA',
-                          style: GoogleFonts.pressStart2p(
-                              color: Colors.greenAccent, fontSize: 12)),
-                      const SizedBox(height: 5),
-                      Stack(
-                        alignment: Alignment.centerLeft,
-                        children: [
-                          Container(
-                              height: 24,
-                              decoration: BoxDecoration(
-                                  color: Colors.white24,
-                                  borderRadius: BorderRadius.circular(12))),
-                          FractionallySizedBox(
-                            widthFactor: playerHP / 100,
-                            child: Container(
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: playerHP > 50
-                                    ? Colors.green
-                                    : (playerHP > 25
-                                        ? Colors.orange
-                                        : Colors.red),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text('$playerHP%',
-                          style: GoogleFonts.pressStart2p(
-                              color: Colors.white, fontSize: 10)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text('BOSS',
-                          style: GoogleFonts.pressStart2p(
-                              color: Colors.red, fontSize: 12)),
-                      const SizedBox(height: 5),
-                      Stack(
-                        alignment: Alignment.centerRight,
-                        children: [
-                          Container(
-                              height: 24,
-                              decoration: BoxDecoration(
-                                  color: Colors.white24,
-                                  borderRadius: BorderRadius.circular(12))),
-                          FractionallySizedBox(
-                            widthFactor: bossHP / 100,
-                            child: Container(
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text('$bossHP%',
-                          style: GoogleFonts.pressStart2p(
-                              color: Colors.white, fontSize: 10)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+  // --- WIDGET HELPER ---
+
+  Widget _buildAssetBox(String assetPath, String text, IconData fallbackIcon,
+      Color fallbackColor) {
+    return Container(
+      width: 100,
+      height: 35,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(assetPath),
+          fit: BoxFit.fill,
+          onError: (exception,
+              stackTrace) {}, // Hindari error merah jika gambar belum ada
+        ),
+        color: Colors.black54, // Fallback warna
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
+      ),
+      child: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(fallbackIcon, color: fallbackColor, size: 16),
+            const SizedBox(width: 5),
+            Text(text,
+                style: GoogleFonts.pressStart2p(
+                    color: Colors.white, fontSize: 10)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageButton(String assetPath, IconData fallbackIcon) {
+    return GestureDetector(
+      onTap: () {}, // Isi fungsi pause/settings
+      child: Container(
+        width: 45,
+        height: 45,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(assetPath),
+            fit: BoxFit.cover,
+            onError: (exception, stackTrace) {},
           ),
-          const SizedBox(height: 40),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          color: Colors.brown[700],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFD4AF37), width: 2),
+        ),
+        child: Icon(fallbackIcon,
+            color: Colors.amber, size: 24), // Tampil kalau gambar gak ada
+      ),
+    );
+  }
+
+  Widget _buildCustomHPBar(
+      String name, int hp, String frameAsset, bool isPlayer) {
+    return Column(
+      crossAxisAlignment:
+          isPlayer ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+      children: [
+        Text(name,
+            style: GoogleFonts.pressStart2p(
+                color: Colors.white,
+                fontSize: 12,
+                shadows: const [Shadow(color: Colors.black, blurRadius: 4)])),
+        const SizedBox(height: 5),
+        SizedBox(
+          width: 200,
+          height: 40,
+          child: Stack(
             children: [
-              AnimatedBuilder(
-                animation: _satriaAttackAnimation,
-                builder: (context, child) {
-                  double attackOffset = _satriaAttackAnimation.value * 50;
-                  return Transform.translate(
-                    offset: Offset(attackOffset, 0),
-                    child: _buildCharacter(
-                        'SATRIA', Colors.greenAccent, _isSatriaAttacking),
-                  );
-                },
+              // Bar Merah (Mengisi dari kiri ke kanan atau sebaliknya)
+              Positioned(
+                left: isPlayer ? 40 : 10,
+                right: isPlayer ? 10 : 40,
+                top: 10,
+                bottom: 10,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: hp / 100,
+                    backgroundColor: Colors.black87,
+                    valueColor: AlwaysStoppedAnimation<Color>(hp > 50
+                        ? Colors.green
+                        : (hp > 25 ? Colors.orange : Colors.red)),
+                  ),
+                ),
               ),
-              Text('VS',
-                  style: GoogleFonts.pressStart2p(
-                      color: Colors.amber, fontSize: 24)),
-              AnimatedBuilder(
-                animation: _bossAttackAnimation,
-                builder: (context, child) {
-                  double attackOffset = -(_bossAttackAnimation.value * 50);
-                  return Transform.translate(
-                    offset: Offset(attackOffset, 0),
-                    child:
-                        _buildCharacter('BOSS', Colors.red, _isBossAttacking),
-                  );
-                },
+              // Bingkai Avatar & HP (Transparan di bagian bar)
+              Positioned.fill(
+                child: Image.asset(
+                  frameAsset,
+                  fit: BoxFit.contain,
+                  alignment:
+                      isPlayer ? Alignment.centerLeft : Alignment.centerRight,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Text(
-              'Target: $correctAnswersCount / $targetCorrectAnswers Jawaban Benar',
-              style:
-                  GoogleFonts.pressStart2p(color: Colors.amber, fontSize: 10)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCharacter(String name, Color color, bool isAttacking) {
-    return Column(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color, width: 3),
-          ),
-          child: Icon(
-            isAttacking ? Icons.gavel : Icons.person,
-            color: color,
-            size: 50,
-          ),
         ),
-        const SizedBox(height: 8),
-        Text(name, style: GoogleFonts.pressStart2p(color: color, fontSize: 10)),
       ],
     );
   }
 
-  Widget _buildCountdown() {
-    return Positioned.fill(
-      child: Center(
-        child: Text('$countdown',
-            style: GoogleFonts.pressStart2p(
-                fontSize: 120,
-                color: Colors.amber,
-                shadows: const [Shadow(color: Colors.black, blurRadius: 10)])),
-      ),
-    );
-  }
-
-  Widget _buildQuizPopup() {
-    if (currentQuestionIndex >= _questions.length) {
-      return const SizedBox.shrink();
-    }
-
+  // --- DESAIN PAPAN KUIS BARU ---
+  Widget _buildWoodenQuizPopup() {
     final question = _questions[currentQuestionIndex];
+    final letters = ['[A]', '[B]', '[C]', '[D]'];
 
-    return Positioned(
-      top: 250,
-      left: 20,
-      right: 20,
+    return Center(
       child: Container(
-        padding: const EdgeInsets.all(20),
+        width: 500,
+        height: 350,
         decoration: BoxDecoration(
-            color: const Color(0xFF1B2845),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFFFB300), width: 2)),
+          image: const DecorationImage(
+            image: AssetImage('assets/images/battle/ui_wooden_board.png'),
+            fit: BoxFit.fill,
+          ),
+          // Warna cadangan jika gambar belum di-export
+          color: Colors.brown[800],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.brown[900]!, width: 4),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(question.question,
-                style: GoogleFonts.pressStart2p(
-                    fontSize: 12, color: Colors.amber, height: 1.5),
-                textAlign: TextAlign.center),
+            Text(
+              'Tantangan Budaya Sumatra',
+              style: GoogleFonts.pressStart2p(
+                  fontSize: 14,
+                  color: Colors.white,
+                  shadows: const [Shadow(color: Colors.black, blurRadius: 2)]),
+            ),
             const SizedBox(height: 20),
-            if (question.type == QuestionType.essay)
-              TextField(
-                controller: _essayController,
-                style:
-                    GoogleFonts.pressStart2p(fontSize: 10, color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Ketik jawabanmu...',
-                  hintStyle: GoogleFonts.pressStart2p(
-                      fontSize: 10, color: Colors.white54),
-                  filled: true,
-                  fillColor: const Color(0xFF1A237E),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
+            Text(
+              'Pertanyaan ${(currentQuestionIndex + 1)}/$totalQuestions:',
+              style:
+                  GoogleFonts.pressStart2p(fontSize: 10, color: Colors.amber),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Center(
+                child: Text(
+                  question.question,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.pressStart2p(
+                      fontSize: 12, color: Colors.white, height: 1.5),
                 ),
               ),
-            if (question.type != QuestionType.essay)
-              ...question.options.asMap().entries.map((entry) {
-                int idx = entry.key;
-                String opt = entry.value;
-                bool isSelected = _selectedOptions.contains(idx);
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: ElevatedButton(
-                    onPressed: isAnswering
-                        ? null
-                        : () {
-                            setState(() {
-                              if (question.type ==
-                                  QuestionType.multipleChoice) {
-                                if (isSelected) {
-                                  _selectedOptions.remove(idx);
-                                } else {
-                                  _selectedOptions.add(idx);
-                                }
-                              } else {
-                                _selectedOptions = [idx];
-                              }
-                            });
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isSelected ? Colors.amber : const Color(0xFF1A237E),
-                      foregroundColor: isSelected ? Colors.black : Colors.amber,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 10),
-                      side: BorderSide(
-                          color: isSelected
-                              ? Colors.amber
-                              : const Color(0xFFFFB300),
-                          width: 2),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+            ),
+            // GRID BUTTONS 2x2
+            SizedBox(
+              height: 120,
+              child: GridView.count(
+                crossAxisCount: 2,
+                childAspectRatio: 3.5, // Rasio lebar:tinggi tombol
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                physics: const NeverScrollableScrollPhysics(),
+                children: List.generate(question.options.length, (index) {
+                  return GestureDetector(
+                    onTap: () => _handleAnswer(index),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        image: const DecorationImage(
+                          image: AssetImage(
+                              'assets/images/battle/ui_wood_btn.png'),
+                          fit: BoxFit.fill,
+                        ),
+                        color: Colors.brown[600],
+                        border: Border.all(color: Colors.brown[900]!, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 10),
+                          Text(letters[index],
+                              style: GoogleFonts.pressStart2p(
+                                  fontSize: 10, color: Colors.white)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              question.options[index],
+                              style: GoogleFonts.pressStart2p(
+                                  fontSize: 9, color: Colors.white),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        if (question.type == QuestionType.multipleChoice)
-                          Icon(
-                              isSelected
-                                  ? Icons.check_box
-                                  : Icons.check_box_outline_blank,
-                              size: 16),
-                        if (question.type == QuestionType.multipleChoice)
-                          const SizedBox(width: 8),
-                        Expanded(
-                            child: Text(opt,
-                                style: GoogleFonts.pressStart2p(fontSize: 10),
-                                textAlign: TextAlign.center)),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: isAnswering ||
-                      (_selectedOptions.isEmpty &&
-                          question.type != QuestionType.essay)
-                  ? null
-                  : _checkAnswer,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
-                foregroundColor: Colors.black,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  );
+                }),
               ),
-              child:
-                  Text('JAWAB', style: GoogleFonts.pressStart2p(fontSize: 14)),
             ),
           ],
         ),
@@ -793,59 +580,32 @@ class _BattleScreenState extends State<BattleScreen>
     );
   }
 
-  Widget _buildBattleOverScreen() {
-    return Positioned.fill(
+  // --- LAYAR SELESAI (Simpel, panggil fungsi aslimu) ---
+  Widget _buildEndScreen() {
+    return Container(
+      color: Colors.black87,
       child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(30),
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-              color: const Color(0xFF1B2845),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFFB300), width: 2)),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Kuis Selesai!',
-                  style: GoogleFonts.pressStart2p(
-                      fontSize: 24, color: Colors.amber)),
-              const SizedBox(height: 20),
-              Text(
-                bossHP <= 0
-                    ? 'Selamat! Kamu mengalahkan Mini Boss ${widget.islandName}!\n\nMendapatkan:\n${_getWeaponName(widget.islandName)}\n🪙 +500 Koin'
-                    : 'Sayang sekali, kamu kalah!',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(bossHP <= 0 ? 'SANG BELANG DIKALAHKAN!' : 'SATRIA ROBOH!',
                 style: GoogleFonts.pressStart2p(
-                    fontSize: 12, color: Colors.white, height: 1.6),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              if (bossHP <= 0)
-                ElevatedButton(
-                  onPressed: _proceedToNext,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 40, vertical: 20)),
-                  child: Text('Lanjutkan ke Peta',
-                      style: GoogleFonts.pressStart2p(fontSize: 14)),
-                ),
-            ],
-          ),
+                    fontSize: 20,
+                    color: bossHP <= 0 ? Colors.green : Colors.red)),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                if (bossHP <= 0) {
+                  widget.onBattleWin();
+                } else {
+                  widget.onBattleLose();
+                }
+              },
+              child: Text(bossHP <= 0 ? 'LANJUTKAN' : 'KEMBALI KE CHECKPOINT',
+                  style: GoogleFonts.pressStart2p(fontSize: 12)),
+            )
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLivesIndicator() {
-    return Positioned(
-      bottom: 20,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Text('❤️ ${widget.currentLives}',
-            style: GoogleFonts.pressStart2p(fontSize: 24, color: Colors.red)),
       ),
     );
   }

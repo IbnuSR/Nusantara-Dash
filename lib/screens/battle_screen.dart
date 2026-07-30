@@ -483,7 +483,7 @@ class _BattleScreenState extends State<BattleScreen>
     );
   }
 
-  // --- DESAIN PAPAN KUIS BARU ---
+// --- DESAIN PAPAN KUIS BARU ---
   Widget _buildWoodenQuizPopup() {
     final question = _questions[currentQuestionIndex];
     final letters = ['[A]', '[B]', '[C]', '[D]'];
@@ -491,34 +491,28 @@ class _BattleScreenState extends State<BattleScreen>
     return Center(
       child: Container(
         width: 500,
-        height: 350,
+        height: 350, // Tetap 350 agar proporsi gambar background tidak berubah
         decoration: BoxDecoration(
           image: const DecorationImage(
             image: AssetImage('assets/images/battle/ui_wooden_board.png'),
             fit: BoxFit.fill,
           ),
-          // Warna cadangan jika gambar belum di-export
           color: Colors.brown[800],
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.brown[900]!, width: 4),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+        // PERUBAHAN UTAMA DI SINI:
+        // top: 115 -> Mendorong semuanya turun agar benar-benar lepas dari ornamen atas
+        // bottom: 45 -> Menjaga agar tombol tidak keluar dari batas bawah papan
+        padding:
+            const EdgeInsets.only(top: 115, bottom: 30, left: 45, right: 45),
         child: Column(
           children: [
-            Text(
-              'Tantangan Budaya Sumatra',
-              style: GoogleFonts.pressStart2p(
-                  fontSize: 14,
-                  color: Colors.white,
-                  shadows: const [Shadow(color: Colors.black, blurRadius: 2)]),
-            ),
-            const SizedBox(height: 20),
             Text(
               'Pertanyaan ${(currentQuestionIndex + 1)}/$totalQuestions:',
               style:
                   GoogleFonts.pressStart2p(fontSize: 10, color: Colors.amber),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 10), // Jarak dirapatkan sedikit menjadi 10
             Expanded(
               child: Center(
                 child: Text(
@@ -529,14 +523,17 @@ class _BattleScreenState extends State<BattleScreen>
                 ),
               ),
             ),
+            const SizedBox(height: 10), // Jarak dirapatkan sedikit menjadi 10
             // GRID BUTTONS 2x2
             SizedBox(
-              height: 120,
+              height: 95, // Tinggi wadah Grid dikurangi sedikit agar pas
               child: GridView.count(
                 crossAxisCount: 2,
-                childAspectRatio: 3.5, // Rasio lebar:tinggi tombol
+                childAspectRatio:
+                    4.5, // Ratio dinaikkan (tombol menjadi lebih pipih secara proporsional)
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
+                padding: EdgeInsets.zero,
                 physics: const NeverScrollableScrollPhysics(),
                 children: List.generate(question.options.length, (index) {
                   return GestureDetector(

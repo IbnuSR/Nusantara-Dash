@@ -68,4 +68,46 @@ class JawaLevelData {
     {'x': 5650, 'y': -160}, {'x': 5700, 'y': -160},
     {'x': 5800, 'y': -160}, {'x': 5850, 'y': -160},
   ];
+
+  // ======================================================================
+  // 🏛️ HIDDEN CULTURAL ITEM — All 8 Jawa Items & Safe Spawn Points
+  // ======================================================================
+
+  /// 8 Item Budaya Baku Pulau Jawa (1 Item per Provinsi/Wilayah)
+  static const List<String> hiddenItemIds = [
+    'banten_001', // Badak Jawa (Banten)
+    'jabar_001', // Angklung (Jawa Barat)
+    'jakarta_001', // Monumen Nasional (DKI Jakarta)
+    'jateng_001', // Candi Borobudur (Jawa Tengah)
+    'jogja_001', // Tugu Yogyakarta (DI Yogyakarta)
+    'jatim_001', // Reog Ponorogo (Jawa Timur)
+    'madura_001', // Karapan Sapi (Madura)
+    'jawa_001', // Batik Parang (Pulau Jawa)
+  ];
+
+  /// 12 Safe Spawn Candidate Locations
+  ///
+  /// Setiap lokasi divalidasi presisi di atas platform padat dengan margin
+  /// standing area aman di kiri & kanan, jauh dari jurang dan obstacle.
+  static final List<Map<String, double>> hiddenItemSpawnCandidates = [
+    // 🟢 Section 1
+    {'x': 180, 'y': -60}, // Ground 1 (x:0..650, y:0)
+    {'x': 825, 'y': -120}, // Platform 2 (x:750..950, y:-60)
+
+    // 🟡 Section 2
+    {'x': 1300, 'y': -60}, // Ground 4 (x:1250..1700, y:0)
+    {'x': 1830, 'y': -140}, // Platform 5 (x:1750..1950, y:-80)
+    {'x': 2080, 'y': -210}, // Platform 6 (x:2000..2200, y:-150)
+    {'x': 2360, 'y': -130}, // Platform 7 (x:2250..2500, y:-70)
+
+    // 🔵 Section 3
+    {'x': 2660, 'y': -60}, // Ground 8 (x:2600..2950, y:0)
+    {'x': 3320, 'y': -200}, // Platform 10 (x:3250..3410, y:-140)
+    {'x': 3590, 'y': -260}, // Platform 11 (x:3500..3700, y:-200)
+    {'x': 3925, 'y': -160}, // Ground 12 (x:3800..4050, y:-100)
+
+    // 🔴 Section 4
+    {'x': 4235, 'y': -120}, // Platform 13 (x:4150..4350, y:-60)
+    {'x': 5080, 'y': -200}, // Platform 16 (x:5000..5200, y:-140)
+  ];
 }

@@ -48,6 +48,15 @@ flutter:
     - assets/images/items/sumatra/sumbar/
     - assets/images/items/sumatra/sumsel/
     - assets/images/items/sumatra/sumut/
+    - assets/images/items/jawa/
+    - assets/images/items/jawa/banten/
+    - assets/images/items/jawa/jabar/
+    - assets/images/items/jawa/jakarta/
+    - assets/images/items/jawa/jateng/
+    - assets/images/items/jawa/jatim/
+    - assets/images/items/jawa/jawa/
+    - assets/images/items/jawa/jogja/
+    - assets/images/items/jawa/madura/
     - assets/images/ui/
     - assets/images/ui/buttons/
     - assets/data/quiz_data.json

@@ -130,46 +130,31 @@
     "name": "Jawa",
     "provinces": [
       {
-        "id": "bandung",
-        "name": "Jawa Barat",
-        "island_id": "jawa",
-        "items": [
-          {
-            "id": "bandung_001",
-            "name": "Angklung",
-            "description": "Angklung adalah alat musik tradisional Sunda dari Jawa Barat yang terbuat dari bambu. Cara memainkannya dengan digoyangkan sehingga menghasilkan bunyi dari gesekan dan benturan tabung bambu. Angklung telah diakui UNESCO sebagai Warisan Budaya Tak Benda pada tahun 2010.",
-            "image": "assets/images/items/jawa/bandung.png",
-            "province": "Jawa Barat",
-            "island": "Jawa"
-          }
-        ]
-      },
-      {
         "id": "banten",
         "name": "Banten",
         "island_id": "jawa",
         "items": [
           {
             "id": "banten_001",
-            "name": "Debus",
-            "description": "Debus adalah seni pertunjukan tradisional Banten yang menampilkan kemampuan luar biasa manusia menahan senjata tajam dan api. Seni ini berakar pada tradisi Islam lokal dan dipercaya melibatkan kekuatan spiritual. Debus biasanya ditampilkan dalam perayaan besar dan upacara adat.",
-            "image": "assets/images/items/jawa/banten.png",
+            "name": "Badak Jawa",
+            "description": "Badak Jawa adalah satwa langka dan dilindungi yang menjadi ikon kebanggaan Provinsi Banten, hidup lestari di kawasan Taman Nasional Ujung Kulon.",
+            "image": "assets/images/items/jawa/banten/badak_jawa.png",
             "province": "Banten",
             "island": "Jawa"
           }
         ]
       },
       {
-        "id": "cirebon",
-        "name": "Cirebon",
+        "id": "jabar",
+        "name": "Jawa Barat",
         "island_id": "jawa",
         "items": [
           {
-            "id": "cirebon_001",
-            "name": "Tari Topeng Cirebon",
-            "description": "Tari Topeng Cirebon adalah seni pertunjukan tradisional khas Cirebon yang menggunakan topeng sebagai medium ekspresi. Setiap topeng mewakili karakter berbeda dari tokoh mitologi Jawa. Tarian ini merupakan perpaduan antara seni tari, teater, dan spiritualitas Jawa-Sunda.",
-            "image": "assets/images/items/jawa/cirebon.png",
-            "province": "Cirebon",
+            "id": "jabar_001",
+            "name": "Angklung",
+            "description": "Angklung adalah alat musik tradisional Sunda khas Jawa Barat yang terbuat dari bambu dan diakui oleh UNESCO sebagai Warisan Budaya Takbenda Dunia.",
+            "image": "assets/images/items/jawa/jabar/angklung.png",
+            "province": "Jawa Barat",
             "island": "Jawa"
           }
         ]
@@ -181,70 +166,85 @@
         "items": [
           {
             "id": "jakarta_001",
-            "name": "Ondel-Ondel",
-            "description": "Ondel-ondel adalah boneka raksasa khas suku Betawi yang menjadi ikon budaya Jakarta. Tingginya bisa mencapai 2,5 meter dengan wajah merah untuk laki-laki dan putih untuk perempuan. Ondel-ondel awalnya digunakan sebagai penolak bala, kini menjadi simbol kesenian Betawi.",
-            "image": "assets/images/items/jawa/jakarta.png",
+            "name": "Monumen Nasional (Monas)",
+            "description": "Monumen Nasional (Monas) adalah landmark megah setinggi 132 meter di pusat ibu kota DKI Jakarta yang melambangkan perjuangan dan kemerdekaan bangsa Indonesia.",
+            "image": "assets/images/items/jawa/jakarta/monas.png",
             "province": "DKI Jakarta",
             "island": "Jawa"
           }
         ]
       },
       {
-        "id": "semarang",
+        "id": "jateng",
         "name": "Jawa Tengah",
         "island_id": "jawa",
         "items": [
           {
-            "id": "semarang_001",
-            "name": "Warak Ngendog",
-            "description": "Warak Ngendog adalah makhluk mitologi khas Semarang yang berwujud perpaduan tiga hewan: naga (kepala), buraq (badan), dan kambing (kaki). Warak Ngendog hadir setiap perayaan Dugderan sebagai simbol keberagaman budaya Arab, Tionghoa, dan Jawa yang melebur di Semarang.",
-            "image": "assets/images/items/jawa/semarang.png",
+            "id": "jateng_001",
+            "name": "Candi Borobudur",
+            "description": "Candi Borobudur adalah candi Buddha terbesar di dunia yang terletak di Jawa Tengah, kaya akan relief sejarah dan diakui sebagai Warisan Budaya Dunia oleh UNESCO.",
+            "image": "assets/images/items/jawa/jateng/candi_borobudur.png",
             "province": "Jawa Tengah",
             "island": "Jawa"
           }
         ]
       },
       {
-        "id": "solo",
-        "name": "Solo",
+        "id": "jogja",
+        "name": "DI Yogyakarta",
         "island_id": "jawa",
         "items": [
           {
-            "id": "solo_001",
-            "name": "Batik Solo",
-            "description": "Batik Solo adalah kain batik tradisional yang berasal dari kota Surakarta (Solo). Ciri khasnya menggunakan warna sogan (cokelat keemasan) dengan motif kawung, parang, dan sido mukti. Batik Solo telah diwariskan turun-temurun sebagai identitas budaya Keraton Surakarta.",
-            "image": "assets/images/items/jawa/solo.png",
-            "province": "Solo",
+            "id": "jogja_001",
+            "name": "Tugu Yogyakarta",
+            "description": "Tugu Yogyakarta adalah landmark bersejarah di jantung Kota Yogyakarta yang sarat nilai filosofis dan menjadi simbol persatuan rakyat dengan Keraton Yogyakarta.",
+            "image": "assets/images/items/jawa/jogja/tugu_jogja.png",
+            "province": "DI Yogyakarta",
             "island": "Jawa"
           }
         ]
       },
       {
-        "id": "surabaya",
+        "id": "jatim",
         "name": "Jawa Timur",
         "island_id": "jawa",
         "items": [
           {
-            "id": "surabaya_001",
-            "name": "Ludruk",
-            "description": "Ludruk adalah seni pertunjukan teater rakyat khas Jawa Timur yang menggabungkan drama, tari, dan lawak. Semua peran, termasuk tokoh perempuan, dimainkan oleh laki-laki. Pertunjukan Ludruk biasanya mengangkat tema kehidupan rakyat biasa dengan bahasa Jawa Timuran yang khas.",
-            "image": "assets/images/items/jawa/surabaya.png",
+            "id": "jatim_001",
+            "name": "Reog Ponorogo",
+            "description": "Reog Ponorogo adalah kesenian tari tradisional megah khas Jawa Timur dengan topeng dadak merak raksasa yang dibawakan dengan kekuatan dan keahlian tinggi.",
+            "image": "assets/images/items/jawa/jatim/reog_ponorogo.png",
             "province": "Jawa Timur",
             "island": "Jawa"
           }
         ]
       },
       {
-        "id": "yogyakarta",
-        "name": "DI Yogyakarta",
+        "id": "madura",
+        "name": "Madura",
         "island_id": "jawa",
         "items": [
           {
-            "id": "yogyakarta_001",
-            "name": "Wayang Kulit",
-            "description": "Wayang Kulit adalah seni pertunjukan boneka bayangan dari kulit yang dimainkan oleh dalang. Pertunjukan ini diiringi gamelan dan sinden, menampilkan kisah-kisah dari Mahabharata dan Ramayana. Wayang Kulit telah diakui UNESCO sebagai Warisan Budaya Tak Benda sejak tahun 2003.",
-            "image": "assets/images/items/jawa/yogyakarta.png",
-            "province": "DI Yogyakarta",
+            "id": "madura_001",
+            "name": "Karapan Sapi",
+            "description": "Karapan Sapi adalah perlombaan pacuan sapi tradisional khas masyarakat Pulau Madura yang menampilkan ketangkasan sepasang sapi yang berlari cepat diiringi musik saronen.",
+            "image": "assets/images/items/jawa/madura/karapan_sapi.png",
+            "province": "Madura",
+            "island": "Jawa"
+          }
+        ]
+      },
+      {
+        "id": "jawa",
+        "name": "Pulau Jawa",
+        "island_id": "jawa",
+        "items": [
+          {
+            "id": "jawa_001",
+            "name": "Batik Parang",
+            "description": "Batik Parang adalah motif batik klasik tertua di Nusantara yang melambangkan ombak samudera tanpa henti, menggambarkan ketangkasan, perjuangan, dan semangat pantang menyerah.",
+            "image": "assets/images/items/jawa/jawa/batik_parang.png",
+            "province": "Pulau Jawa",
             "island": "Jawa"
           }
         ]

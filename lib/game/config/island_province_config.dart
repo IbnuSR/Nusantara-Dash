@@ -21,7 +21,7 @@ class IslandProvinceConfig {
   /// akan diisi seiring dengan implementasi level masing-masing pulau.
   static const Map<String, String> _defaultProvinceByIsland = {
     'SUMATRA': 'aceh',
-    // 'JAWA': 'jakarta',                // Aktifkan saat level Jawa selesai
+    'JAWA': 'banten',
     // 'KALIMANTAN': 'kalimantan_barat', // Aktifkan saat level Kalimantan selesai
     // 'SULAWESI': 'sulawesi_selatan',   // Aktifkan saat level Sulawesi selesai
     // 'PAPUA': 'papua',                 // Aktifkan saat level Papua selesai

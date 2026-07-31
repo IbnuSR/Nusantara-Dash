@@ -72,6 +72,13 @@ flutter:
     - assets/images/items/sulawesi/sulteng/
     - assets/images/items/sulawesi/sultra/
     - assets/images/items/sulawesi/sulut/
+    - assets/images/items/papua/
+    - assets/images/items/papua/papbar/
+    - assets/images/items/papua/papbd/
+    - assets/images/items/papua/papgun/
+    - assets/images/items/papua/papsel/
+    - assets/images/items/papua/papteng/
+    - assets/images/items/papua/papua/
     - assets/images/ui/
     - assets/images/ui/buttons/
     - assets/data/quiz_data.json

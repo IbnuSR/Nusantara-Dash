@@ -24,7 +24,7 @@ class IslandProvinceConfig {
     'JAWA': 'banten',
     'KALIMANTAN': 'kalbar',
     'SULAWESI': 'gorontalo',
-    // 'PAPUA': 'papua',                 // Aktifkan saat level Papua selesai
+    'PAPUA': 'papbar',
   };
 
   /// Mengembalikan provinceId untuk pulau yang diberikan.

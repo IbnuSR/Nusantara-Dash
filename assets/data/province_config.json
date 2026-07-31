@@ -508,76 +508,121 @@
     "name": "Papua",
     "provinces": [
       {
-        "id": "biak",
-        "name": "Papua",
-        "island_id": "papua",
-        "items": [
-          {
-            "id": "biak_001",
-            "name": "Tari Yospan",
-            "description": "Tari Yospan adalah tarian pergaulan khas Papua yang merupakan gabungan dari dua tarian, yaitu Yosim dan Pancar. Tarian ini menggambarkan kegembiraan dan persaudaraan masyarakat Papua. Yospan biasanya dibawakan oleh banyak penari muda dengan gerakan lincah dan dinamis yang mencerminkan semangat Papua.",
-            "image": "assets/images/items/papua/biak.png",
-            "province": "Papua",
-            "island": "Papua"
-          }
-        ]
-      },
-      {
-        "id": "jayapura",
-        "name": "Papua (Jayapura)",
-        "island_id": "papua",
-        "items": [
-          {
-            "id": "jayapura_001",
-            "name": "Tari Musyoh",
-            "description": "Tari Musyoh adalah tari sakral suku Mee di Papua yang bertujuan mengusir roh jahat dari jiwa seseorang yang meninggal karena kecelakaan. Tarian ini diiringi tifa dan dilakukan oleh para tetua adat. Musyoh merupakan wujud kepercayaan spiritual masyarakat Papua tentang keseimbangan alam dan roh.",
-            "image": "assets/images/items/papua/jayapura.png",
-            "province": "Papua (Jayapura)",
-            "island": "Papua"
-          }
-        ]
-      },
-      {
-        "id": "merauke",
-        "name": "Papua Selatan",
-        "island_id": "papua",
-        "items": [
-          {
-            "id": "merauke_001",
-            "name": "Patung Mbis",
-            "description": "Mbis adalah tiang atau patung leluhur kayu yang diukir oleh suku Asmat dari Papua Selatan. Patung ini dibuat untuk menghormati arwah leluhur dan digunakan dalam upacara pembuatan perdamaian. Ukiran Asmat diakui sebagai salah satu seni ukir tradisional terbaik di dunia karena kerumitan dan keindahannya.",
-            "image": "assets/images/items/papua/merauke.png",
-            "province": "Papua Selatan",
-            "island": "Papua"
-          }
-        ]
-      },
-      {
-        "id": "sorong",
+        "id": "papbar",
         "name": "Papua Barat",
         "island_id": "papua",
         "items": [
           {
-            "id": "sorong_001",
-            "name": "Tari Perang Arfak",
-            "description": "Tari Perang Arfak adalah tarian tradisional suku Arfak dari Papua Barat yang menggambarkan keberanian para ksatria dalam mempertahankan tanah adat. Penari mengenakan hiasan kepala bulu burung cenderawasih yang megah dan membawa busur serta tombak. Tarian ini menjadi simbol kebanggaan dan identitas budaya Papua Barat.",
-            "image": "assets/images/items/papua/sorong.png",
+            "id": "papbar_001",
+            "name": "Burung Cendrawasih",
+            "description": "Burung Cendrawasih adalah burung eksotis endemik berjuluk Burung dari Surga yang menjadi kebanggaan dan lambang keagungan flora fauna Papua Barat.",
+            "image": "assets/images/items/papua/papbar/burung_cendrawasih.png",
             "province": "Papua Barat",
             "island": "Papua"
           }
         ]
       },
       {
-        "id": "wamena",
+        "id": "papbd",
+        "name": "Papua Barat Daya",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "papbd_001",
+            "name": "Tari Yospan",
+            "description": "Tari Yospan adalah tarian pergaulan khas masyarakat Papua Barat Daya yang dibawakan penuh semangat, lincah, dan sarat akan kehangatan persaudaraan.",
+            "image": "assets/images/items/papua/papbd/tari_yospan.png",
+            "province": "Papua Barat Daya",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "papgun",
         "name": "Papua Pegunungan",
         "island_id": "papua",
         "items": [
           {
-            "id": "wamena_001",
-            "name": "Tradisi Mumi Dani",
-            "description": "Suku Dani di Lembah Baliem, Papua, memiliki tradisi pengawetan jenazah leluhur menjadi mumi yang berusia ratusan tahun. Mumi dijaga dan dirawat oleh keluarga sebagai bentuk penghormatan dan agar roh leluhur terus melindungi suku. Tradisi ini mencerminkan ikatan spiritual yang kuat antara orang Dani dengan para leluhurnya.",
-            "image": "assets/images/items/papua/wamena.png",
+            "id": "papgun_001",
+            "name": "Koteka",
+            "description": "Koteka adalah pakaian adat tradisional pria suku-suku di kawasan Lembah Baliem dan Papua Pegunungan yang terbuat dari buah labu air kering.",
+            "image": "assets/images/items/papua/papgun/koteka.png",
             "province": "Papua Pegunungan",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "papsel",
+        "name": "Papua Selatan",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "papsel_001",
+            "name": "Tifa",
+            "description": "Tifa adalah alat musik pukul tradisional khas Papua Selatan yang terbuat dari batang kayu berukir dan membran kulit hewan untuk mengiringi tarian sakral.",
+            "image": "assets/images/items/papua/papsel/tifa.png",
+            "province": "Papua Selatan",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "papteng",
+        "name": "Papua Tengah",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "papteng_001",
+            "name": "Honai",
+            "description": "Honai adalah rumah adat tradisional Papua Tengah berbentuk melingkar dengan atap jerami/ijuk tebal yang dirancang hangat menahan dinginnya pegunungan.",
+            "image": "assets/images/items/papua/papteng/honai.png",
+            "province": "Papua Tengah",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "papua",
+        "name": "Papua",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "papua_001",
+            "name": "Buah Merah",
+            "description": "Buah Merah (Pandanus conoideus) adalah tanaman obat tradisional berkhasiat tinggi khas belantara tanah Papua yang kaya akan nutrisi alami.",
+            "image": "assets/images/items/papua/papua/buah_merah.png",
+            "province": "Papua",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "papua_budaya",
+        "name": "Budaya Papua",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "papua_002",
+            "name": "Noken",
+            "description": "Noken adalah tas anyaman serat kayu tradisional khas Papua yang diakui UNESCO sebagai Warisan Budaya Takbenda Dunia, disanggul di dahi kepala.",
+            "image": "assets/images/items/papua/papua/noken.png",
+            "province": "Budaya Papua",
+            "island": "Papua"
+          }
+        ]
+      },
+      {
+        "id": "papua_seni",
+        "name": "Seni Ukir Papua",
+        "island_id": "papua",
+        "items": [
+          {
+            "id": "papua_003",
+            "name": "Ukiran Asmat",
+            "description": "Ukiran Asmat adalah seni ukir kayu adikarya maha spiritual suku Asmat Papua yang mendunia dengan kerapian ukiran wujud leluhur dan alam semesta.",
+            "image": "assets/images/items/papua/papua/ukiran_asmat.png",
+            "province": "Seni Ukir Papua",
             "island": "Papua"
           }
         ]

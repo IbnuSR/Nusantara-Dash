@@ -68,4 +68,46 @@ class PapuaLevelData {
     {'x': 5600, 'y': -160}, {'x': 5650, 'y': -160},
     {'x': 5750, 'y': -160}, {'x': 5800, 'y': -160},
   ];
+
+  // ======================================================================
+  // 🏛️ HIDDEN CULTURAL ITEM — All 8 Papua Items & Safe Spawn Points
+  // ======================================================================
+
+  /// 8 Item Budaya Baku Pulau Papua (1 Item per Provinsi/Wilayah)
+  static const List<String> hiddenItemIds = [
+    'papbar_001', // Burung Cendrawasih (Papua Barat)
+    'papbd_001', // Tari Yospan (Papua Barat Daya)
+    'papgun_001', // Koteka (Papua Pegunungan)
+    'papsel_001', // Tifa (Papua Selatan)
+    'papteng_001', // Honai (Papua Tengah)
+    'papua_001', // Buah Merah (Papua)
+    'papua_002', // Noken (Budaya Papua)
+    'papua_003', // Ukiran Asmat (Seni Ukir Papua)
+  ];
+
+  /// 12 Safe Spawn Candidate Locations
+  ///
+  /// Setiap lokasi divalidasi presisi di atas platform padat dengan margin
+  /// standing area aman di kiri & kanan, jauh dari jurang dan obstacle.
+  static final List<Map<String, double>> hiddenItemSpawnCandidates = [
+    // 🟢 Section 1
+    {'x': 180, 'y': -60}, // Ground 1 (x:0..600, y:0)
+    {'x': 760, 'y': -120}, // Platform 2 (x:680..880, y:-60)
+
+    // 🟡 Section 2
+    {'x': 1240, 'y': -80}, // Ground 4 (x:1180..1600, y:-20)
+    {'x': 1730, 'y': -160}, // Platform 5 (x:1650..1850, y:-100)
+    {'x': 1990, 'y': -230}, // Platform 6 (x:1900..2120, y:-170)
+    {'x': 2310, 'y': -150}, // Platform 7 (x:2200..2480, y:-90)
+
+    // 🔵 Section 3
+    {'x': 2630, 'y': -60}, // Ground 8 (x:2550..2930, y:0)
+    {'x': 3320, 'y': -210}, // Platform 10 (x:3250..3430, y:-150)
+    {'x': 3580, 'y': -280}, // Platform 11 (x:3500..3700, y:-220)
+    {'x': 3900, 'y': -170}, // Ground 12 (x:3800..4050, y:-110)
+
+    // 🔴 Section 4
+    {'x': 4180, 'y': -120}, // Platform 13 (x:4100..4300, y:-60)
+    {'x': 5030, 'y': -200}, // Platform 16 (x:4950..5150, y:-140)
+  ];
 }

@@ -388,70 +388,115 @@
         "items": [
           {
             "id": "gorontalo_001",
-            "name": "Pakaian Adat Bili'u",
-            "description": "Bili'u adalah pakaian adat kebesaran pengantin wanita dari Gorontalo. Pakaian ini terdiri dari baju berwarna kuning keemasan yang dihiasi payet dan sulaman indah, melambangkan keagungan dan kemurnian. Warna kuning pada Bili'u mencerminkan identitas budaya Gorontalo yang kuat dengan tradisi kerajaan.",
-            "image": "assets/images/items/sulawesi/gorontalo.png",
+            "name": "Benteng Otanaha",
+            "description": "Benteng Otanaha adalah benteng bersejarah peninggalan abad ke-16 di Gorontalo yang berdiri megah di atas bukit, terbuat dari bahan alami perekat putih telur burung Maleo.",
+            "image": "assets/images/items/sulawesi/gorontalo/benteng_otanaha.png",
             "province": "Gorontalo",
             "island": "Sulawesi"
           }
         ]
       },
       {
-        "id": "makasar",
+        "id": "sulbar",
+        "name": "Sulawesi Barat",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "sulbar_001",
+            "name": "Anjungan Pantai Manakarra",
+            "description": "Anjungan Pantai Manakarra adalah ikon kebanggaan Kota Mamuju, Sulawesi Barat, yang menyajikan keindahan lanskap pantai landmark megah pusat kebudayaan Mandar.",
+            "image": "assets/images/items/sulawesi/sulbar/anjungan.png",
+            "province": "Sulawesi Barat",
+            "island": "Sulawesi"
+          }
+        ]
+      },
+      {
+        "id": "sulsel",
         "name": "Sulawesi Selatan",
         "island_id": "sulawesi",
         "items": [
           {
-            "id": "makasar_001",
-            "name": "Baju Bodo",
-            "description": "Baju Bodo adalah pakaian adat tradisional perempuan suku Bugis-Makassar dari Sulawesi Selatan. Baju ini berbentuk sederhana, bersegi empat, dengan lengan pendek dan bahan tipis menyerupai kasa. Warna baju menunjukkan status sosial pemakainya dalam stratifikasi masyarakat Bugis.",
-            "image": "assets/images/items/sulawesi/makasar.png",
+            "id": "sulsel_001",
+            "name": "Kapal Pinisi",
+            "description": "Kapal Pinisi adalah kapal layar tradisional mahakarya suku Bugis-Makassar dari Sulawesi Selatan yang diakui UNESCO sebagai Warisan Budaya Takbenda Dunia.",
+            "image": "assets/images/items/sulawesi/sulsel/kapal_pinisi.png",
             "province": "Sulawesi Selatan",
             "island": "Sulawesi"
           }
         ]
       },
       {
-        "id": "manado",
-        "name": "Sulawesi Utara",
-        "island_id": "sulawesi",
-        "items": [
-          {
-            "id": "manado_001",
-            "name": "Tari Maengket",
-            "description": "Tari Maengket adalah tarian tradisional suku Minahasa dari Sulawesi Utara yang dilakukan secara massal oleh banyak penari. Tarian ini merupakan ungkapan syukur kepada Tuhan atas hasil panen padi yang baik. Gerakan Maengket mengandung nilai kebersamaan, gotong royong, dan kegembiraan masyarakat Minahasa.",
-            "image": "assets/images/items/sulawesi/manado.png",
-            "province": "Sulawesi Utara",
-            "island": "Sulawesi"
-          }
-        ]
-      },
-      {
-        "id": "palu",
+        "id": "sulteng",
         "name": "Sulawesi Tengah",
         "island_id": "sulawesi",
         "items": [
           {
-            "id": "palu_001",
-            "name": "Kain Donggala",
-            "description": "Kain Donggala adalah kain tenun tradisional dari Sulawesi Tengah yang terkenal dengan motif geometris berwarna cerah. Kain ini ditenun dari benang sutra dengan teknik yang diwariskan turun-temurun. Motif khasnya mencerminkan hubungan masyarakat Donggala dengan alam laut dan daratan Sulawesi Tengah.",
-            "image": "assets/images/items/sulawesi/palu.png",
+            "id": "sulteng_001",
+            "name": "Rumah Tambi",
+            "description": "Rumah Tambi adalah rumah adat tradisional khas suku Kaili di Sulawesi Tengah berbentuk prisma segi tiga dengan fondasi batu alam dan atap ijuk yang megah.",
+            "image": "assets/images/items/sulawesi/sulteng/rumah_tambi.png",
             "province": "Sulawesi Tengah",
             "island": "Sulawesi"
           }
         ]
       },
       {
-        "id": "toraja",
-        "name": "Tana Toraja",
+        "id": "sultra",
+        "name": "Sulawesi Tenggara",
         "island_id": "sulawesi",
         "items": [
           {
-            "id": "toraja_001",
-            "name": "Tongkonan",
-            "description": "Tongkonan adalah rumah adat tradisional suku Toraja dari Sulawesi Selatan bagian utara. Ciri khasnya adalah atap berbentuk perahu melengkung dramatis yang mengarah ke langit. Tongkonan bukan sekadar tempat tinggal, melainkan pusat kehidupan sosial, budaya, dan spiritual masyarakat Toraja.",
-            "image": "assets/images/items/sulawesi/toraja.png",
-            "province": "Tana Toraja",
+            "id": "sultra_001",
+            "name": "Tari Lulo",
+            "description": "Tari Lulo (LUMENSE) adalah tarian persahabatan tradisional khas suku Tolaki di Sulawesi Tenggara yang dilakukan dengan berpegangan tangan membentuk lingkaran kebersamaan.",
+            "image": "assets/images/items/sulawesi/sultra/tari_lulo.png",
+            "province": "Sulawesi Tenggara",
+            "island": "Sulawesi"
+          }
+        ]
+      },
+      {
+        "id": "sulut",
+        "name": "Sulawesi Utara",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "sulut_001",
+            "name": "Tarsius",
+            "description": "Tarsius adalah primata langka berukuran sangat kecil berdedikasi malam endemik Sulawesi Utara yang dilindungi di kawasan cagar alam Tangkoko.",
+            "image": "assets/images/items/sulawesi/sulut/tarsius.png",
+            "province": "Sulawesi Utara",
+            "island": "Sulawesi"
+          }
+        ]
+      },
+      {
+        "id": "sulawesi",
+        "name": "Kuliner Sulawesi",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "sulawesi_001",
+            "name": "Es Pisang Ijo",
+            "description": "Es Pisang Ijo adalah kuliner hidangan penutup khas Makassar, Sulawesi, yang terbuat dari pisang raja terbalut adonan tepung hijau disajikan bersama bubur sumsum dan sirup merah.",
+            "image": "assets/images/items/sulawesi/sulawesi/es_pisang_ijo.png",
+            "province": "Kuliner Sulawesi",
+            "island": "Sulawesi"
+          }
+        ]
+      },
+      {
+        "id": "sulawesi_tenun",
+        "name": "Tenun Sulawesi",
+        "island_id": "sulawesi",
+        "items": [
+          {
+            "id": "sulawesi_002",
+            "name": "Kain Tenun",
+            "description": "Kain Tenun Sulawesi adalah seni kain tradisional dengan ragam motif geometris khas rumpun kebudayaan Sulawesi yang kaya akan nilai sejarah dan kerapian benang tenun.",
+            "image": "assets/images/items/sulawesi/sulawesi/kain_tenun.png",
+            "province": "Tenun Sulawesi",
             "island": "Sulawesi"
           }
         ]

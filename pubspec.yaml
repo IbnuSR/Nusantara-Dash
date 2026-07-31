@@ -64,6 +64,14 @@ flutter:
     - assets/images/items/kalimantan/kalteng/
     - assets/images/items/kalimantan/kaltim/
     - assets/images/items/kalimantan/kalimantan/
+    - assets/images/items/sulawesi/
+    - assets/images/items/sulawesi/gorontalo/
+    - assets/images/items/sulawesi/sulawesi/
+    - assets/images/items/sulawesi/sulbar/
+    - assets/images/items/sulawesi/sulsel/
+    - assets/images/items/sulawesi/sulteng/
+    - assets/images/items/sulawesi/sultra/
+    - assets/images/items/sulawesi/sulut/
     - assets/images/ui/
     - assets/images/ui/buttons/
     - assets/data/quiz_data.json

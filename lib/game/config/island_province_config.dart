@@ -23,7 +23,7 @@ class IslandProvinceConfig {
     'SUMATRA': 'aceh',
     'JAWA': 'banten',
     'KALIMANTAN': 'kalbar',
-    // 'SULAWESI': 'sulawesi_selatan',   // Aktifkan saat level Sulawesi selesai
+    'SULAWESI': 'gorontalo',
     // 'PAPUA': 'papua',                 // Aktifkan saat level Papua selesai
   };
 

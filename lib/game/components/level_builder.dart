@@ -234,6 +234,8 @@ class LevelBuilder extends PositionComponent with HasGameRef {
         return JawaLevelData.hiddenItemSpawnCandidates;
       case 'KALIMANTAN':
         return KalimantanLevelData.hiddenItemSpawnCandidates;
+      case 'SULAWESI':
+        return SulawesiLevelData.hiddenItemSpawnCandidates;
       default:
         return null; // Pulau belum dikonfigurasi — silent no-op
     }
@@ -248,6 +250,8 @@ class LevelBuilder extends PositionComponent with HasGameRef {
         return JawaLevelData.hiddenItemIds;
       case 'KALIMANTAN':
         return KalimantanLevelData.hiddenItemIds;
+      case 'SULAWESI':
+        return SulawesiLevelData.hiddenItemIds;
       default:
         return null;
     }

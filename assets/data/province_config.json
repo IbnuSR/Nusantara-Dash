@@ -256,76 +256,121 @@
     "name": "Kalimantan",
     "provinces": [
       {
-        "id": "balikpapan",
-        "name": "Kalimantan Timur",
-        "island_id": "kalimantan",
-        "items": [
-          {
-            "id": "balikpapan_001",
-            "name": "Tari Giring-Giring",
-            "description": "Tari Giring-Giring adalah tarian tradisional suku Dayak Maanyan dari Kalimantan Timur. Penari mengenakan pakaian adat lengkap sambil memegang tongkat yang dihiasi bulu burung enggang. Tarian ini melambangkan kegembiraan dan syukur masyarakat Dayak atas hasil panen yang melimpah.",
-            "image": "assets/images/items/kalimantan/balikpapan.png",
-            "province": "Kalimantan Timur",
-            "island": "Kalimantan"
-          }
-        ]
-      },
-      {
-        "id": "banjarmasin",
-        "name": "Kalimantan Selatan",
-        "island_id": "kalimantan",
-        "items": [
-          {
-            "id": "banjarmasin_001",
-            "name": "Pasar Terapung",
-            "description": "Pasar Terapung adalah pasar tradisional unik di atas sungai Kalimantan Selatan, di mana para pedagang berjualan menggunakan perahu kecil (jukung). Pasar ini aktif sejak subuh dan menjadi salah satu warisan budaya paling ikonik dari suku Banjar. Lokasinya yang terkenal adalah Lok Baintan di Banjar.",
-            "image": "assets/images/items/kalimantan/banjarmasin.png",
-            "province": "Kalimantan Selatan",
-            "island": "Kalimantan"
-          }
-        ]
-      },
-      {
-        "id": "palangkaraya",
-        "name": "Kalimantan Tengah",
-        "island_id": "kalimantan",
-        "items": [
-          {
-            "id": "palangkaraya_001",
-            "name": "Tari Kinyah Mandau",
-            "description": "Tari Kinyah Mandau adalah tarian perang tradisional suku Dayak dari Kalimantan Tengah. Penari membawa mandau (senjata khas Dayak) dan tameng, menampilkan gerakan-gerakan yang menggambarkan keberanian seorang ksatria Dayak di medan pertempuran. Kostumnya menggunakan bulu burung Enggang.",
-            "image": "assets/images/items/kalimantan/palangkaraya.png",
-            "province": "Kalimantan Tengah",
-            "island": "Kalimantan"
-          }
-        ]
-      },
-      {
-        "id": "pontianak",
+        "id": "kalbar",
         "name": "Kalimantan Barat",
         "island_id": "kalimantan",
         "items": [
           {
-            "id": "pontianak_001",
-            "name": "Kain Tenun Dayak",
-            "description": "Kain Tenun Dayak adalah kain tradisional yang dihasilkan oleh berbagai sub-suku Dayak di Kalimantan Barat. Dibuat dengan teknik tenun ikat yang rumit, kain ini dihiasi motif-motif khas seperti burung enggang, naga, dan pakis. Setiap motif memiliki makna filosofis yang dalam bagi masyarakat Dayak.",
-            "image": "assets/images/items/kalimantan/pontianak.png",
+            "id": "kalbar_001",
+            "name": "Tugu Khatulistiwa",
+            "description": "Tugu Khatulistiwa adalah monumen ikonik di Kota Pontianak, Kalimantan Barat, yang menandai titik nol derajat garis khatulistiwa pembelah bumi utara dan selatan.",
+            "image": "assets/images/items/kalimantan/kalbar/tugu_katulistiwa.png",
             "province": "Kalimantan Barat",
             "island": "Kalimantan"
           }
         ]
       },
       {
-        "id": "samarinda",
-        "name": "Samarinda",
+        "id": "kalteng",
+        "name": "Kalimantan Tengah",
         "island_id": "kalimantan",
         "items": [
           {
-            "id": "samarinda_001",
-            "name": "Sarung Samarinda",
-            "description": "Sarung Samarinda adalah kain tenun tradisional khas Samarinda, Kalimantan Timur, yang dikenal dengan motif kotak-kotak berwarna cerah. Ditenun menggunakan alat tenun tradisional oleh komunitas Suku Bugis yang menetap di Samarinda, kain ini menjadi simbol perpaduan budaya Bugis dan Kalimantan.",
-            "image": "assets/images/items/kalimantan/samarinda.png",
-            "province": "Samarinda",
+            "id": "kalteng_001",
+            "name": "Rumah Betang",
+            "description": "Rumah Betang adalah rumah adat khas suku Dayak di Kalimantan Tengah berbentuk panggung kayu berukuran besar yang dihuni puluhan keluarga secara bersama dan harmonis.",
+            "image": "assets/images/items/kalimantan/kalteng/rumah_betang.png",
+            "province": "Kalimantan Tengah",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "kaltim",
+        "name": "Kalimantan Timur",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "kaltim_001",
+            "name": "Burung Enggang",
+            "description": "Burung Enggang adalah burung suci dan lambang keagungan suku Dayak di Kalimantan Timur, yang menyimbolkan kesetiaan, keberanian, dan kepemimpinan luhur.",
+            "image": "assets/images/items/kalimantan/kaltim/burung_enggang.png",
+            "province": "Kalimantan Timur",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "kalsel",
+        "name": "Kalimantan Selatan",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "kalsel_001",
+            "name": "Pasar Apung",
+            "description": "Pasar Apung adalah tradisi perdagangan unik di atas perahu jukung di Sungai Kalimantan Selatan yang diwariskan turun-temurun oleh masyarakat suku Banjar.",
+            "image": "assets/images/items/kalimantan/kalsel/pasar_apung.png",
+            "province": "Kalimantan Selatan",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "kaltara",
+        "name": "Kalimantan Utara",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "kaltara_001",
+            "name": "Sape",
+            "description": "Sape adalah alat musik petik tradisional khas suku Dayak Kalimantan Utara yang terbuat dari kayu pilihan dan menghasilkan alunan nada indah nan magis.",
+            "image": "assets/images/items/kalimantan/kaltara/sape.png",
+            "province": "Kalimantan Utara",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "kalimantan",
+        "name": "Hutan Kalimantan",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "kalimantan_001",
+            "name": "Orangutan",
+            "description": "Orangutan adalah primata endemik langka dan dilindungi yang menjadi simbol kelestarian kekayaan hayati di belantara hutan hujan tropis Kalimantan.",
+            "image": "assets/images/items/kalimantan/kalimantan/orangutan.png",
+            "province": "Hutan Kalimantan",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "kalimantan_budaya",
+        "name": "Seni Dayak",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "kalimantan_002",
+            "name": "Batik Dayak",
+            "description": "Batik Dayak adalah seni kain tradisional Kalimantan dengan motif khas ukiran Dayak, Burung Enggang, dan flora hutan yang sarat makna spiritual.",
+            "image": "assets/images/items/kalimantan/kalimantan/batik_dayak.png",
+            "province": "Seni Dayak",
+            "island": "Kalimantan"
+          }
+        ]
+      },
+      {
+        "id": "kalimantan_kuliner",
+        "name": "Kuliner Kalimantan",
+        "island_id": "kalimantan",
+        "items": [
+          {
+            "id": "kalimantan_003",
+            "name": "Soto Banjar",
+            "description": "Soto Banjar adalah hidangan soto khas suku Banjar Kalimantan berkuah rempah wangi yang kaya rasa, disajikan dengan suwiran ayam, perkedel, dan telur.",
+            "image": "assets/images/items/kalimantan/kalimantan/soto_banjar.png",
+            "province": "Kuliner Kalimantan",
             "island": "Kalimantan"
           }
         ]

@@ -22,7 +22,7 @@ class IslandProvinceConfig {
   static const Map<String, String> _defaultProvinceByIsland = {
     'SUMATRA': 'aceh',
     'JAWA': 'banten',
-    // 'KALIMANTAN': 'kalimantan_barat', // Aktifkan saat level Kalimantan selesai
+    'KALIMANTAN': 'kalbar',
     // 'SULAWESI': 'sulawesi_selatan',   // Aktifkan saat level Sulawesi selesai
     // 'PAPUA': 'papua',                 // Aktifkan saat level Papua selesai
   };

@@ -57,6 +57,13 @@ flutter:
     - assets/images/items/jawa/jawa/
     - assets/images/items/jawa/jogja/
     - assets/images/items/jawa/madura/
+    - assets/images/items/kalimantan/
+    - assets/images/items/kalimantan/kalbar/
+    - assets/images/items/kalimantan/kalsel/
+    - assets/images/items/kalimantan/kaltara/
+    - assets/images/items/kalimantan/kalteng/
+    - assets/images/items/kalimantan/kaltim/
+    - assets/images/items/kalimantan/kalimantan/
     - assets/images/ui/
     - assets/images/ui/buttons/
     - assets/data/quiz_data.json

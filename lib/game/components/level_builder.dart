@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart' hide Image;
+
 // ✅ 1. IMPORT SEMUA DATA PULAU DI SINI:
 import 'package:nusantara_dash/game/data/sumatra_level_data.dart';
 import 'package:nusantara_dash/game/data/jawa_level_data.dart';
@@ -20,9 +21,22 @@ class RedObstacle extends SpriteComponent {
   RedObstacle({super.sprite, super.position, super.size, super.anchor});
 }
 
-class CoinItem extends CircleComponent {
+// 🔥 UBAH: Dari CircleComponent menjadi SpriteComponent agar bisa pakai gambar coin.png
+class CoinItem extends SpriteComponent with HasGameRef {
   bool isCollected = false;
-  CoinItem({super.position, super.radius, super.paint, super.anchor});
+
+  CoinItem({super.position, super.size, super.anchor});
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    // Muat gambar koin (pastikan file ada di assets/images/battle/coin.png)
+    sprite = await gameRef.loadSprite('battle/coin.png');
+
+    // 🔥 OPTIMASI HP KENTANG: Koin diam saja menunggu diambil pemain.
+    add(CircleHitbox(collisionType: CollisionType.passive));
+  }
 }
 
 class LevelBuilder extends PositionComponent with HasGameRef {
@@ -30,8 +44,6 @@ class LevelBuilder extends PositionComponent with HasGameRef {
   final String islandName; // ✅ 2. TAMBAHKAN PARAMETER NAMA PULAU
 
   // 🏛️ SPRINT 6.3: Callback yang dipanggil saat Hidden Cultural Item diambil.
-  // Opsional — jika null, item tetap di-spawn namun tidak ada side effect.
-  // Caller: NusantaraDashGame (Sprint 6.6 mengisi dengan Museum integration).
   final void Function(String provinceId)? onCulturalItemFound;
 
   // Efek gaya gravitasi menekan rumput
@@ -209,13 +221,10 @@ class LevelBuilder extends PositionComponent with HasGameRef {
     for (final c in _getCoins()) {
       final coin = CoinItem(
         position: Vector2(c['x']!, groundY + c['y']!),
-        radius: 14,
-        paint: Paint()..color = Colors.amber,
+        // 🔥 UBAH: Gunakan size pengganti radius (14 radius = 28x28 diameter)
+        size: Vector2(28, 28),
         anchor: Anchor.center,
       );
-
-      // 🔥 OPTIMASI HP KENTANG: Koin diam saja menunggu diambil pemain.
-      coin.add(CircleHitbox(collisionType: CollisionType.passive));
       add(coin);
     }
   }
@@ -224,8 +233,6 @@ class LevelBuilder extends PositionComponent with HasGameRef {
   // 🏛️ SPRINT 6.3: Hidden Cultural Item Spawning
   // =========================================================================
 
-  /// Mengembalikan daftar kandidat spawn Hidden Cultural Item untuk pulau
-  /// yang sedang aktif, atau null jika pulau belum memiliki data kandidat.
   List<Map<String, double>>? _getCandidatesForIsland() {
     switch (islandName.toUpperCase()) {
       case 'SUMATRA':
@@ -239,11 +246,10 @@ class LevelBuilder extends PositionComponent with HasGameRef {
       case 'PAPUA':
         return PapuaLevelData.hiddenItemSpawnCandidates;
       default:
-        return null; // Pulau belum dikonfigurasi — silent no-op
+        return null;
     }
   }
 
-  /// Mengembalikan daftar 8 ID item baku untuk pulau yang sedang aktif.
   List<String>? _getItemIdsForIsland() {
     switch (islandName.toUpperCase()) {
       case 'SUMATRA':
@@ -261,15 +267,6 @@ class LevelBuilder extends PositionComponent with HasGameRef {
     }
   }
 
-  /// Menambahkan seluruh 8 [HiddenCulturalItemComponent] (Mystery Collectibles)
-  /// ke Safe Spawn Points pilihan dalam 1 sesi level runner.
-  ///
-  /// Mekanisme Spawning:
-  /// 1. Ambil 8 ID item baku pulau & 12 Safe Spawn Points terverifikasi.
-  /// 2. ACAK (shuffle) urutan item sehingga setiap gameplay terasa fresh.
-  /// 3. ACAK (shuffle) Safe Spawn Points, ambil 8 titik, dan URUTKAN berdasarkan X
-  ///    agar item muncul secara alami dari awal hingga akhir level (0..6000px).
-  /// 4. Hubungkan setiap item ke [onCulturalItemFound] callback.
   void _spawnHiddenCulturalItem() {
     final List<Map<String, double>>? candidates = _getCandidatesForIsland();
     if (candidates == null || candidates.isEmpty) return;
@@ -277,10 +274,8 @@ class LevelBuilder extends PositionComponent with HasGameRef {
     final List<String>? itemIds = _getItemIdsForIsland();
     if (itemIds == null || itemIds.isEmpty) return;
 
-    // 🎲 1. Acak urutan item budaya untuk sesi gameplay ini (Random Item Order)
     final List<String> shuffledItemIds = List<String>.from(itemIds)..shuffle();
 
-    // 🎲 2. Acak Safe Spawn Points, ambil N titik (N = 8), dan urutkan berdasarkan koordinat X
     final List<Map<String, double>> availableSpawns =
         List<Map<String, double>>.from(candidates)..shuffle();
     final int spawnCount = min(shuffledItemIds.length, availableSpawns.length);
@@ -289,7 +284,6 @@ class LevelBuilder extends PositionComponent with HasGameRef {
         .toList()
       ..sort((a, b) => a['x']!.compareTo(b['x']!));
 
-    // 🏛️ 3. Spawn seluruh 8 Mystery Collectibles di Safe Spawn Points
     for (int i = 0; i < spawnCount; i++) {
       final Map<String, double> spawn = chosenSpawns[i];
       final String itemId = shuffledItemIds[i];

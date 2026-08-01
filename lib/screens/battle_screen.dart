@@ -53,24 +53,32 @@ class _BattleScreenState extends State<BattleScreen>
   int bossHP = 100;
   int currentQuestionIndex = 0;
 
-  // Total soal yang ditampilkan
   int totalQuestions = 10;
-
   int countdown = 3;
-  bool isCountingDown = true;
+  bool isCountingDown = false;
   bool isQuizVisible = false;
   bool isAnswering = false;
   bool isBattleOver = false;
   bool isLoadingQuestions = true;
   int _sessionCoins = 0;
 
+  // 🔥 STATE CINEMATIC INTRO
+  bool _isCinematicPlaying = true;
+  double _blackScreenOpacity = 1.0;
+  int _cinematicStep = 0;
+  String _cinematicText = "Memasuki Wilayah Terlarang...";
+
+  late AnimationController _walkBobbingController;
+
   // Efek Layar Berkedip saat kena pukul
   bool _isScreenFlashingRed = false;
   bool _isScreenFlashingWhite = false;
 
+  bool _isSatriaAttacking = false;
+  bool _showSlashEffect = false;
+
   List<QuizQuestion> _questions = [];
 
-  // Animasi Serangan
   late AnimationController _satriaAttackController;
   late AnimationController _bossAttackController;
   late Animation<double> _satriaAttackAnimation;
@@ -82,19 +90,108 @@ class _BattleScreenState extends State<BattleScreen>
     _loadInitialData();
     _loadQuestionsFromJson();
 
-    // Setup Animasi Serangan
+    _walkBobbingController = AnimationController(
+      duration: const Duration(milliseconds: 350),
+      vsync: this,
+    );
+
     _satriaAttackController = AnimationController(
-        duration: const Duration(milliseconds: 500), vsync: this);
+        duration: const Duration(milliseconds: 450), vsync: this);
     _bossAttackController = AnimationController(
-        duration: const Duration(milliseconds: 500), vsync: this);
+        duration: const Duration(milliseconds: 450), vsync: this);
+
     _satriaAttackAnimation = Tween<double>(begin: 0, end: 1).animate(
         CurvedAnimation(
-            parent: _satriaAttackController, curve: Curves.easeInOutBack));
+            parent: _satriaAttackController, curve: Curves.easeInCubic));
     _bossAttackAnimation = Tween<double>(begin: 0, end: 1).animate(
         CurvedAnimation(
-            parent: _bossAttackController, curve: Curves.easeInOutBack));
+            parent: _bossAttackController, curve: Curves.easeInCubic));
+
+    _startCinematicIntro();
+  }
+
+  Future<void> _startCinematicIntro() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
+    // Step 0 -> Step 1: Layar terbuka, Satria di posisi paling kiri
+    setState(() {
+      _blackScreenOpacity = 0.0;
+      _cinematicStep = 1;
+      _cinematicText = "Satria melangkah maju menghadapi tantangan...";
+    });
+
+    _walkBobbingController.repeat(reverse: true);
+
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    // Step 1 -> Step 2: Satria berjalan maju persis sampai posisi Rencong
+    setState(() {
+      _cinematicStep = 2;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 2500));
+    if (!mounted) return;
+
+    _walkBobbingController.stop();
+    _walkBobbingController.reset();
+
+    // Step 3: Satria tepat di atas pusaka -> Mengklaim Rencong!
+    setState(() {
+      _cinematicStep = 3;
+      _cinematicText =
+          "Menemukan Pusaka Legendaris Pulau ${_getIslandDisplayName(widget.islandName)}!";
+    });
+
+    try {
+      AudioManager.instance.playSFX('sfx_coin.mp3');
+    } catch (_) {}
+
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    // Step 4: Boss Muncul (Rencong di tanah menghilang karena sudah diambil)
+    setState(() {
+      _cinematicStep = 4;
+      _cinematicText = "Waspada! Penjaga wilayah telah muncul!";
+    });
+
+    try {
+      AudioManager.instance.playSFX('sfx_boss_roar.mp3');
+    } catch (_) {}
+
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    setState(() {
+      _blackScreenOpacity = 1.0;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 650));
+    if (!mounted) return;
+
+    setState(() {
+      _isCinematicPlaying = false;
+      _blackScreenOpacity = 0.0;
+    });
 
     _startCountdown();
+  }
+
+  String _getIslandDisplayName(String island) {
+    switch (island.toUpperCase()) {
+      case 'JAWA':
+        return 'Jawa';
+      case 'KALIMANTAN':
+        return 'Kalimantan';
+      case 'SULAWESI':
+        return 'Sulawesi';
+      case 'PAPUA':
+        return 'Papua';
+      default:
+        return 'Sumatra';
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -104,7 +201,6 @@ class _BattleScreenState extends State<BattleScreen>
     });
   }
 
-  // FUNGSI MEMBACA FILE JSON KUIS DINAMIS
   Future<void> _loadQuestionsFromJson() async {
     try {
       final String response =
@@ -140,12 +236,12 @@ class _BattleScreenState extends State<BattleScreen>
 
   @override
   void dispose() {
+    _walkBobbingController.dispose();
     _satriaAttackController.dispose();
     _bossAttackController.dispose();
     super.dispose();
   }
 
-  // --- 🔥 FUNGSI PEMBANTU ASSET DINAMIS PER PULAU ---
   String _getBgAsset(String island) {
     switch (island.toUpperCase()) {
       case 'JAWA':
@@ -176,16 +272,11 @@ class _BattleScreenState extends State<BattleScreen>
     }
   }
 
-  // 🔥 ANIMASI FRAME SPRITE DINAMIS UNTUK SANG BELANG (SUMATRA)
   String _getDynamicBossAsset(String island, double attackProgress) {
     String baseAsset = _getBossAsset(island);
-
-    // Jika bukan boss Sumatra atau sedang tidak menyerang, gunakan sprite diam
     if (island.toUpperCase() != 'SUMATRA' || attackProgress == 0.0) {
       return baseAsset;
     }
-
-    // Pergantian frame berdasarkan seberapa dekat boss dengan Satria
     if (attackProgress < 0.25) {
       return 'assets/images/battle/sang_belang_atk1.png';
     } else if (attackProgress < 0.50) {
@@ -193,7 +284,7 @@ class _BattleScreenState extends State<BattleScreen>
     } else if (attackProgress < 0.75) {
       return 'assets/images/battle/sang_belang_atk3.png';
     } else {
-      return 'assets/images/battle/sang_belang_atk4.png'; // Pukulan masuk
+      return 'assets/images/battle/sang_belang_atk4.png';
     }
   }
 
@@ -258,6 +349,7 @@ class _BattleScreenState extends State<BattleScreen>
   }
 
   void _startCountdown() {
+    setState(() => isCountingDown = true);
     Timer.periodic(const Duration(seconds: 1), (timer) {
       if (countdown <= 0) {
         timer.cancel();
@@ -306,38 +398,55 @@ class _BattleScreenState extends State<BattleScreen>
     });
   }
 
-  void _performSatriaAttack() {
+  Future<void> _performSatriaAttack() async {
+    setState(() => _isSatriaAttacking = true);
     AudioManager.instance.playSFX('sfx_jump.mp3');
-    _satriaAttackController.forward().then((_) {
-      // Saat Satria berada tepat di depan Bos (Flash Putih)
-      _triggerScreenFlashWhite();
-      AudioManager.instance.playSFX('sfx_boss_hit.mp3');
 
-      _satriaAttackController.reverse();
+    await _satriaAttackController.forward();
 
+    _triggerScreenFlashWhite();
+    AudioManager.instance.playSFX('sfx_boss_hit.mp3');
+
+    setState(() {
+      _showSlashEffect = true;
+      bossHP = (bossHP - 20).clamp(0, 100);
+    });
+
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    if (mounted) {
       setState(() {
-        bossHP = (bossHP - 20).clamp(0, 100);
+        _showSlashEffect = false;
       });
 
-      _checkBattleStatus();
-    });
+      await _satriaAttackController.reverse();
+
+      if (mounted) {
+        setState(() => _isSatriaAttacking = false);
+        _checkBattleStatus();
+      }
+    }
   }
 
-  void _performBossAttack() {
+  Future<void> _performBossAttack() async {
     AudioManager.instance.playSFX('sfx_boss_roar.mp3');
-    _bossAttackController.forward().then((_) {
-      // Saat Boss berada tepat di depan Satria & Pukulan masuk (Flash Merah)
-      _triggerScreenFlashRed();
-      AudioManager.instance.playSFX('sfx_hit_flesh.mp3');
 
-      _bossAttackController.reverse();
+    await _bossAttackController.forward();
 
-      setState(() {
-        playerHP = (playerHP - 25).clamp(0, 100);
-      });
+    _triggerScreenFlashRed();
+    AudioManager.instance.playSFX('sfx_hit_flesh.mp3');
 
-      _checkBattleStatus();
+    setState(() {
+      playerHP = (playerHP - 25).clamp(0, 100);
     });
+
+    await Future.delayed(const Duration(milliseconds: 250));
+
+    await _bossAttackController.reverse();
+
+    if (mounted) {
+      _checkBattleStatus();
+    }
   }
 
   void _checkBattleStatus() {
@@ -465,6 +574,28 @@ class _BattleScreenState extends State<BattleScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final attackDistance = screenWidth - 300;
+
+    // 🔥 Disesuaikan agar Satria berjalan persis sampai di depan/posisi Rencong (0.48 - offset)
+    double satriaCinematicLeft = 50;
+    if (_cinematicStep >= 2) {
+      satriaCinematicLeft = (screenWidth * 0.48) - 30; // Pas mengklaim Rencong!
+    }
+
+    bool showBossInCinematic = (_cinematicStep >= 4 || !_isCinematicPlaying);
+
+    String getSatriaSprite() {
+      if (_isSatriaAttacking) {
+        return 'assets/images/battle/satria_attack_keris.png';
+      }
+      if (_isCinematicPlaying && _cinematicStep < 3) {
+        return 'assets/images/battle/satria_unarmed_walk.png';
+      } else {
+        return 'assets/images/battle/satria_idle.png';
+      }
+    }
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -493,32 +624,83 @@ class _BattleScreenState extends State<BattleScreen>
             ),
           ),
 
-          // 3. KARAKTER SATRIA
+          // 🔥 2.5 DROP SENJATA DI TANAH (Menghilang saat Boss Muncul di Step 4)
+          if (_isCinematicPlaying && _cinematicStep < 4)
+            Positioned(
+              bottom: 80,
+              left: screenWidth * 0.48,
+              child: Image.asset(
+                'assets/images/battle/${_getWeaponId(widget.islandName)}.png',
+                width: 80,
+                height: 80,
+                fit: BoxFit.contain,
+                errorBuilder: (ctx, err, stack) =>
+                    const Icon(Icons.flash_on, color: Colors.amber, size: 50),
+              ),
+            ),
+
+          // 🔥 3. KARAKTER SATRIA
           AnimatedBuilder(
-            animation: _satriaAttackAnimation,
+            animation: Listenable.merge(
+                [_walkBobbingController, _satriaAttackController]),
             builder: (context, child) {
-              return Positioned(
-                bottom: 60,
-                left: 100 + (_satriaAttackAnimation.value * 200),
-                child: Image.asset(
-                  'assets/images/battle/satria_idle.png',
-                  height: 120,
-                  errorBuilder: (ctx, err, stack) =>
-                      const Icon(Icons.person, size: 100, color: Colors.blue),
+              double walkBounce = (_isCinematicPlaying && _cinematicStep < 3)
+                  ? sin(_walkBobbingController.value * pi * 2).abs() * 6
+                  : 0.0;
+
+              return AnimatedPositioned(
+                duration: (_isCinematicPlaying && _cinematicStep == 2)
+                    ? const Duration(milliseconds: 2400)
+                    : const Duration(milliseconds: 0),
+                curve: Curves.easeInOut,
+                bottom: 60 + walkBounce,
+                left: _isCinematicPlaying
+                    ? satriaCinematicLeft
+                    : (80 + (_satriaAttackAnimation.value * attackDistance)),
+                child: Container(
+                  height: 140,
+                  width: 140,
+                  alignment: Alignment.bottomLeft,
+                  child: Image.asset(
+                    getSatriaSprite(),
+                    fit: BoxFit.contain,
+                    errorBuilder: (ctx, err, stack) => Image.asset(
+                      'assets/images/battle/satria_idle.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
               );
             },
           ),
 
-          // 4. KARAKTER BOSS DINAMIS (SPRITE SHEET FRAME SWAP)
+          // 3.5 EFEK TEBASAN MUNCUL PAS DI DEPAN DADA BOS
+          if (_showSlashEffect)
+            Positioned(
+              bottom: 90,
+              right: 120,
+              child: Image.asset(
+                'assets/images/battle/fx_slash.png',
+                height: 160,
+                fit: BoxFit.contain,
+                errorBuilder: (ctx, err, stack) => const SizedBox.shrink(),
+              ),
+            ),
+
+          // 4. KARAKTER BOSS DINAMIS
           AnimatedBuilder(
-            animation: _bossAttackAnimation,
+            animation: _bossAttackController,
             builder: (context, child) {
+              double bossRightPos = showBossInCinematic ? 50 : -300;
+              if (!_isCinematicPlaying) {
+                bossRightPos =
+                    50 + (_bossAttackAnimation.value * attackDistance);
+              }
+
               return Positioned(
                 bottom: 60,
-                right: 50 + (_bossAttackAnimation.value * 200),
+                right: bossRightPos,
                 child: Image.asset(
-                  // Menggunakan fungsi Helper Sprite yang kita buat
                   _getDynamicBossAsset(
                       widget.islandName, _bossAttackAnimation.value),
                   height: 250,
@@ -531,7 +713,7 @@ class _BattleScreenState extends State<BattleScreen>
             },
           ),
 
-          // --- EFEK FLASH KETIKA TERKENA SERANGAN ---
+          // --- EFEK FLASH ---
           if (_isScreenFlashingRed)
             Positioned.fill(
               child: Container(color: Colors.red.withOpacity(0.5)),
@@ -541,70 +723,94 @@ class _BattleScreenState extends State<BattleScreen>
               child: Container(color: Colors.white.withOpacity(0.6)),
             ),
 
-          // 5. HUD ATAS (Koin, Kunci, Nyawa Satria & Nyawa Bos)
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // KIRI: Koin & Kunci & Nyawa Satria
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              _buildAssetBox(
-                                  'assets/images/battle/ui_coin_box.png',
-                                  '$_sessionCoins',
-                                  isKeyBox: false),
-                              const SizedBox(width: 10),
-                              _buildAssetBox(
-                                  'assets/images/battle/ui_key_box.png',
-                                  '${widget.currentLives}',
-                                  isKeyBox: true),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          _buildCustomHPBar('SATRIA', playerHP,
-                              'assets/images/battle/hp_frame_player.png', true),
-                        ],
-                      ),
-
-                      // KANAN: Tombol Setting & Nama Bos Dinamis
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Row(
-                            children: [
-                              _buildImageButton(
-                                'assets/images/battle/btn_settings.png',
-                                () => _showSettingsDialog(),
-                              ),
-                              const SizedBox(width: 10),
-                              _buildImageButton(
-                                'assets/images/battle/btn_help.png',
-                                () {},
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          _buildCustomHPBar(
-                              _getBossName(widget.islandName),
-                              bossHP,
-                              _getBossFrameAsset(widget.islandName),
-                              false),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+          // 5. HUD ATAS
+          if (!_isCinematicPlaying)
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                _buildAssetBox(
+                                    'assets/images/battle/ui_coin_box.png',
+                                    '$_sessionCoins',
+                                    isKeyBox: false),
+                                const SizedBox(width: 10),
+                                _buildAssetBox(
+                                    'assets/images/battle/ui_key_box.png',
+                                    '${widget.currentLives}',
+                                    isKeyBox: true),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            _buildCustomHPBar(
+                                'SATRIA',
+                                playerHP,
+                                'assets/images/battle/hp_frame_player.png',
+                                true),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: [
+                                _buildImageButton(
+                                  'assets/images/battle/btn_settings.png',
+                                  () => _showSettingsDialog(),
+                                ),
+                                const SizedBox(width: 10),
+                                _buildImageButton(
+                                  'assets/images/battle/btn_help.png',
+                                  () {},
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            _buildCustomHPBar(
+                                _getBossName(widget.islandName),
+                                bossHP,
+                                _getBossFrameAsset(widget.islandName),
+                                false),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+
+          // 5.5 DIALOG BOX CINEMATIC DI BAWAH
+          if (_isCinematicPlaying)
+            Positioned(
+              bottom: 30,
+              left: 40,
+              right: 40,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.brown[900]?.withOpacity(0.9),
+                  border: Border.all(color: const Color(0xFFD4AF37), width: 3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _cinematicText,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.pressStart2p(
+                      color: Colors.amber, fontSize: 11, height: 1.5),
+                ),
+              ),
+            ),
 
           // 6. COUNTDOWN MUNCUL DI TENGAH
           if (isCountingDown && !isBattleOver)
@@ -620,12 +826,21 @@ class _BattleScreenState extends State<BattleScreen>
               ),
             ),
 
-          // 7. PAPAN KUIS (DESAIN PAPAN DINAMIS SESUAI PULAU)
+          // 7. PAPAN KUIS
           if (isQuizVisible && !isBattleOver && !isLoadingQuestions)
             _buildWoodenQuizPopup(),
 
           // 8. LAYAR GAME OVER / WIN
           if (isBattleOver) _buildEndScreen(),
+
+          // 9. BLACK SCREEN TRANSITION OVERLAY
+          IgnorePointer(
+            child: AnimatedOpacity(
+              opacity: _blackScreenOpacity,
+              duration: const Duration(milliseconds: 600),
+              child: Container(color: Colors.black),
+            ),
+          ),
         ],
       ),
     );
@@ -756,7 +971,6 @@ class _BattleScreenState extends State<BattleScreen>
     );
   }
 
-  // --- DESAIN PAPAN KUIS ---
   Widget _buildWoodenQuizPopup() {
     if (_questions.isEmpty) return const SizedBox.shrink();
 
@@ -800,7 +1014,6 @@ class _BattleScreenState extends State<BattleScreen>
               ),
             ),
             const SizedBox(height: 10),
-            // GRID BUTTONS 2x2
             SizedBox(
               height: 95,
               child: GridView.count(
@@ -852,7 +1065,6 @@ class _BattleScreenState extends State<BattleScreen>
     );
   }
 
-  // --- LAYAR SELESAI ---
   Widget _buildEndScreen() {
     String bossName = _getBossName(widget.islandName);
 

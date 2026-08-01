@@ -11,11 +11,15 @@ class QuizQuestion {
   final String question;
   final List<String> options;
   final int correctAnswer;
+  final bool isTextInput;
+  final String textAnswer;
 
   QuizQuestion({
     required this.question,
     required this.options,
     required this.correctAnswer,
+    this.isTextInput = false,
+    this.textAnswer = '',
   });
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
@@ -23,6 +27,8 @@ class QuizQuestion {
       question: json['question'] ?? '',
       options: List<String>.from(json['options'] ?? []),
       correctAnswer: json['correctAnswer'] ?? 0,
+      isTextInput: json['isTextInput'] ?? false,
+      textAnswer: json['textAnswer']?.toString().toLowerCase() ?? '',
     );
   }
 }
@@ -60,9 +66,11 @@ class _BattleScreenState extends State<BattleScreen>
   bool isAnswering = false;
   bool isBattleOver = false;
   bool isLoadingQuestions = true;
-  int _sessionCoins = 0;
 
-  // 🔥 STATE CINEMATIC INTRO
+  int _sessionCoins = 0;
+  // 🔥 PERUBAHAN: Variable ini sekarang mewakili jumlah KUNCI
+  int _localKeys = 0;
+
   bool _isCinematicPlaying = true;
   double _blackScreenOpacity = 1.0;
   int _cinematicStep = 0;
@@ -70,14 +78,16 @@ class _BattleScreenState extends State<BattleScreen>
 
   late AnimationController _walkBobbingController;
 
-  // Efek Layar Berkedip saat kena pukul
   bool _isScreenFlashingRed = false;
   bool _isScreenFlashingWhite = false;
-
   bool _isSatriaAttacking = false;
   bool _showSlashEffect = false;
 
   List<QuizQuestion> _questions = [];
+
+  TextEditingController _textAnswerController = TextEditingController();
+  bool? _isLastAnswerCorrect;
+  int? _selectedOptionIndex;
 
   late AnimationController _satriaAttackController;
   late AnimationController _bossAttackController;
@@ -91,7 +101,7 @@ class _BattleScreenState extends State<BattleScreen>
     _loadQuestionsFromJson();
 
     _walkBobbingController = AnimationController(
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
 
@@ -114,7 +124,6 @@ class _BattleScreenState extends State<BattleScreen>
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
 
-    // Step 1: Layar terbuka, Satria mulai bersiap di kiri
     setState(() {
       _blackScreenOpacity = 0.0;
       _cinematicStep = 1;
@@ -123,23 +132,19 @@ class _BattleScreenState extends State<BattleScreen>
 
     _walkBobbingController.repeat(reverse: true);
 
-    // Beri waktu sebentar sebelum Satria mulai berjalan ke kanan
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
 
-    // 🔥 Step 2: Memicu Satria berjalan mulus dari kiri ke posisi Rencong
     setState(() {
       _cinematicStep = 2;
     });
 
-    // Durasi jalan disamakan dengan durasi AnimatedPositioned (2500ms)
     await Future.delayed(const Duration(milliseconds: 2500));
     if (!mounted) return;
 
     _walkBobbingController.stop();
     _walkBobbingController.reset();
 
-    // Step 3: Satria tiba & mengambil Rencong (Rencong langsung hilang, Satria Idle memegang senjata)
     setState(() {
       _cinematicStep = 3;
       _cinematicText =
@@ -153,7 +158,6 @@ class _BattleScreenState extends State<BattleScreen>
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    // Step 4: Boss Muncul
     setState(() {
       _cinematicStep = 4;
       _cinematicText = "Waspada! Penjaga wilayah telah muncul!";
@@ -198,9 +202,15 @@ class _BattleScreenState extends State<BattleScreen>
 
   Future<void> _loadInitialData() async {
     int coins = await GamePrefs.getCoins();
-    setState(() {
-      _sessionCoins = coins;
-    });
+    // 🔥 PERBAIKAN: Ambil variabel Kunci dari database, BUKAN Nyawa!
+    int keys = await GamePrefs.getKeys();
+
+    if (mounted) {
+      setState(() {
+        _sessionCoins = coins;
+        _localKeys = keys;
+      });
+    }
   }
 
   Future<void> _loadQuestionsFromJson() async {
@@ -215,10 +225,41 @@ class _BattleScreenState extends State<BattleScreen>
       List<QuizQuestion> loadedQuestions =
           islandQuestions.map((q) => QuizQuestion.fromJson(q)).toList();
 
-      loadedQuestions.shuffle(Random());
+      List<QuizQuestion> mcQuestions =
+          loadedQuestions.where((q) => !q.isTextInput).toList();
+      List<QuizQuestion> inputQuestions =
+          loadedQuestions.where((q) => q.isTextInput).toList();
+
+      mcQuestions.shuffle(Random());
+      inputQuestions.shuffle(Random());
+
+      List<QuizQuestion> mixedQuestions = [];
+      int mcIndex = 0;
+      int inputIndex = 0;
+      int totalLoaded = mcQuestions.length + inputQuestions.length;
+
+      for (int i = 0; i < totalLoaded; i++) {
+        if (i % 2 == 0) {
+          if (mcIndex < mcQuestions.length) {
+            mixedQuestions.add(mcQuestions[mcIndex]);
+            mcIndex++;
+          } else if (inputIndex < inputQuestions.length) {
+            mixedQuestions.add(inputQuestions[inputIndex]);
+            inputIndex++;
+          }
+        } else {
+          if (inputIndex < inputQuestions.length) {
+            mixedQuestions.add(inputQuestions[inputIndex]);
+            inputIndex++;
+          } else if (mcIndex < mcQuestions.length) {
+            mixedQuestions.add(mcQuestions[mcIndex]);
+            mcIndex++;
+          }
+        }
+      }
 
       setState(() {
-        _questions = loadedQuestions;
+        _questions = mixedQuestions;
         isLoadingQuestions = false;
       });
     } catch (e) {
@@ -238,6 +279,7 @@ class _BattleScreenState extends State<BattleScreen>
 
   @override
   void dispose() {
+    _textAnswerController.dispose();
     _walkBobbingController.dispose();
     _satriaAttackController.dispose();
     _bossAttackController.dispose();
@@ -279,15 +321,14 @@ class _BattleScreenState extends State<BattleScreen>
     if (island.toUpperCase() != 'SUMATRA' || attackProgress == 0.0) {
       return baseAsset;
     }
-    if (attackProgress < 0.25) {
+    if (attackProgress < 0.25)
       return 'assets/images/battle/sang_belang_atk1.png';
-    } else if (attackProgress < 0.50) {
+    else if (attackProgress < 0.50)
       return 'assets/images/battle/sang_belang_atk2.png';
-    } else if (attackProgress < 0.75) {
+    else if (attackProgress < 0.75)
       return 'assets/images/battle/sang_belang_atk3.png';
-    } else {
+    else
       return 'assets/images/battle/sang_belang_atk4.png';
-    }
   }
 
   String _getBossName(String island) {
@@ -361,6 +402,13 @@ class _BattleScreenState extends State<BattleScreen>
             isQuizVisible = true;
           });
           AudioManager.instance.playSFX('sfx_question.mp3');
+
+          try {
+            AudioManager.instance.stopBGM();
+            AudioManager.instance.playBGM('audio/bgm_battle.mp3');
+          } catch (e) {
+            print("Gagal mengganti BGM: $e");
+          }
         }
       } else {
         if (mounted) setState(() => countdown--);
@@ -368,15 +416,33 @@ class _BattleScreenState extends State<BattleScreen>
     });
   }
 
-  void _handleAnswer(int selectedIndex) {
+  Future<void> _processAnswer(bool isCorrect, {int? selectedIndex}) async {
     if (isAnswering || isBattleOver || _questions.isEmpty) return;
-    setState(() => isAnswering = true);
 
-    bool isCorrect =
-        (selectedIndex == _questions[currentQuestionIndex].correctAnswer);
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      isAnswering = true;
+      _isLastAnswerCorrect = isCorrect;
+      _selectedOptionIndex = selectedIndex;
+    });
+
+    try {
+      if (isCorrect) {
+        AudioManager.instance.playSFX('sfx_coin.mp3');
+      } else {
+        AudioManager.instance.playSFX('sfx_hit_flesh.mp3');
+      }
+    } catch (_) {}
+
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (!mounted) return;
 
     setState(() {
       isQuizVisible = false;
+      _isLastAnswerCorrect = null;
+      _selectedOptionIndex = null;
+      _textAnswerController.clear();
     });
 
     if (isCorrect) {
@@ -475,12 +541,46 @@ class _BattleScreenState extends State<BattleScreen>
 
   void _battleWin() {
     setState(() => isBattleOver = true);
+    try {
+      AudioManager.instance.stopBGM();
+    } catch (_) {}
     AudioManager.instance.playSFX('sfx_victory_fanfare.mp3');
   }
 
   void _battleLose() {
     setState(() => isBattleOver = true);
+    try {
+      AudioManager.instance.stopBGM();
+    } catch (_) {}
     AudioManager.instance.playSFX('sfx_gameover.mp3');
+  }
+
+  Future<void> _reviveSatria() async {
+    if (_localKeys > 0) {
+      // 🔥 PERBAIKAN: Potong Kunci di database, bukan potong Nyawa!
+      await GamePrefs.useKey();
+      int remainingKeys = await GamePrefs.getKeys();
+
+      if (mounted) {
+        setState(() {
+          _localKeys = remainingKeys;
+          playerHP = 100;
+          isBattleOver = false;
+
+          currentQuestionIndex++;
+          if (currentQuestionIndex >= _questions.length) {
+            _questions.shuffle();
+            currentQuestionIndex = 0;
+          }
+          isQuizVisible = true;
+          isAnswering = false;
+        });
+
+        try {
+          AudioManager.instance.playBGM('audio/bgm_battle.mp3');
+        } catch (_) {}
+      }
+    }
   }
 
   Future<void> _proceedToNext() async {
@@ -540,6 +640,9 @@ class _BattleScreenState extends State<BattleScreen>
                         vertical: 15, horizontal: 20),
                   ),
                   onPressed: () {
+                    try {
+                      AudioManager.instance.stopBGM();
+                    } catch (_) {}
                     Navigator.of(context).pop();
                     widget.onExit();
                   },
@@ -579,7 +682,6 @@ class _BattleScreenState extends State<BattleScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     final attackDistance = screenWidth - 300;
 
-    // 🔥 POSISI BERJALAN SATRIA: Tepat sampai menabrak titik drop Rencong ((screenWidth * 0.48) - 40)
     double satriaCinematicLeft = 50;
     if (_cinematicStep >= 2) {
       satriaCinematicLeft = (screenWidth * 0.48) - 40;
@@ -588,31 +690,25 @@ class _BattleScreenState extends State<BattleScreen>
     bool showBossInCinematic = (_cinematicStep >= 4 || !_isCinematicPlaying);
 
     String getSatriaSprite() {
-      if (_isSatriaAttacking) {
+      if (_isSatriaAttacking)
         return 'assets/images/battle/satria_attack_keris.png';
-      }
-      if (_isCinematicPlaying && _cinematicStep < 3) {
+      if (_isCinematicPlaying && _cinematicStep < 3)
         return 'assets/images/battle/satria_unarmed_walk.png';
-      } else {
-        return 'assets/images/battle/satria_idle.png';
-      }
+      return 'assets/images/battle/satria_idle.png';
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. BACKGROUND DINAMIS SESUAI PULAU
           Image.asset(
             _getBgAsset(widget.islandName),
             fit: BoxFit.cover,
             errorBuilder: (ctx, err, stack) => Image.asset(
-              'assets/images/battle/bg_sumatra.png',
-              fit: BoxFit.cover,
-            ),
+                'assets/images/battle/bg_sumatra.png',
+                fit: BoxFit.cover),
           ),
-
-          // 2. TANAH / GROUND
           Positioned(
             bottom: 0,
             left: 0,
@@ -625,8 +721,6 @@ class _BattleScreenState extends State<BattleScreen>
                   Container(height: 80, color: const Color(0xFF5D4037)),
             ),
           ),
-
-          // 🔥 2.5 DROP RENCONG DI TANAH: Muncul sampai Step 2 (saat Satria berjalan menabraknya)
           if (_isCinematicPlaying &&
               (_cinematicStep == 1 || _cinematicStep == 2))
             Positioned(
@@ -641,8 +735,6 @@ class _BattleScreenState extends State<BattleScreen>
                     const Icon(Icons.flash_on, color: Colors.amber, size: 50),
               ),
             ),
-
-          // 🔥 3. KARAKTER SATRIA (DIPERHALUS ANIMASI BERJALANNYA)
           AnimatedBuilder(
             animation: Listenable.merge(
                 [_walkBobbingController, _satriaAttackController]),
@@ -650,14 +742,11 @@ class _BattleScreenState extends State<BattleScreen>
               double walkBounce = (_isCinematicPlaying && _cinematicStep < 3)
                   ? sin(_walkBobbingController.value * pi * 2).abs() * 6
                   : 0.0;
-
               return AnimatedPositioned(
-                // 🔥 Durasi diperpanjang menjadi 2500ms (2.5 detik) agar gerakan jalan dari kiri ke kanan sangat smooth sampai menabrak Rencong
-                duration: (_isCinematicPlaying && _cinematicStep == 2)
+                duration: (_isCinematicPlaying && _cinematicStep >= 2)
                     ? const Duration(milliseconds: 2500)
                     : const Duration(milliseconds: 0),
-                curve: Curves
-                    .linear, // Gerakan linier konstan agar terlihat seperti berjalan kaki
+                curve: Curves.linear,
                 bottom: 60 + walkBounce,
                 left: _isCinematicPlaying
                     ? satriaCinematicLeft
@@ -670,16 +759,13 @@ class _BattleScreenState extends State<BattleScreen>
                     getSatriaSprite(),
                     fit: BoxFit.contain,
                     errorBuilder: (ctx, err, stack) => Image.asset(
-                      'assets/images/battle/satria_idle.png',
-                      fit: BoxFit.contain,
-                    ),
+                        'assets/images/battle/satria_idle.png',
+                        fit: BoxFit.contain),
                   ),
                 ),
               );
             },
           ),
-
-          // 3.5 EFEK TEBASAN MUNCUL PAS DI DEPAN DADA BOS
           if (_showSlashEffect)
             Positioned(
               bottom: 90,
@@ -691,17 +777,13 @@ class _BattleScreenState extends State<BattleScreen>
                 errorBuilder: (ctx, err, stack) => const SizedBox.shrink(),
               ),
             ),
-
-          // 4. KARAKTER BOSS DINAMIS
           AnimatedBuilder(
             animation: _bossAttackController,
             builder: (context, child) {
               double bossRightPos = showBossInCinematic ? 50 : -300;
-              if (!_isCinematicPlaying) {
+              if (!_isCinematicPlaying)
                 bossRightPos =
                     50 + (_bossAttackAnimation.value * attackDistance);
-              }
-
               return Positioned(
                 bottom: 60,
                 right: bossRightPos,
@@ -710,25 +792,18 @@ class _BattleScreenState extends State<BattleScreen>
                       widget.islandName, _bossAttackAnimation.value),
                   height: 250,
                   errorBuilder: (ctx, err, stack) => Image.asset(
-                    'assets/images/battle/boss_sang_belang.png',
-                    height: 250,
-                  ),
+                      'assets/images/battle/boss_sang_belang.png',
+                      height: 250),
                 ),
               );
             },
           ),
-
-          // --- EFEK FLASH ---
           if (_isScreenFlashingRed)
             Positioned.fill(
-              child: Container(color: Colors.red.withOpacity(0.5)),
-            ),
+                child: Container(color: Colors.red.withOpacity(0.5))),
           if (_isScreenFlashingWhite)
             Positioned.fill(
-              child: Container(color: Colors.white.withOpacity(0.6)),
-            ),
-
-          // 5. HUD ATAS
+                child: Container(color: Colors.white.withOpacity(0.6))),
           if (!_isCinematicPlaying)
             SafeArea(
               child: Padding(
@@ -749,9 +824,10 @@ class _BattleScreenState extends State<BattleScreen>
                                     '$_sessionCoins',
                                     isKeyBox: false),
                                 const SizedBox(width: 10),
+                                // 🔥 KOTAK KIRI ATAS INI SEKARANG MENAMPILKAN JUMLAH KUNCI
                                 _buildAssetBox(
                                     'assets/images/battle/ui_key_box.png',
-                                    '${widget.currentLives}',
+                                    '$_localKeys',
                                     isKeyBox: true),
                               ],
                             ),
@@ -769,14 +845,8 @@ class _BattleScreenState extends State<BattleScreen>
                             Row(
                               children: [
                                 _buildImageButton(
-                                  'assets/images/battle/btn_settings.png',
-                                  () => _showSettingsDialog(),
-                                ),
-                                const SizedBox(width: 10),
-                                _buildImageButton(
-                                  'assets/images/battle/btn_help.png',
-                                  () {},
-                                ),
+                                    'assets/images/battle/btn_settings.png',
+                                    () => _showSettingsDialog()),
                               ],
                             ),
                             const SizedBox(height: 10),
@@ -793,8 +863,6 @@ class _BattleScreenState extends State<BattleScreen>
                 ),
               ),
             ),
-
-          // 5.5 DIALOG BOX CINEMATIC DI BAWAH
           if (_isCinematicPlaying)
             Positioned(
               bottom: 30,
@@ -816,8 +884,6 @@ class _BattleScreenState extends State<BattleScreen>
                 ),
               ),
             ),
-
-          // 6. COUNTDOWN MUNCUL DI TENGAH
           if (isCountingDown && !isBattleOver)
             Center(
               child: Text(
@@ -830,15 +896,9 @@ class _BattleScreenState extends State<BattleScreen>
                     ]),
               ),
             ),
-
-          // 7. PAPAN KUIS
           if (isQuizVisible && !isBattleOver && !isLoadingQuestions)
             _buildWoodenQuizPopup(),
-
-          // 8. LAYAR GAME OVER / WIN
           if (isBattleOver) _buildEndScreen(),
-
-          // 9. BLACK SCREEN TRANSITION OVERLAY
           IgnorePointer(
             child: AnimatedOpacity(
               opacity: _blackScreenOpacity,
@@ -851,8 +911,6 @@ class _BattleScreenState extends State<BattleScreen>
     );
   }
 
-  // --- WIDGET HELPER ---
-
   Widget _buildAssetBox(String assetPath, String text,
       {bool isKeyBox = false}) {
     return Container(
@@ -860,10 +918,7 @@ class _BattleScreenState extends State<BattleScreen>
       height: 35,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: AssetImage(assetPath),
-          fit: BoxFit.fill,
-          onError: (exception, stackTrace) {},
-        ),
+            image: AssetImage(assetPath), fit: BoxFit.fill, onError: (e, s) {}),
         color: Colors.black54,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
@@ -872,10 +927,8 @@ class _BattleScreenState extends State<BattleScreen>
       padding: isKeyBox
           ? const EdgeInsets.only(right: 15.0)
           : const EdgeInsets.only(left: 45.0),
-      child: Text(
-        text,
-        style: GoogleFonts.pressStart2p(color: Colors.white, fontSize: 10),
-      ),
+      child: Text(text,
+          style: GoogleFonts.pressStart2p(color: Colors.white, fontSize: 10)),
     );
   }
 
@@ -887,10 +940,9 @@ class _BattleScreenState extends State<BattleScreen>
         height: 45,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(assetPath),
-            fit: BoxFit.cover,
-            onError: (exception, stackTrace) {},
-          ),
+              image: AssetImage(assetPath),
+              fit: BoxFit.cover,
+              onError: (e, s) {}),
           color: Colors.brown[700],
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFFD4AF37), width: 2),
@@ -956,10 +1008,9 @@ class _BattleScreenState extends State<BattleScreen>
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(6),
                               child: Image.asset(
-                                _getBossAsset(widget.islandName),
-                                fit: BoxFit.cover,
-                                alignment: Alignment.topCenter,
-                              ),
+                                  _getBossAsset(widget.islandName),
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter),
                             ),
                           ),
                         ],
@@ -982,96 +1033,239 @@ class _BattleScreenState extends State<BattleScreen>
     final question = _questions[currentQuestionIndex];
     final letters = ['[A]', '[B]', '[C]', '[D]'];
 
-    return Center(
-      child: Container(
-        width: 500,
-        height: 350,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(_getBoardAsset(widget.islandName)),
-            fit: BoxFit.fill,
-            onError: (err, stack) => const DecorationImage(
-              image: AssetImage('assets/images/battle/ui_wooden_board.png'),
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      top: bottomInset > 0 ? -(bottomInset / 1.5) : 0,
+      bottom: bottomInset > 0 ? (bottomInset / 1.5) : 0,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          width: 500,
+          height: 350,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(_getBoardAsset(widget.islandName)),
               fit: BoxFit.fill,
-            ),
-          ),
-          color: Colors.brown[800],
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding:
-            const EdgeInsets.only(top: 115, bottom: 45, left: 45, right: 45),
-        child: Column(
-          children: [
-            Text(
-              'Pertanyaan ${(currentQuestionIndex + 1)}/$totalQuestions:',
-              style:
-                  GoogleFonts.pressStart2p(fontSize: 10, color: Colors.amber),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: Center(
-                child: Text(
-                  question.question,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.pressStart2p(
-                      fontSize: 12, color: Colors.white, height: 1.5),
-                ),
+              onError: (err, stack) => const DecorationImage(
+                image: AssetImage('assets/images/battle/ui_wooden_board.png'),
+                fit: BoxFit.fill,
               ),
             ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 95,
-              child: GridView.count(
-                crossAxisCount: 2,
-                childAspectRatio: 4.5,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                padding: EdgeInsets.zero,
-                physics: const NeverScrollableScrollPhysics(),
-                children: List.generate(question.options.length, (index) {
-                  return GestureDetector(
-                    onTap: () => _handleAnswer(index),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        image: const DecorationImage(
-                          image: AssetImage(
-                              'assets/images/battle/ui_wood_btn.png'),
-                          fit: BoxFit.fill,
+            color: Colors.brown[800],
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                    top: 95, bottom: 35, left: 40, right: 40),
+                child: Column(
+                  children: [
+                    Text(
+                      'Pertanyaan ${(currentQuestionIndex + 1)}/$totalQuestions:',
+                      style: GoogleFonts.pressStart2p(
+                          fontSize: 11, color: Colors.amber),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: Center(
+                        child: SingleChildScrollView(
+                          child: Text(
+                            question.question,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.pressStart2p(
+                                fontSize: 13, color: Colors.white, height: 1.4),
+                          ),
                         ),
-                        color: Colors.brown[600],
-                        border: Border.all(color: Colors.brown[900]!, width: 2),
-                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
+                    ),
+                    const SizedBox(height: 8),
+                    if (question.isTextInput)
+                      _buildTextInputArea(question)
+                    else
+                      SizedBox(
+                        height: 105,
+                        child: GridView.count(
+                          crossAxisCount: 2,
+                          childAspectRatio: 4.0,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          padding: EdgeInsets.zero,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children:
+                              List.generate(question.options.length, (index) {
+                            bool isSelected = _selectedOptionIndex == index;
+
+                            return GestureDetector(
+                              onTap: () {
+                                bool isCorrect =
+                                    (index == question.correctAnswer);
+                                _processAnswer(isCorrect, selectedIndex: index);
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 100),
+                                padding: EdgeInsets.all(isSelected ? 3 : 0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: const AssetImage(
+                                          'assets/images/battle/ui_wood_btn.png'),
+                                      fit: BoxFit.fill,
+                                      colorFilter: isSelected
+                                          ? const ColorFilter.mode(
+                                              Colors.black54, BlendMode.darken)
+                                          : null,
+                                    ),
+                                    color: Colors.brown[600],
+                                    border: Border.all(
+                                        color: isSelected
+                                            ? Colors.amber
+                                            : Colors.brown[900]!,
+                                        width: isSelected ? 3 : 2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const SizedBox(width: 8),
+                                      Text(letters[index],
+                                          style: GoogleFonts.pressStart2p(
+                                              fontSize: 11,
+                                              color: Colors.white)),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          question.options[index],
+                                          style: GoogleFonts.pressStart2p(
+                                              fontSize: 10,
+                                              color: Colors.white),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.visible,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (_isLastAnswerCorrect != null)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(width: 10),
-                          Text(letters[index],
-                              style: GoogleFonts.pressStart2p(
-                                  fontSize: 10, color: Colors.white)),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              question.options[index],
-                              style: GoogleFonts.pressStart2p(
-                                  fontSize: 9, color: Colors.white),
-                              overflow: TextOverflow.ellipsis,
+                          Icon(
+                            _isLastAnswerCorrect!
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            color: _isLastAnswerCorrect!
+                                ? Colors.greenAccent
+                                : Colors.redAccent,
+                            size: 60,
+                          ),
+                          const SizedBox(height: 15),
+                          Text(
+                            _isLastAnswerCorrect!
+                                ? 'JAWABAN BENAR!'
+                                : 'JAWABAN SALAH!',
+                            style: GoogleFonts.pressStart2p(
+                              color: _isLastAnswerCorrect!
+                                  ? Colors.greenAccent
+                                  : Colors.redAccent,
+                              fontSize: 18,
+                              shadows: const [
+                                Shadow(color: Colors.black, blurRadius: 5)
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                }),
-              ),
-            ),
-          ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  Widget _buildTextInputArea(QuizQuestion question) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.brown[900],
+            border: Border.all(color: Colors.amber, width: 2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: TextField(
+              controller: _textAnswerController,
+              textAlign: TextAlign.center,
+              style:
+                  GoogleFonts.pressStart2p(fontSize: 12, color: Colors.white),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: "Ketik jawaban...",
+                hintStyle: GoogleFonts.pressStart2p(
+                    fontSize: 10, color: Colors.white54),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        GestureDetector(
+          onTap: () {
+            String ans = _textAnswerController.text.trim().toLowerCase();
+            if (ans.isEmpty) return;
+
+            bool isCorrect = (ans == question.textAnswer);
+            _processAnswer(isCorrect);
+          },
+          child: Container(
+            width: 150,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              image: const DecorationImage(
+                image: AssetImage('assets/images/battle/ui_wood_btn.png'),
+                fit: BoxFit.fill,
+              ),
+              color: Colors.brown[600],
+              border: Border.all(color: Colors.brown[900]!, width: 2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text("KIRIM",
+                  style: GoogleFonts.pressStart2p(
+                      fontSize: 11, color: Colors.white)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildEndScreen() {
     String bossName = _getBossName(widget.islandName);
+    bool isWin = bossHP <= 0;
 
     return Container(
       color: Colors.black87,
@@ -1079,21 +1273,43 @@ class _BattleScreenState extends State<BattleScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(bossHP <= 0 ? '$bossName DIKALAHKAN!' : 'SATRIA ROBOH!',
+            Text(isWin ? '$bossName DIKALAHKAN!' : 'SATRIA ROBOH!',
                 style: GoogleFonts.pressStart2p(
-                    fontSize: 18,
-                    color: bossHP <= 0 ? Colors.green : Colors.red)),
+                    fontSize: 18, color: isWin ? Colors.green : Colors.red)),
             const SizedBox(height: 20),
+            if (!isWin && _localKeys > 0) ...[
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green[700],
+                  side: const BorderSide(color: Colors.amber, width: 2),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                ),
+                onPressed: _reviveSatria,
+                // 🔥 NAMA TOMBOL SUDAH MENGGUNAKAN VARIABEL _localKeys
+                child: Text('GUNAKAN KUNCI ($_localKeys)',
+                    style: GoogleFonts.pressStart2p(
+                        fontSize: 10, color: Colors.white)),
+              ),
+              const SizedBox(height: 15),
+            ],
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.brown[700],
+                side: const BorderSide(color: Colors.white, width: 2),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+              ),
               onPressed: () {
-                if (bossHP <= 0) {
+                if (isWin) {
                   _proceedToNext();
                 } else {
                   widget.onBattleLose();
                 }
               },
-              child: Text(bossHP <= 0 ? 'LANJUTKAN' : 'KEMBALI KE CHECKPOINT',
-                  style: GoogleFonts.pressStart2p(fontSize: 12)),
+              child: Text(isWin ? 'LANJUTKAN' : 'MENYERAH & KEMBALI',
+                  style: GoogleFonts.pressStart2p(
+                      fontSize: 10, color: Colors.white)),
             )
           ],
         ),

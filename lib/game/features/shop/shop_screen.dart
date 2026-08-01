@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'shop_item.dart';
 import 'shop_data.dart';
-import 'package:nusantara_dash/utils/coin_manager.dart';
+// 🔥 PERBAIKAN: Ganti CoinManager menjadi GamePrefs agar jalurnya sama dengan GameScreen
+import 'package:nusantara_dash/utils/game_prefs.dart';
 
 class ShopScreen extends StatefulWidget {
   final VoidCallback? onPurchaseSuccess;
@@ -24,7 +25,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final coins = await CoinManager.getCoins();
+    final coins = await GamePrefs.getCoins(); // Murni baca dari GamePrefs
     setState(() {
       _userCoins = coins;
       _isLoading = false;
@@ -43,7 +44,8 @@ class _ShopScreenState extends State<ShopScreen> {
     final confirmed = await _showConfirmDialog(item);
     if (!confirmed) return;
 
-    final success = await CoinManager.spendCoins(item.price);
+    final success =
+        await GamePrefs.spendCoins(item.price); // Potong koin dari GamePrefs
 
     if (success) {
       await _grantItem(item);
@@ -62,13 +64,13 @@ class _ShopScreenState extends State<ShopScreen> {
   Future<void> _grantItem(ShopItem item) async {
     switch (item.type) {
       case ShopItemType.life:
-        await CoinManager.addExtraLife();
+        await GamePrefs.addExtraLife(); // Simpan sebagai NYAWA
         break;
       case ShopItemType.clue:
-        await CoinManager.addClue();
+        await GamePrefs.addClue(); // Simpan sebagai CLUE
         break;
       case ShopItemType.key:
-        // Logika unlock pulau bisa dipasang di sini nanti
+        await GamePrefs.addKey(); // 🔥 PERBAIKAN: Simpan sebagai KUNCI!
         break;
     }
   }
@@ -285,7 +287,8 @@ class _ShopScreenState extends State<ShopScreen> {
                             item.description,
                             style: const TextStyle(
                               color: Colors.white70,
-                              fontSize: 13,
+                              fontSize: 14,
+                              height: 1.5,
                             ),
                           ),
                           const SizedBox(height: 12),

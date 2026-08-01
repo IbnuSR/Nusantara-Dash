@@ -28,6 +28,7 @@ flutter:
   
   # ✅ PERBAIKAN: Path asset KONSISTEN dengan lokasi fisik
   assets:
+  
     - assets/audio/bgm/           # ✅ Tambahkan prefix 'assets/'
     - assets/audio/sfx/           # ✅ Tambahkan prefix 'assets/'
     - assets/images/player/
@@ -86,6 +87,9 @@ flutter:
     - assets/data/quiz_data.json
     - assets/data/province_config.json
     - assets/data/weapon_data.json
+    - assets/images/battle/
+    - assets/audio/
+    - assets/
 
 flutter_launcher_icons:
   android: "launcher_icon"

@@ -1,29 +1,63 @@
 {
   "SUMATRA": [
     {
-      "question": "Manakah di bawah ini yang merupakan senjata tradisional khas Aceh?",
-      "options": ["Rencong", "Mandau", "Keris", "Badik"],
-      "correctAnswer": 0
-    },
-    {
-      "question": "Rumah adat khas Minangkabau disebut?",
-      "options": ["Honai", "Rumah Gadang", "Joglo", "Tongkonan"],
+      "question": "Tari khas suku Gayo Aceh dengan gerakan serentak penarinya adalah?",
+      "options": ["Tari Piring", "Tari Saman", "Tari Tor-Tor", "Zapin Melayu"],
       "correctAnswer": 1
     },
     {
-      "question": "Danau vulkanik terbesar di Sumatra Utara adalah?",
-      "options": ["Danau Singkarak", "Danau Maninjau", "Danau Toba", "Danau Ranau"],
+      "question": "Bunga raksasa tanpa daun dan akar yang berasal dari hutan Bengkulu adalah?",
+      "options": ["Bunga Bangkai", "Rafflesia Arnoldii", "Anggrek Hitam", "Kantong Semar"],
+      "correctAnswer": 1
+    },
+    {
+      "question": "Candi Buddha terluas di Asia Tenggara yang ada di tepi Sungai Batanghari Jambi adalah?",
+      "options": ["Candi Prambanan", "Candi Muaro Jambi", "Candi Borobudur", "Candi Mendut"],
+      "correctAnswer": 1
+    },
+    {
+      "question": "Mahkota wanita Lampung dengan 9 lekukan simbol marga keadatan disebut?",
+      "options": ["Siger", "Suntiang", "Paksian", "Tengkuluk"],
+      "correctAnswer": 0
+    },
+    {
+      "question": "Danau vulkanik terbesar di Asia Tenggara yang terbentuk dari letusan purba adalah?",
+      "options": ["Danau Ranau", "Danau Singkarak", "Danau Maninjau", "Danau Toba"],
+      "correctAnswer": 3
+    },
+    {
+      "question": "Rumah adat Minangkabau beratap melengkung menyerupai tanduk kerbau disebut?",
+      "options": ["Rumah Bolon", "Rumah Limas", "Rumah Gadang", "Rumah Rakit"],
       "correctAnswer": 2
     },
     {
-      "question": "Tari Saman yang sangat dinamis berasal dari daerah?",
-      "options": ["Sumatra Barat", "Riau", "Lampung", "Aceh"],
-      "correctAnswer": 3
+      "question": "Kuliner khas Palembang dari ikan & sagu yang disajikan berkuah cuko adalah?",
+      "options": ["Bika Ambon", "Pempek", "Rendang", "Mie Aceh"],
+      "correctAnswer": 1
+    },
+    {
+      "question": "Tarian Melayu Riau yang riang diiringi musik gambus dan marwas adalah?",
+      "options": ["Tari Saman", "Tari Piring", "Zapin Melayu", "Tari Tor-Tor"],
+      "correctAnswer": 2
+    },
+    {
+      "question": "Tahun berapa Tari Saman Aceh resmi diakui UNESCO sebagai Warisan Dunia?",
+      "options": [],
+      "correctAnswer": 0,
+      "isTextInput": true,
+      "textAnswer": "2011"
+    },
+    {
+      "question": "Pulau yang kaya budaya Batak yang terletak tepat di tengah Danau Toba adalah?",
+      "options": [],
+      "correctAnswer": 0,
+      "isTextInput": true,
+      "textAnswer": "samosir"
     }
   ],
   "JAWA": [
     {
-      "question": "Manakah di bawah ini yang merupakan pakaian adat tradisional Jawa untuk pria?",
+      "question": "Manakah pakaian adat tradisional Jawa untuk pria?",
       "options": ["Beskap", "Ulos", "Baju Bodo", "Teluk Belanga"],
       "correctAnswer": 0
     },
@@ -33,7 +67,7 @@
       "correctAnswer": 1
     },
     {
-      "question": "Senjata tradisional khas Jawa yang berbentuk lekuk-lekuk adalah?",
+      "question": "Senjata tradisional khas Jawa yang bilahnya berbentuk lekuk-lekuk adalah?",
       "options": ["Rencong", "Mandau", "Keris", "Badik"],
       "correctAnswer": 2
     },
@@ -41,6 +75,13 @@
       "question": "Seni pertunjukan bayangan khas Jawa yang menggunakan boneka kulit adalah?",
       "options": ["Ketoprak", "Ludruk", "Wayang Kulit", "Reog"],
       "correctAnswer": 2
+    },
+    {
+      "question": "Kesenian tari megah khas Jawa Timur dengan topeng dadak merak raksasa disebut?",
+      "options": [],
+      "correctAnswer": 0,
+      "isTextInput": true,
+      "textAnswer": "reog ponorogo"
     }
   ],
   "KALIMANTAN": [
@@ -48,6 +89,13 @@
       "question": "Senjata tradisional khas suku Dayak di Kalimantan adalah?",
       "options": ["Mandau", "Keris", "Rencong", "Sumpit"],
       "correctAnswer": 0
+    },
+    {
+      "question": "Monumen penanda titik nol derajat bumi di Pontianak disebut Tugu?",
+      "options": [],
+      "correctAnswer": 0,
+      "isTextInput": true,
+      "textAnswer": "khatulistiwa"
     }
   ],
   "SULAWESI": [

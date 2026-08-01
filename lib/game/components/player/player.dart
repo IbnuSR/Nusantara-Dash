@@ -27,7 +27,7 @@ class Player extends SpriteAnimationComponent
   // Set true = Player TIDAK BISA MATI (obstacle & jurang aman)
   // Set false = Player BISA MATI (mode normal)
   static const bool godMode =
-      true; // 🔥 UBAH INI: true = invincible, false = bisa mati
+      false; // 🔥 UBAH INI: true = invincible, false = bisa mati
 
   late Vector2 _checkpointPosition;
 

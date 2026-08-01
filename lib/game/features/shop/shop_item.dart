@@ -18,29 +18,29 @@ class ShopItem {
   });
 
   factory ShopItem.nusantaraKey() => ShopItem(
-    id: 'key_nusantara',
-    name: 'Kunci Nusantara',
-    description: 'Buka akses pulau baru yang terkunci!',
-    price: 500,
-    type: ShopItemType.key,
-    icon: 'key',
-  );
+        id: 'key_nusantara',
+        name: 'Kunci Nusantara',
+        description: 'Buka akses pulau baru yang terkunci!',
+        price: 500,
+        type: ShopItemType.key,
+        icon: 'key',
+      );
 
   factory ShopItem.extraLife() => ShopItem(
-    id: 'life_extra',
-    name: 'Nyawa Tambahan',
-    description: 'Kesempatan kedua saat jatuh atau menabrak rintangan.',
-    price: 150,
-    type: ShopItemType.life,
-    icon: 'heart',
-  );
+        id: 'life_extra',
+        name: 'Nyawa Tambahan',
+        description: 'Kesempatan kedua saat jatuh atau menabrak rintangan.',
+        price: 150,
+        type: ShopItemType.life,
+        icon: 'heart',
+      );
 
   factory ShopItem.helpClue() => ShopItem(
-    id: 'clue_help',
-    name: 'Clue Bantuan',
-    description: 'Memberikan petunjuk untuk menjawab soal kuis.',
-    price: 75,
-    type: ShopItemType.clue,
-    icon: 'lightbulb',
-  );
+        id: 'clue_help',
+        name: 'Clue Bantuan',
+        description: 'Memberikan petunjuk untuk menjawab soal kuis.',
+        price: 75,
+        type: ShopItemType.clue,
+        icon: 'lightbulb',
+      );
 }

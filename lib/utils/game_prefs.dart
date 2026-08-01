@@ -15,6 +15,9 @@ class GamePrefs {
   static const String _unlockedIslandsKey = 'nusantara_dash_unlocked';
   static const String _museumUnlockedKey = 'museum_item_unlocked_list';
 
+  // 🔥 TAMBAHAN BARU: Variabel Database khusus Kunci!
+  static const String _keysKey = 'nusantara_dash_keys';
+
   // ==========================================
   // 🎬 1. PROLOGUE & TUTORIAL
   // ==========================================
@@ -140,7 +143,7 @@ class GamePrefs {
   }
 
   // ==========================================
-  // ❤️ 5. NYAWA (LIVES)
+  // ❤️ 5. NYAWA (LIVES) - UNTUK GAME SCREEN
   // ==========================================
   static Future<int> getExtraLives() async {
     final prefs = await SharedPreferences.getInstance();
@@ -158,6 +161,28 @@ class GamePrefs {
     final current = await getExtraLives();
     if (current > 0) {
       await prefs.setInt(_livesKey, current - 1);
+    }
+  }
+
+  // ==========================================
+  // 🔑 5.5 KUNCI (KEYS) - KHUSUS UNTUK BOSS BATTLE
+  // ==========================================
+  static Future<int> getKeys() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keysKey) ?? 0;
+  }
+
+  static Future<void> addKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = await getKeys();
+    await prefs.setInt(_keysKey, current + 1);
+  }
+
+  static Future<void> useKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = await getKeys();
+    if (current > 0) {
+      await prefs.setInt(_keysKey, current - 1);
     }
   }
 
@@ -202,7 +227,6 @@ class GamePrefs {
     }
   }
 
-  // 🔥 UPDATE: Buka pulau berikutnya (Anti-Gagal & Ada Log Terminal)
   static Future<void> unlockNextIsland(String currentIsland) async {
     String nextIsland = '';
     String current = currentIsland.trim().toUpperCase();

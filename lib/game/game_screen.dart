@@ -18,8 +18,11 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   late NusantaraDashGame _game;
-  int _sessionCoins = 0;
-  int _totalLives = 3;
+
+  // 🔥 PERBAIKAN: Menggunakan ValueNotifier agar TIDAK PERLU setState yang bikin game ngelag!
+  final ValueNotifier<int> _sessionCoins = ValueNotifier<int>(0);
+  final ValueNotifier<int> _totalLives = ValueNotifier<int>(3);
+
   bool _showSettings = false;
 
   @override
@@ -35,21 +38,22 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void dispose() {
     AudioManager.instance.playBGM('audio/bgm/main_menu.mp3');
+    _sessionCoins.dispose();
+    _totalLives.dispose();
     super.dispose();
   }
 
   Future<void> _loadInventory() async {
-    _totalLives = await GamePrefs.getExtraLives();
-    if (_totalLives <= 0) _totalLives = 3;
-    _game.updateLives(_totalLives);
-    if (mounted) setState(() {});
+    _totalLives.value = 3;
+    _game.updateLives(_totalLives.value);
   }
 
   void _initGame() {
     _game = NusantaraDashGame(
       islandName: widget.islandName,
       onCoinsUpdated: (coins) {
-        if (mounted) setState(() => _sessionCoins = coins);
+        // 🔥 UPDATE HANYA ANGKA KOIN (Tidak me-refresh game engine!)
+        _sessionCoins.value = coins;
       },
       onGameOver: _showFinalGameOverDialog,
       onLevelComplete: _showLevelCompleteDialog,
@@ -63,9 +67,9 @@ class _GameScreenState extends State<GameScreen> {
     if (mounted) {
       if (restart) {
         setState(() {
-          _sessionCoins = 0;
           _showSettings = false;
         });
+        _sessionCoins.value = 0;
         _initGame();
         _loadInventory();
       } else {
@@ -75,17 +79,11 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _handlePlayerDeath() async {
-    await GamePrefs.useExtraLife();
-    int remainingLives = await GamePrefs.getExtraLives();
-
-    if (mounted) {
-      setState(() => _totalLives = remainingLives);
-      _game.updateLives(_totalLives);
-    }
-
-    if (_totalLives > 0) {
+    if (_totalLives.value > 1) {
       _showContinueDialog();
     } else {
+      _totalLives.value = 0;
+      _game.updateLives(0);
       _showFinalGameOverDialog();
     }
   }
@@ -106,13 +104,22 @@ class _GameScreenState extends State<GameScreen> {
                 style:
                     GoogleFonts.pressStart2p(color: Colors.red, fontSize: 16)),
             const SizedBox(height: 15),
-            Text('Sisa Nyawa: $_totalLives\nLanjut dari Checkpoint?',
+            Text('Sisa Nyawa: ${_totalLives.value}\nLanjut dari Checkpoint?',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white, fontSize: 12)),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(ctx);
+
+                // 1. Kurangi nyawa langsung ke variabel (tanpa refresh full screen)
+                _totalLives.value--;
+                _game.updateLives(_totalLives.value);
+
+                // 2. Jeda sangat singkat agar animasi pop-up hilang sempurna (Mencegah Lag Audio)
+                await Future.delayed(const Duration(milliseconds: 150));
+
+                // 3. Lanjutkan game
                 _game.player.respawn();
                 _game.resumeEngine();
               },
@@ -156,7 +163,7 @@ class _GameScreenState extends State<GameScreen> {
                       color: Colors.red, fontSize: 16)),
               const SizedBox(height: 15),
               const Text('Nyawa Habis!', style: TextStyle(color: Colors.white)),
-              Text('Koin Terkumpul: $_sessionCoins',
+              Text('Koin Terkumpul: ${_sessionCoins.value}',
                   style: GoogleFonts.pressStart2p(
                       color: Colors.amber, fontSize: 12)),
               const SizedBox(height: 20),
@@ -272,8 +279,10 @@ class _GameScreenState extends State<GameScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(ctx);
+                  await Future.delayed(
+                      const Duration(milliseconds: 100)); // Mencegah lag
                   _game.resumeEngine();
                 },
                 icon: const Icon(Icons.museum_outlined),
@@ -331,7 +340,7 @@ class _GameScreenState extends State<GameScreen> {
           MaterialPageRoute(
             builder: (context) => BattleScreen(
               islandName: widget.islandName,
-              currentLives: _totalLives,
+              currentLives: _totalLives.value,
               onBattleWin: () {
                 Navigator.pop(context);
                 _showVictoryDialog();
@@ -433,7 +442,7 @@ class _GameScreenState extends State<GameScreen> {
               const SizedBox(height: 15),
               const Text('Koin Dikumpulkan:',
                   style: TextStyle(color: Colors.white)),
-              Text('$_sessionCoins',
+              Text('${_sessionCoins.value}',
                   style: GoogleFonts.pressStart2p(
                       color: Colors.amber, fontSize: 16)),
               const SizedBox(height: 10),
@@ -471,7 +480,7 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  // --- WIDGET HELPER HUD RETRO ---
+  // --- WIDGET HELPER HUD RETRO DENGAN VALUELISTENABLEBUILDER ---
 
   Widget _buildPixelCoinHUD() {
     return Row(
@@ -485,22 +494,26 @@ class _GameScreenState extends State<GameScreen> {
               Image.asset('assets/images/battle/ui_coin_box.png', width: 32),
         ),
         const SizedBox(width: 8),
-        Text(
-          '$_sessionCoins',
-          style: GoogleFonts.pressStart2p(
-            color: Colors.amber,
-            fontSize: 14,
-            shadows: [
-              const Shadow(
-                  color: Colors.black, offset: Offset(2, 2), blurRadius: 2)
-            ],
-          ),
+        ValueListenableBuilder<int>(
+          valueListenable: _sessionCoins,
+          builder: (context, coins, child) {
+            return Text(
+              '$coins',
+              style: GoogleFonts.pressStart2p(
+                color: Colors.amber,
+                fontSize: 14,
+                shadows: [
+                  const Shadow(
+                      color: Colors.black, offset: Offset(2, 2), blurRadius: 2)
+                ],
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-  // 🔥 PERBAIKAN: HUD NYAWA KINI HANYA 1 GAMBAR HATI + TEKS JUMLAH NYAWA
   Widget _buildPixelHeartsHUD() {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -516,19 +529,24 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          'x $_totalLives',
-          style: GoogleFonts.pressStart2p(
-            color: Colors.white,
-            fontSize: 14,
-            shadows: [
-              const Shadow(
-                color: Colors.black,
-                offset: Offset(2, 2),
-                blurRadius: 2,
-              )
-            ],
-          ),
+        ValueListenableBuilder<int>(
+          valueListenable: _totalLives,
+          builder: (context, lives, child) {
+            return Text(
+              'x $lives',
+              style: GoogleFonts.pressStart2p(
+                color: Colors.white,
+                fontSize: 14,
+                shadows: [
+                  const Shadow(
+                    color: Colors.black,
+                    offset: Offset(2, 2),
+                    blurRadius: 2,
+                  )
+                ],
+              ),
+            );
+          },
         ),
       ],
     );
@@ -575,7 +593,7 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 10),
                   _buildPixelCoinHUD(),
                   const SizedBox(height: 10),
-                  _buildPixelHeartsHUD(), // ⬅️ Memanggil HUD Nyawa yang baru
+                  _buildPixelHeartsHUD(),
                 ],
               ),
             ),
@@ -638,10 +656,22 @@ class _GameScreenState extends State<GameScreen> {
                             style: GoogleFonts.pressStart2p(
                                 color: Colors.amber, fontSize: 16)),
                         const SizedBox(height: 20),
-                        _buildStatRow(Icons.favorite, 'Sisa Nyawa',
-                            '$_totalLives', Colors.redAccent),
-                        _buildStatRow(Icons.monetization_on, 'Koin Sesi',
-                            '$_sessionCoins', Colors.amber),
+                        ValueListenableBuilder<int>(
+                          valueListenable: _totalLives,
+                          builder: (context, lives, child) => _buildStatRow(
+                              Icons.favorite,
+                              'Sisa Nyawa',
+                              '$lives',
+                              Colors.redAccent),
+                        ),
+                        ValueListenableBuilder<int>(
+                          valueListenable: _sessionCoins,
+                          builder: (context, coins, child) => _buildStatRow(
+                              Icons.monetization_on,
+                              'Koin Sesi',
+                              '$coins',
+                              Colors.amber),
+                        ),
                         const SizedBox(height: 20),
                         ElevatedButton.icon(
                           onPressed: _toggleSettings,

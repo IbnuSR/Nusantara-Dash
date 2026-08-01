@@ -81,6 +81,8 @@ flutter:
     - assets/images/items/papua/papua/
     - assets/images/ui/
     - assets/images/ui/buttons/
+    - assets/images/tutorial/
+    - assets/images/tutorial_fiks/
     - assets/data/quiz_data.json
     - assets/data/province_config.json
     - assets/data/weapon_data.json

@@ -7,6 +7,7 @@ import 'package:nusantara_dash/utils/audio_manager.dart';
 import 'package:nusantara_dash/game/features/shop/shop_screen.dart';
 import 'package:nusantara_dash/game/features/weapons/weapon_screen.dart';
 import 'package:nusantara_dash/screens/settings/settings_screen.dart';
+import 'package:nusantara_dash/screens/tutorial/tutorial_screen.dart';
 import 'museum/museum_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -28,6 +29,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _initAnimations();
     _playBGM();
+    _checkFirstLaunchTutorial();
+  }
+
+  Future<void> _checkFirstLaunchTutorial() async {
+    final isCompleted = await GamePrefs.isTutorialCompleted();
+    if (!isCompleted && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _handleOpenTutorial();
+        }
+      });
+    }
   }
 
   void _initAnimations() {
@@ -106,6 +119,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         });
       }
     });
+  }
+
+  void _handleOpenTutorial() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TutorialScreen()),
+    );
   }
 
   void _handleOpenWeapons() {
@@ -228,15 +248,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // ✅ MUSIC TOGGLE
-          GestureDetector(
-            onTap: _toggleMusic,
-            child: _buildCustomIcon(
-              iconPath: _isMusicPlaying
-                  ? 'assets/images/ui/buttons/audioOn.png'
-                  : 'assets/images/ui/buttons/audioOff.png',
-              size: 75, // ✅ Ubah ukuran sesuka kamu
-            ),
+          // ✅ RIGHT BUTTONS: Bantuan (Tutorial) & Music Toggle
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ✅ BANTUAN BUTTON
+              GestureDetector(
+                onTap: _handleOpenTutorial,
+                child: _buildCustomIcon(
+                  iconPath: 'assets/images/ui/buttons/bantuan.png',
+                  size: 75,
+                ),
+              ),
+              const SizedBox(width: 8.0),
+
+              // ✅ MUSIC TOGGLE
+              GestureDetector(
+                onTap: _toggleMusic,
+                child: _buildCustomIcon(
+                  iconPath: _isMusicPlaying
+                      ? 'assets/images/ui/buttons/audioOn.png'
+                      : 'assets/images/ui/buttons/audioOff.png',
+                  size: 75,
+                ),
+              ),
+            ],
           ),
         ],
       ),

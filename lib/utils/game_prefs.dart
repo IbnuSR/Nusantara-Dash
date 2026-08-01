@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class GamePrefs {
   // ===== 🔑 KEYS PENYIMPANAN =====
   static const String _prologueKey = 'has_watched_prologue';
+  static const String _tutorialKey = 'tutorialCompleted';
   static const String _controlTypeKey = 'control_type';
   static const String _musicVolumeKey = 'music_volume';
   static const String _sfxVolumeKey = 'sfx_volume';
@@ -30,6 +31,21 @@ class GamePrefs {
   static Future<void> resetPrologue() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_prologueKey);
+  }
+
+  static Future<bool> isTutorialCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_tutorialKey) ?? false;
+  }
+
+  static Future<void> setTutorialCompleted(bool completed) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_tutorialKey, completed);
+  }
+
+  static Future<void> resetTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tutorialKey);
   }
 
   // ==========================================

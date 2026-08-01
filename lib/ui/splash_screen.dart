@@ -29,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _particleFade;
 
   // State
+  // ignore: unused_field
   bool _showGameLogo = false;
   bool _showTeamLogo = true;
 

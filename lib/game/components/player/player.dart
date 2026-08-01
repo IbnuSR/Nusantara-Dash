@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../level_builder.dart';
 import 'package:nusantara_dash/game/components/items/hidden_cultural_item.dart';
 
-// ✅ IMPORT WEAPON SYSTEM (Dari kodemu)
+// ✅ IMPORT WEAPON SYSTEM
 import 'package:nusantara_dash/game/features/weapons/weapon_item.dart';
 
 class Player extends SpriteAnimationComponent
@@ -26,15 +26,10 @@ class Player extends SpriteAnimationComponent
   final double jumpStrength = -700;
   static const int totalFrames = 14;
 
-  // ✅ GOD MODE SWITCH - MATIKAN SAAT TESTING, NYALAKAN SAAT MAIN NORMAL
+  // ✅ GOD MODE SWITCH
   // Set true = Player TIDAK BISA MATI (obstacle & jurang aman)
   // Set false = Player BISA MATI (mode normal)
-<<<<<<< HEAD
-  static const bool godMode =
-      false; // 🔥 UBAH INI: true = invincible, false = bisa mati
-=======
-  static const bool godMode = true;
->>>>>>> a4900a1dcfb87deab7610a9fa1611b4846b51b38
+  static const bool godMode = false;
 
   late Vector2 _checkpointPosition;
 
@@ -131,12 +126,11 @@ class Player extends SpriteAnimationComponent
       position.y += jumpVelocity * dt;
     }
 
-    // ✅ CEK JURANG - Bisa dimatikan dengan godMode
+    // ✅ CEK JURANG
     if (position.y > groundY + 150) {
       if (!godMode) {
         die(); // Mati kalau jatuh ke jurang
       } else {
-        // God mode aktif: teleport ke atas agar tidak hilang
         position.y = groundY - 100;
         jumpVelocity = 0;
         debugPrint('🛡️ GOD MODE: Jatuh ke jurang tapi tidak mati!');
@@ -167,10 +161,10 @@ class Player extends SpriteAnimationComponent
       return;
     }
 
-    // 3. 🗡️ Cek Senjata (FITUR KAMU)
+    // 3. 🗡️ Cek Senjata
     if (other is WeaponItem) {
       if (!other.isCollected) {
-        other.collect(); // Ini akan memicu callback onCollected di WeaponItem
+        other.collect();
       }
       return;
     }

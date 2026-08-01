@@ -8,14 +8,15 @@ import 'utils/game_prefs.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Kunci orientasi ke Landscape (Layar Tidur)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
+  // Full Screen Mode (Sembunyikan Navigasi & Status Bar)
   await SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
-    overlays: [],
   );
 
   try {
@@ -57,7 +58,6 @@ class NusantaraDashApp extends StatelessWidget {
           secondary: Color(0xFF4CAF50),
           error: Color(0xFFE65100),
           surface: Color(0xFF1A237E),
-          background: Color(0xFF0D1B2A),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -70,14 +70,20 @@ class NusantaraDashApp extends StatelessWidget {
           ),
         ),
         textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(foregroundColor: const Color(0xFFFFB300)),
+          style: TextButton.styleFrom(
+            foregroundColor: const Color(0xFFFFB300),
+          ),
         ),
       ),
       initialRoute: '/',
-      routes: {'/': (context) => const SplashScreen()},
+      routes: {
+        '/': (context) => const SplashScreen(),
+      },
       builder: (context, child) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.noScaling,
+          ),
           child: child!,
         );
       },

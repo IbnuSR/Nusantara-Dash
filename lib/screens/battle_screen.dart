@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nusantara_dash/utils/game_prefs.dart';
 import 'package:nusantara_dash/utils/audio_manager.dart';
@@ -15,6 +17,14 @@ class QuizQuestion {
     required this.options,
     required this.correctAnswer,
   });
+
+  factory QuizQuestion.fromJson(Map<String, dynamic> json) {
+    return QuizQuestion(
+      question: json['question'] ?? '',
+      options: List<String>.from(json['options'] ?? []),
+      correctAnswer: json['correctAnswer'] ?? 0,
+    );
+  }
 }
 
 class BattleScreen extends StatefulWidget {
@@ -43,7 +53,7 @@ class _BattleScreenState extends State<BattleScreen>
   int bossHP = 100;
   int currentQuestionIndex = 0;
 
-  // Total soal yang ditampilkan (Sesuai gambar "Pertanyaan 1/10")
+  // Total soal yang ditampilkan
   int totalQuestions = 10;
 
   int countdown = 3;
@@ -51,9 +61,10 @@ class _BattleScreenState extends State<BattleScreen>
   bool isQuizVisible = false;
   bool isAnswering = false;
   bool isBattleOver = false;
+  bool isLoadingQuestions = true;
   int _sessionCoins = 0;
 
-  late List<QuizQuestion> _questions;
+  List<QuizQuestion> _questions = [];
 
   // Animasi Serangan
   late AnimationController _satriaAttackController;
@@ -65,7 +76,7 @@ class _BattleScreenState extends State<BattleScreen>
   void initState() {
     super.initState();
     _loadInitialData();
-    _questions = _getSumatraQuestions();
+    _loadQuestionsFromJson();
 
     // Setup Animasi Serangan
     _satriaAttackController = AnimationController(
@@ -89,6 +100,40 @@ class _BattleScreenState extends State<BattleScreen>
     });
   }
 
+  // FUNGSI MEMBACA FILE JSON KUIS DINAMIS
+  Future<void> _loadQuestionsFromJson() async {
+    try {
+      final String response =
+          await rootBundle.loadString('assets/data/quiz_data.json');
+      final data = await json.decode(response);
+
+      String islandKey = widget.islandName.toUpperCase();
+      List<dynamic> islandQuestions = data[islandKey] ?? data['SUMATRA'] ?? [];
+
+      List<QuizQuestion> loadedQuestions =
+          islandQuestions.map((q) => QuizQuestion.fromJson(q)).toList();
+
+      loadedQuestions.shuffle(Random());
+
+      setState(() {
+        _questions = loadedQuestions;
+        isLoadingQuestions = false;
+      });
+    } catch (e) {
+      print("Error membaca JSON kuis: $e");
+      setState(() {
+        _questions = [
+          QuizQuestion(
+            question: 'Sebutkan rumah/pakaian adat tradisional!',
+            options: ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctAnswer: 0,
+          )
+        ];
+        isLoadingQuestions = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _satriaAttackController.dispose();
@@ -96,39 +141,80 @@ class _BattleScreenState extends State<BattleScreen>
     super.dispose();
   }
 
-  // Khusus Sumatra sesuai permintaan
-  List<QuizQuestion> _getSumatraQuestions() {
-    List<QuizQuestion> allQuestions = [
-      QuizQuestion(
-        question:
-            'Manakah di bawah ini yang merupakan senjata tradisional khas Aceh?',
-        options: ['Rencong', 'Mandau', 'Keris', 'Badik'],
-        correctAnswer: 0,
-      ),
-      QuizQuestion(
-        question: 'Rumah adat khas Minangkabau disebut?',
-        options: ['Honai', 'Rumah Gadang', 'Joglo', 'Tongkonan'],
-        correctAnswer: 1,
-      ),
-      QuizQuestion(
-        question: 'Danau vulkanik terbesar di Sumatra Utara adalah?',
-        options: [
-          'Danau Singkarak',
-          'Danau Maninjau',
-          'Danau Toba',
-          'Danau Ranau'
-        ],
-        correctAnswer: 2,
-      ),
-      QuizQuestion(
-        question: 'Tari Saman yang sangat dinamis berasal dari daerah?',
-        options: ['Sumatra Barat', 'Riau', 'Lampung', 'Aceh'],
-        correctAnswer: 3,
-      ),
-      // Tambahkan soal lain hingga cukup...
-    ];
-    allQuestions.shuffle(Random());
-    return allQuestions;
+  // --- 🔥 FUNGSI PEMBANTU ASSET DINAMIS PER PULAU ---
+  String _getBgAsset(String island) {
+    switch (island.toUpperCase()) {
+      case 'JAWA':
+        return 'assets/images/battle/bg_jawa.png';
+      case 'KALIMANTAN':
+        return 'assets/images/battle/bg_kalimantan.png';
+      case 'SULAWESI':
+        return 'assets/images/battle/bg_sulawesi.png';
+      case 'PAPUA':
+        return 'assets/images/battle/bg_papua.png';
+      default:
+        return 'assets/images/battle/bg_sumatra.png';
+    }
+  }
+
+  String _getBossAsset(String island) {
+    switch (island.toUpperCase()) {
+      case 'JAWA':
+        return 'assets/images/battle/boss_buto_amuka.png';
+      case 'KALIMANTAN':
+        return 'assets/images/battle/boss_kalimantan.png';
+      case 'SULAWESI':
+        return 'assets/images/battle/boss_sulawesi.png';
+      case 'PAPUA':
+        return 'assets/images/battle/boss_papua.png';
+      default:
+        return 'assets/images/battle/boss_sang_belang.png';
+    }
+  }
+
+  String _getBossName(String island) {
+    switch (island.toUpperCase()) {
+      case 'JAWA':
+        return 'BUTO AMUKA';
+      case 'KALIMANTAN':
+        return 'PANGUMA';
+      case 'SULAWESI':
+        return 'SOMBA';
+      case 'PAPUA':
+        return 'KASUARI SAKTI';
+      default:
+        return 'SANG BELANG';
+    }
+  }
+
+  String _getBoardAsset(String island) {
+    switch (island.toUpperCase()) {
+      case 'JAWA':
+        return 'assets/images/battle/ui_wooden_board_jawa.png';
+      case 'KALIMANTAN':
+        return 'assets/images/battle/ui_wooden_board_kalimantan.png';
+      case 'SULAWESI':
+        return 'assets/images/battle/ui_wooden_board_sulawesi.png';
+      case 'PAPUA':
+        return 'assets/images/battle/ui_wooden_board_papua.png';
+      default:
+        return 'assets/images/battle/ui_wooden_board.png';
+    }
+  }
+
+  String _getBossFrameAsset(String island) {
+    switch (island.toUpperCase()) {
+      case 'JAWA':
+        return 'assets/images/battle/hp_frame_boss_jawa.png';
+      case 'KALIMANTAN':
+        return 'assets/images/battle/hp_frame_boss_kalimantan.png';
+      case 'SULAWESI':
+        return 'assets/images/battle/hp_frame_boss_sulawesi.png';
+      case 'PAPUA':
+        return 'assets/images/battle/hp_frame_boss_papua.png';
+      default:
+        return 'assets/images/battle/hp_frame_boss.png';
+    }
   }
 
   String _getWeaponId(String island) {
@@ -164,7 +250,7 @@ class _BattleScreenState extends State<BattleScreen>
   }
 
   void _handleAnswer(int selectedIndex) {
-    if (isAnswering || isBattleOver) return;
+    if (isAnswering || isBattleOver || _questions.isEmpty) return;
     setState(() => isAnswering = true);
 
     bool isCorrect =
@@ -182,7 +268,7 @@ class _BattleScreenState extends State<BattleScreen>
   }
 
   void _performSatriaAttack() {
-    AudioManager.instance.playSFX('sfx_jump.mp3'); // Suara dash
+    AudioManager.instance.playSFX('sfx_jump.mp3');
     _satriaAttackController.forward().then((_) {
       _satriaAttackController.reverse();
       AudioManager.instance.playSFX('sfx_boss_hit.mp3');
@@ -196,7 +282,7 @@ class _BattleScreenState extends State<BattleScreen>
   }
 
   void _performBossAttack() {
-    AudioManager.instance.playSFX('sfx_boss_roar.mp3'); // Suara harimau
+    AudioManager.instance.playSFX('sfx_boss_roar.mp3');
     _bossAttackController.forward().then((_) {
       _bossAttackController.reverse();
       AudioManager.instance.playSFX('sfx_hit_flesh.mp3');
@@ -241,37 +327,95 @@ class _BattleScreenState extends State<BattleScreen>
     AudioManager.instance.playSFX('sfx_gameover.mp3');
   }
 
-  // --- 🔥 LOGIKA BARU: Menyimpan Progres dan Membuka Map Selanjutnya ---
   Future<void> _proceedToNext() async {
-    // 1. Tandai bos di pulau ini sudah dikalahkan
     await GamePrefs.markBossDefeated(widget.islandName);
 
-    // 2. Buka pulau selanjutnya secara berurutan
     String currentIsland = widget.islandName.toUpperCase();
     if (currentIsland == 'SUMATRA') {
       await GamePrefs.unlockIsland('JAWA');
-      print('🔓 PULAU JAWA TELAH DIBUKA!');
     } else if (currentIsland == 'JAWA') {
       await GamePrefs.unlockIsland('KALIMANTAN');
-      print('🔓 PULAU KALIMANTAN TELAH DIBUKA!');
     } else if (currentIsland == 'KALIMANTAN') {
       await GamePrefs.unlockIsland('SULAWESI');
-      print('🔓 PULAU SULAWESI TELAH DIBUKA!');
     } else if (currentIsland == 'SULAWESI') {
       await GamePrefs.unlockIsland('PAPUA');
-      print('🔓 PULAU PAPUA TELAH DIBUKA!');
     }
 
-    // 3. Tambahkan senjata baru ke inventory
     await GamePrefs.unlockWeapon(_getWeaponId(widget.islandName));
-
-    // 4. Berikan hadiah koin kemenangan
     await GamePrefs.addCoins(500);
 
-    // 5. Memicu fungsi onBattleWin yang akan kembali ke MapScreen
     if (mounted) {
       widget.onBattleWin();
     }
+  }
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            width: 300,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.brown[800],
+              border: Border.all(color: const Color(0xFFD4AF37), width: 4),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'PENGATURAN',
+                  style: GoogleFonts.pressStart2p(
+                    color: Colors.amber,
+                    fontSize: 16,
+                    shadows: const [Shadow(color: Colors.black, blurRadius: 4)],
+                  ),
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[700],
+                    side: const BorderSide(color: Colors.white, width: 2),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 20),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onExit();
+                  },
+                  child: Text(
+                    'MENYERAH & KELUAR',
+                    style: GoogleFonts.pressStart2p(
+                        fontSize: 10, color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.brown[600],
+                    side: const BorderSide(color: Color(0xFFD4AF37), width: 2),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 20),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'LANJUT BERTARUNG',
+                    style: GoogleFonts.pressStart2p(
+                        fontSize: 10, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -280,12 +424,14 @@ class _BattleScreenState extends State<BattleScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. BACKGROUND (Gambar Pegunungan & Air Terjun)
+          // 1. BACKGROUND DINAMIS SESUAI PULAU
           Image.asset(
-            'assets/images/battle/bg_sumatra.png',
+            _getBgAsset(widget.islandName),
             fit: BoxFit.cover,
-            errorBuilder: (ctx, err, stack) =>
-                Container(color: const Color(0xFF4A86E8)),
+            errorBuilder: (ctx, err, stack) => Image.asset(
+              'assets/images/battle/bg_sumatra.png',
+              fit: BoxFit.cover,
+            ),
           ),
 
           // 2. TANAH / GROUND
@@ -302,15 +448,13 @@ class _BattleScreenState extends State<BattleScreen>
             ),
           ),
 
-          // 3. KARAKTER SATRIA (Dengan Animasi Maju Mundur)
+          // 3. KARAKTER SATRIA
           AnimatedBuilder(
             animation: _satriaAttackAnimation,
             builder: (context, child) {
               return Positioned(
                 bottom: 60,
-                left: 100 +
-                    (_satriaAttackAnimation.value *
-                        200), // Maju 200px saat serang
+                left: 100 + (_satriaAttackAnimation.value * 200),
                 child: Image.asset(
                   'assets/images/battle/satria_idle.png',
                   height: 120,
@@ -321,26 +465,26 @@ class _BattleScreenState extends State<BattleScreen>
             },
           ),
 
-          // 4. KARAKTER BOSS (SANG BELANG)
+          // 4. KARAKTER BOSS DINAMIS SESUAI PULAU
           AnimatedBuilder(
             animation: _bossAttackAnimation,
             builder: (context, child) {
               return Positioned(
                 bottom: 60,
-                right: 50 +
-                    (_bossAttackAnimation.value *
-                        200), // Maju ke kiri saat serang
+                right: 50 + (_bossAttackAnimation.value * 200),
                 child: Image.asset(
-                  'assets/images/battle/boss_sang_belang.png',
+                  _getBossAsset(widget.islandName),
                   height: 250,
-                  errorBuilder: (ctx, err, stack) =>
-                      const Icon(Icons.pets, size: 150, color: Colors.red),
+                  errorBuilder: (ctx, err, stack) => Image.asset(
+                    'assets/images/battle/boss_sang_belang.png',
+                    height: 250,
+                  ),
                 ),
               );
             },
           ),
 
-          // 5. HUD ATAS (Koin, Kunci, Nyawa, Tombol)
+          // 5. HUD ATAS (Koin, Kunci, Nyawa Satria & Nyawa Bos)
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -356,17 +500,17 @@ class _BattleScreenState extends State<BattleScreen>
                         children: [
                           Row(
                             children: [
+                              // Koin: Angka di area kanan (paddingLeft 45)
                               _buildAssetBox(
                                   'assets/images/battle/ui_coin_box.png',
                                   '$_sessionCoins',
-                                  Icons.monetization_on,
-                                  Colors.amber),
+                                  isKeyBox: false),
                               const SizedBox(width: 10),
+                              // 🔥 Kunci: Angka di area kanan bebas tumpukan batang kunci (isKeyBox = true)
                               _buildAssetBox(
                                   'assets/images/battle/ui_key_box.png',
                                   '${widget.currentLives}',
-                                  Icons.vpn_key,
-                                  Colors.amber),
+                                  isKeyBox: true),
                             ],
                           ),
                           const SizedBox(height: 10),
@@ -375,24 +519,29 @@ class _BattleScreenState extends State<BattleScreen>
                         ],
                       ),
 
-                      // KANAN: Tombol Setting & Nyawa Bos
+                      // KANAN: Tombol Setting & Nama Bos Dinamis
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Row(
                             children: [
                               _buildImageButton(
-                                  'assets/images/battle/btn_settings.png',
-                                  Icons.settings),
+                                'assets/images/battle/btn_settings.png',
+                                () => _showSettingsDialog(),
+                              ),
                               const SizedBox(width: 10),
                               _buildImageButton(
-                                  'assets/images/battle/btn_help.png',
-                                  Icons.help),
+                                'assets/images/battle/btn_help.png',
+                                () {},
+                              ),
                             ],
                           ),
                           const SizedBox(height: 10),
-                          _buildCustomHPBar('SANG BELANG', bossHP,
-                              'assets/images/battle/hp_frame_boss.png', false),
+                          _buildCustomHPBar(
+                              _getBossName(widget.islandName),
+                              bossHP,
+                              _getBossFrameAsset(widget.islandName),
+                              false),
                         ],
                       ),
                     ],
@@ -416,10 +565,11 @@ class _BattleScreenState extends State<BattleScreen>
               ),
             ),
 
-          // 7. PAPAN KUIS (MUNCUL DENGAN DESAIN KAYU)
-          if (isQuizVisible && !isBattleOver) _buildWoodenQuizPopup(),
+          // 7. PAPAN KUIS (DESAIN PAPAN DINAMIS SESUAI PULAU)
+          if (isQuizVisible && !isBattleOver && !isLoadingQuestions)
+            _buildWoodenQuizPopup(),
 
-          // 8. LAYAR GAME OVER / WIN (Sementara pakai desain lama, bisa kamu ganti kotaknya nanti)
+          // 8. LAYAR GAME OVER / WIN
           if (isBattleOver) _buildEndScreen(),
         ],
       ),
@@ -428,40 +578,38 @@ class _BattleScreenState extends State<BattleScreen>
 
   // --- WIDGET HELPER ---
 
-  Widget _buildAssetBox(String assetPath, String text, IconData fallbackIcon,
-      Color fallbackColor) {
+  // 🔥 FUNGSI ASSET BOX DISESUAIKAN PRESISI
+  Widget _buildAssetBox(String assetPath, String text,
+      {bool isKeyBox = false}) {
     return Container(
-      width: 100,
+      width: 105,
       height: 35,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(assetPath),
           fit: BoxFit.fill,
-          onError: (exception,
-              stackTrace) {}, // Hindari error merah jika gambar belum ada
+          onError: (exception, stackTrace) {},
         ),
-        color: Colors.black54, // Fallback warna
+        color: Colors.black54,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
       ),
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(fallbackIcon, color: fallbackColor, size: 16),
-            const SizedBox(width: 5),
-            Text(text,
-                style: GoogleFonts.pressStart2p(
-                    color: Colors.white, fontSize: 10)),
-          ],
-        ),
+      // 🔥 Jika box Kunci, dorong teks ke kanan (right: 15.0) dengan Alignment.centerRight
+      // agar duduk manis di area kosong di sebelah kanan kuncinya!
+      alignment: isKeyBox ? Alignment.centerRight : Alignment.centerLeft,
+      padding: isKeyBox
+          ? const EdgeInsets.only(right: 15.0)
+          : const EdgeInsets.only(left: 45.0),
+      child: Text(
+        text,
+        style: GoogleFonts.pressStart2p(color: Colors.white, fontSize: 10),
       ),
     );
   }
 
-  Widget _buildImageButton(String assetPath, IconData fallbackIcon) {
+  Widget _buildImageButton(String assetPath, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {}, // Isi fungsi pause/settings
+      onTap: onTap,
       child: Container(
         width: 45,
         height: 45,
@@ -475,8 +623,6 @@ class _BattleScreenState extends State<BattleScreen>
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFFD4AF37), width: 2),
         ),
-        child: Icon(fallbackIcon,
-            color: Colors.amber, size: 24), // Tampil kalau gambar gak ada
       ),
     );
   }
@@ -498,7 +644,6 @@ class _BattleScreenState extends State<BattleScreen>
           height: 40,
           child: Stack(
             children: [
-              // Bar Merah (Mengisi dari kiri ke kanan atau sebaliknya)
               Positioned(
                 left: isPlayer ? 40 : 10,
                 right: isPlayer ? 10 : 40,
@@ -515,13 +660,41 @@ class _BattleScreenState extends State<BattleScreen>
                   ),
                 ),
               ),
-              // Bingkai Avatar & HP (Transparan di bagian bar)
               Positioned.fill(
                 child: Image.asset(
                   frameAsset,
                   fit: BoxFit.contain,
                   alignment:
                       isPlayer ? Alignment.centerLeft : Alignment.centerRight,
+                  errorBuilder: (ctx, err, stack) {
+                    if (!isPlayer) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            margin: const EdgeInsets.only(right: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black87,
+                              border: Border.all(
+                                  color: const Color(0xFFD4AF37), width: 2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.asset(
+                                _getBossAsset(widget.islandName),
+                                fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
                 ),
               ),
             ],
@@ -531,25 +704,31 @@ class _BattleScreenState extends State<BattleScreen>
     );
   }
 
-  // --- DESAIN PAPAN KUIS BARU ---
+  // --- DESAIN PAPAN KUIS ---
   Widget _buildWoodenQuizPopup() {
+    if (_questions.isEmpty) return const SizedBox.shrink();
+
     final question = _questions[currentQuestionIndex];
     final letters = ['[A]', '[B]', '[C]', '[D]'];
 
     return Center(
       child: Container(
         width: 500,
-        height: 350, // Tetap 350 agar proporsi gambar background tidak berubah
+        height: 350,
         decoration: BoxDecoration(
-          image: const DecorationImage(
-            image: AssetImage('assets/images/battle/ui_wooden_board.png'),
+          image: DecorationImage(
+            image: AssetImage(_getBoardAsset(widget.islandName)),
             fit: BoxFit.fill,
+            onError: (err, stack) => const DecorationImage(
+              image: AssetImage('assets/images/battle/ui_wooden_board.png'),
+              fit: BoxFit.fill,
+            ),
           ),
           color: Colors.brown[800],
           borderRadius: BorderRadius.circular(16),
         ),
         padding:
-            const EdgeInsets.only(top: 115, bottom: 30, left: 45, right: 45),
+            const EdgeInsets.only(top: 115, bottom: 45, left: 45, right: 45),
         child: Column(
           children: [
             Text(
@@ -623,21 +802,22 @@ class _BattleScreenState extends State<BattleScreen>
 
   // --- LAYAR SELESAI ---
   Widget _buildEndScreen() {
+    String bossName = _getBossName(widget.islandName);
+
     return Container(
       color: Colors.black87,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(bossHP <= 0 ? 'SANG BELANG DIKALAHKAN!' : 'SATRIA ROBOH!',
+            Text(bossHP <= 0 ? '$bossName DIKALAHKAN!' : 'SATRIA ROBOH!',
                 style: GoogleFonts.pressStart2p(
-                    fontSize: 20,
+                    fontSize: 18,
                     color: bossHP <= 0 ? Colors.green : Colors.red)),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 if (bossHP <= 0) {
-                  // 🔥 MODIFIKASI: Memanggil _proceedToNext() untuk membuka map selanjutnya
                   _proceedToNext();
                 } else {
                   widget.onBattleLose();

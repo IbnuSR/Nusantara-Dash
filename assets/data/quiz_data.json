@@ -1,0 +1,67 @@
+{
+  "SUMATRA": [
+    {
+      "question": "Manakah di bawah ini yang merupakan senjata tradisional khas Aceh?",
+      "options": ["Rencong", "Mandau", "Keris", "Badik"],
+      "correctAnswer": 0
+    },
+    {
+      "question": "Rumah adat khas Minangkabau disebut?",
+      "options": ["Honai", "Rumah Gadang", "Joglo", "Tongkonan"],
+      "correctAnswer": 1
+    },
+    {
+      "question": "Danau vulkanik terbesar di Sumatra Utara adalah?",
+      "options": ["Danau Singkarak", "Danau Maninjau", "Danau Toba", "Danau Ranau"],
+      "correctAnswer": 2
+    },
+    {
+      "question": "Tari Saman yang sangat dinamis berasal dari daerah?",
+      "options": ["Sumatra Barat", "Riau", "Lampung", "Aceh"],
+      "correctAnswer": 3
+    }
+  ],
+  "JAWA": [
+    {
+      "question": "Manakah di bawah ini yang merupakan pakaian adat tradisional Jawa untuk pria?",
+      "options": ["Beskap", "Ulos", "Baju Bodo", "Teluk Belanga"],
+      "correctAnswer": 0
+    },
+    {
+      "question": "Candi Buddha terbesar di dunia yang terletak di Magelang adalah?",
+      "options": ["Candi Prambanan", "Candi Borobudur", "Candi Mendut", "Candi Sewu"],
+      "correctAnswer": 1
+    },
+    {
+      "question": "Senjata tradisional khas Jawa yang berbentuk lekuk-lekuk adalah?",
+      "options": ["Rencong", "Mandau", "Keris", "Badik"],
+      "correctAnswer": 2
+    },
+    {
+      "question": "Seni pertunjukan bayangan khas Jawa yang menggunakan boneka kulit adalah?",
+      "options": ["Ketoprak", "Ludruk", "Wayang Kulit", "Reog"],
+      "correctAnswer": 2
+    }
+  ],
+  "KALIMANTAN": [
+    {
+      "question": "Senjata tradisional khas suku Dayak di Kalimantan adalah?",
+      "options": ["Mandau", "Keris", "Rencong", "Sumpit"],
+      "correctAnswer": 0
+    }
+  ],
+  "SULAWESI": [
+    {
+      "question": "Perahu layar tradisional khas Bugis-Makassar adalah?",
+      "options": ["Perahu Phinisi", "Perahu Jukung", "Perahu Kora-kora", "Perahu Biduk"],
+      "correctAnswer": 0
+    }
+  ],
+  "PAPUA": [
+    {
+      "question": "Rumah adat khas Papua yang berbentuk kerucut dan beratap jerami adalah?",
+      "options": ["Honai", "Kariwari", "Lamin", "Tongkonan"],
+      "correctAnswer": 0
+    }
+  ]
+}

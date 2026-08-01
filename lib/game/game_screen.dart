@@ -19,7 +19,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   late NusantaraDashGame _game;
   int _sessionCoins = 0;
-  int _totalLives = 0;
+  int _totalLives = 3;
   bool _showSettings = false;
 
   @override
@@ -40,6 +40,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _loadInventory() async {
     _totalLives = await GamePrefs.getExtraLives();
+    if (_totalLives <= 0) _totalLives = 3;
     _game.updateLives(_totalLives);
     if (mounted) setState(() {});
   }
@@ -54,7 +55,7 @@ class _GameScreenState extends State<GameScreen> {
       onLevelComplete: _showLevelCompleteDialog,
       onBossEncounter: _showBossBattle,
       onPlayerDied: _handlePlayerDeath,
-      onCulturalItemUnlocked: _showCulturalItemRewardDialog, // 🏛️ SPRINT 6.5
+      onCulturalItemUnlocked: _showCulturalItemRewardDialog,
     );
   }
 
@@ -155,9 +156,9 @@ class _GameScreenState extends State<GameScreen> {
                       color: Colors.red, fontSize: 16)),
               const SizedBox(height: 15),
               const Text('Nyawa Habis!', style: TextStyle(color: Colors.white)),
-              Text('Koin Terkumpul: 🪙 $_sessionCoins',
+              Text('Koin Terkumpul: $_sessionCoins',
                   style: GoogleFonts.pressStart2p(
-                      color: Colors.amber, fontSize: 14)),
+                      color: Colors.amber, fontSize: 12)),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: () {
@@ -187,7 +188,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  // 🏛️ SPRINT 6.5: Popup Reward Hidden Cultural Item
   void _showCulturalItemRewardDialog(CulturalItem item) {
     AudioManager.instance.playSFX('sfx_coin.mp3');
     showDialog(
@@ -216,7 +216,7 @@ class _GameScreenState extends State<GameScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.2),
+                  color: Colors.amber.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.amber, width: 1),
                 ),
@@ -234,7 +234,7 @@ class _GameScreenState extends State<GameScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
+                  color: Colors.black.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: Colors.amberAccent, width: 2),
                 ),
@@ -308,7 +308,9 @@ class _GameScreenState extends State<GameScreen> {
                   style: GoogleFonts.pressStart2p(
                       fontSize: 32,
                       color: Colors.red,
-                      shadows: [Shadow(color: Colors.black, blurRadius: 10)])),
+                      shadows: [
+                        const Shadow(color: Colors.black, blurRadius: 10)
+                      ])),
               const SizedBox(height: 30),
               const CircularProgressIndicator(color: Colors.amber),
               const SizedBox(height: 20),
@@ -331,14 +333,13 @@ class _GameScreenState extends State<GameScreen> {
               islandName: widget.islandName,
               currentLives: _totalLives,
               onBattleWin: () {
-                Navigator.pop(context); // Tutup layar battle
+                Navigator.pop(context);
                 _showVictoryDialog();
               },
-              // 🔥 INI KUNCINYA: Saat kalah kuis, reset sensor bos & perlakukan seperti mati rintangan!
               onBattleLose: () {
-                Navigator.pop(context); // Tutup layar battle
-                _game.resetBossTrigger(); // Reset zona bos & mundurkan Satria
-                _handlePlayerDeath(); // Tampilkan pop-up "Lanjut dari Checkpoint?"
+                Navigator.pop(context);
+                _game.resetBossTrigger();
+                _handlePlayerDeath();
               },
               onExit: () {
                 Navigator.pop(context);
@@ -351,7 +352,6 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  // ✅ HELPER DINAMIS: NAMA SENJATA PER PULAU
   String _getWeaponName(String island) {
     switch (island.toUpperCase()) {
       case 'JAWA':
@@ -387,7 +387,6 @@ class _GameScreenState extends State<GameScreen> {
               const Text('Selamat! Kamu mendapatkan:',
                   style: TextStyle(color: Colors.white)),
               const SizedBox(height: 10),
-              // 🔥 UPDATE DINAMIS: Teks senjata mengikuti nama pulau
               Text(_getWeaponName(widget.islandName),
                   style: GoogleFonts.pressStart2p(
                       color: Colors.amber, fontSize: 14)),
@@ -398,8 +397,7 @@ class _GameScreenState extends State<GameScreen> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.pop(
-                      context); // Balik ke Peta (mengaktifkan .then refresh)
+                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
@@ -435,12 +433,12 @@ class _GameScreenState extends State<GameScreen> {
               const SizedBox(height: 15),
               const Text('Koin Dikumpulkan:',
                   style: TextStyle(color: Colors.white)),
-              Text('🪙 $_sessionCoins',
+              Text('$_sessionCoins',
                   style: GoogleFonts.pressStart2p(
                       color: Colors.amber, fontSize: 16)),
               const SizedBox(height: 10),
               const Text('Bonus Level:', style: TextStyle(color: Colors.white)),
-              Text('🪙 +200',
+              Text('+200',
                   style: GoogleFonts.pressStart2p(
                       color: Colors.greenAccent, fontSize: 16)),
               const SizedBox(height: 20),
@@ -465,11 +463,75 @@ class _GameScreenState extends State<GameScreen> {
   void _toggleSettings() {
     setState(() {
       _showSettings = !_showSettings;
-      if (_showSettings)
+      if (_showSettings) {
         _game.pauseEngine();
-      else
+      } else {
         _game.resumeEngine();
+      }
     });
+  }
+
+  // --- WIDGET HELPER HUD RETRO ---
+
+  Widget _buildPixelCoinHUD() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+          'assets/images/battle/coin.png',
+          width: 32,
+          height: 32,
+          errorBuilder: (ctx, err, stack) =>
+              Image.asset('assets/images/battle/ui_coin_box.png', width: 32),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '$_sessionCoins',
+          style: GoogleFonts.pressStart2p(
+            color: Colors.amber,
+            fontSize: 14,
+            shadows: [
+              const Shadow(
+                  color: Colors.black, offset: Offset(2, 2), blurRadius: 2)
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 🔥 PERBAIKAN: HUD NYAWA KINI HANYA 1 GAMBAR HATI + TEKS JUMLAH NYAWA
+  Widget _buildPixelHeartsHUD() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+          'assets/images/battle/heart_full.png',
+          width: 30,
+          height: 30,
+          errorBuilder: (ctx, err, stack) => const Icon(
+            Icons.favorite,
+            color: Colors.red,
+            size: 28,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'x $_totalLives',
+          style: GoogleFonts.pressStart2p(
+            color: Colors.white,
+            fontSize: 14,
+            shadows: [
+              const Shadow(
+                color: Colors.black,
+                offset: Offset(2, 2),
+                blurRadius: 2,
+              )
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -478,29 +540,84 @@ class _GameScreenState extends State<GameScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
+          // Layer Game Engine
           SizedBox.expand(child: GameWidget(key: ValueKey(_game), game: _game)),
+
+          // --- LAYER HUD KIRI ATAS ---
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(left: 20, top: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.landscape,
+                          color: Colors.amber, size: 20),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.islandName.toUpperCase(),
+                        style: GoogleFonts.pressStart2p(
+                          color: Colors.white,
+                          fontSize: 14,
+                          shadows: [
+                            const Shadow(
+                                color: Colors.black,
+                                offset: Offset(2, 2),
+                                blurRadius: 4)
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildPixelCoinHUD(),
+                  const SizedBox(height: 10),
+                  _buildPixelHeartsHUD(), // ⬅️ Memanggil HUD Nyawa yang baru
+                ],
+              ),
+            ),
+          ),
+
+          // --- LAYER TOMBOL SETTING (KANAN ATAS) ---
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16, top: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   GestureDetector(
                     onTap: _toggleSettings,
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.amber, width: 2)),
-                      child: const Icon(Icons.settings,
-                          color: Colors.amber, size: 28),
+                        color: Colors.brown[800],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: const Color(0xFFD4AF37), width: 2),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black45, blurRadius: 4)
+                        ],
+                      ),
+                      child: Image.asset(
+                        'assets/images/battle/btn_settings.png',
+                        width: 32,
+                        height: 32,
+                        errorBuilder: (ctx, err, stack) => const Icon(
+                            Icons.settings,
+                            color: Colors.amber,
+                            size: 28),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
+
+          // OVERLAY PENGATURAN
           if (_showSettings)
             Container(
               color: Colors.black.withOpacity(0.85),
@@ -517,14 +634,12 @@ class _GameScreenState extends State<GameScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('⚙️ PENGATURAN',
-                            style: TextStyle(
-                                color: Colors.amber,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 15),
-                        _buildStatRow(Icons.favorite, 'Nyawa', '$_totalLives',
-                            Colors.redAccent),
+                        Text('⚙️ PENGATURAN',
+                            style: GoogleFonts.pressStart2p(
+                                color: Colors.amber, fontSize: 16)),
+                        const SizedBox(height: 20),
+                        _buildStatRow(Icons.favorite, 'Sisa Nyawa',
+                            '$_totalLives', Colors.redAccent),
                         _buildStatRow(Icons.monetization_on, 'Koin Sesi',
                             '$_sessionCoins', Colors.amber),
                         const SizedBox(height: 20),

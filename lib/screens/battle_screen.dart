@@ -64,6 +64,10 @@ class _BattleScreenState extends State<BattleScreen>
   bool isLoadingQuestions = true;
   int _sessionCoins = 0;
 
+  // Efek Layar Berkedip saat kena pukul
+  bool _isScreenFlashingRed = false;
+  bool _isScreenFlashingWhite = false;
+
   List<QuizQuestion> _questions = [];
 
   // Animasi Serangan
@@ -172,6 +176,27 @@ class _BattleScreenState extends State<BattleScreen>
     }
   }
 
+  // 🔥 ANIMASI FRAME SPRITE DINAMIS UNTUK SANG BELANG (SUMATRA)
+  String _getDynamicBossAsset(String island, double attackProgress) {
+    String baseAsset = _getBossAsset(island);
+
+    // Jika bukan boss Sumatra atau sedang tidak menyerang, gunakan sprite diam
+    if (island.toUpperCase() != 'SUMATRA' || attackProgress == 0.0) {
+      return baseAsset;
+    }
+
+    // Pergantian frame berdasarkan seberapa dekat boss dengan Satria
+    if (attackProgress < 0.25) {
+      return 'assets/images/battle/sang_belang_atk1.png';
+    } else if (attackProgress < 0.50) {
+      return 'assets/images/battle/sang_belang_atk2.png';
+    } else if (attackProgress < 0.75) {
+      return 'assets/images/battle/sang_belang_atk3.png';
+    } else {
+      return 'assets/images/battle/sang_belang_atk4.png'; // Pukulan masuk
+    }
+  }
+
   String _getBossName(String island) {
     switch (island.toUpperCase()) {
       case 'JAWA':
@@ -267,11 +292,28 @@ class _BattleScreenState extends State<BattleScreen>
     }
   }
 
+  void _triggerScreenFlashRed() {
+    setState(() => _isScreenFlashingRed = true);
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) setState(() => _isScreenFlashingRed = false);
+    });
+  }
+
+  void _triggerScreenFlashWhite() {
+    setState(() => _isScreenFlashingWhite = true);
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) setState(() => _isScreenFlashingWhite = false);
+    });
+  }
+
   void _performSatriaAttack() {
     AudioManager.instance.playSFX('sfx_jump.mp3');
     _satriaAttackController.forward().then((_) {
-      _satriaAttackController.reverse();
+      // Saat Satria berada tepat di depan Bos (Flash Putih)
+      _triggerScreenFlashWhite();
       AudioManager.instance.playSFX('sfx_boss_hit.mp3');
+
+      _satriaAttackController.reverse();
 
       setState(() {
         bossHP = (bossHP - 20).clamp(0, 100);
@@ -284,8 +326,11 @@ class _BattleScreenState extends State<BattleScreen>
   void _performBossAttack() {
     AudioManager.instance.playSFX('sfx_boss_roar.mp3');
     _bossAttackController.forward().then((_) {
-      _bossAttackController.reverse();
+      // Saat Boss berada tepat di depan Satria & Pukulan masuk (Flash Merah)
+      _triggerScreenFlashRed();
       AudioManager.instance.playSFX('sfx_hit_flesh.mp3');
+
+      _bossAttackController.reverse();
 
       setState(() {
         playerHP = (playerHP - 25).clamp(0, 100);
@@ -465,7 +510,7 @@ class _BattleScreenState extends State<BattleScreen>
             },
           ),
 
-          // 4. KARAKTER BOSS DINAMIS SESUAI PULAU
+          // 4. KARAKTER BOSS DINAMIS (SPRITE SHEET FRAME SWAP)
           AnimatedBuilder(
             animation: _bossAttackAnimation,
             builder: (context, child) {
@@ -473,7 +518,9 @@ class _BattleScreenState extends State<BattleScreen>
                 bottom: 60,
                 right: 50 + (_bossAttackAnimation.value * 200),
                 child: Image.asset(
-                  _getBossAsset(widget.islandName),
+                  // Menggunakan fungsi Helper Sprite yang kita buat
+                  _getDynamicBossAsset(
+                      widget.islandName, _bossAttackAnimation.value),
                   height: 250,
                   errorBuilder: (ctx, err, stack) => Image.asset(
                     'assets/images/battle/boss_sang_belang.png',
@@ -483,6 +530,16 @@ class _BattleScreenState extends State<BattleScreen>
               );
             },
           ),
+
+          // --- EFEK FLASH KETIKA TERKENA SERANGAN ---
+          if (_isScreenFlashingRed)
+            Positioned.fill(
+              child: Container(color: Colors.red.withOpacity(0.5)),
+            ),
+          if (_isScreenFlashingWhite)
+            Positioned.fill(
+              child: Container(color: Colors.white.withOpacity(0.6)),
+            ),
 
           // 5. HUD ATAS (Koin, Kunci, Nyawa Satria & Nyawa Bos)
           SafeArea(
@@ -500,13 +557,11 @@ class _BattleScreenState extends State<BattleScreen>
                         children: [
                           Row(
                             children: [
-                              // Koin: Angka di area kanan (paddingLeft 45)
                               _buildAssetBox(
                                   'assets/images/battle/ui_coin_box.png',
                                   '$_sessionCoins',
                                   isKeyBox: false),
                               const SizedBox(width: 10),
-                              // 🔥 Kunci: Angka di area kanan bebas tumpukan batang kunci (isKeyBox = true)
                               _buildAssetBox(
                                   'assets/images/battle/ui_key_box.png',
                                   '${widget.currentLives}',
@@ -578,7 +633,6 @@ class _BattleScreenState extends State<BattleScreen>
 
   // --- WIDGET HELPER ---
 
-  // 🔥 FUNGSI ASSET BOX DISESUAIKAN PRESISI
   Widget _buildAssetBox(String assetPath, String text,
       {bool isKeyBox = false}) {
     return Container(
@@ -594,8 +648,6 @@ class _BattleScreenState extends State<BattleScreen>
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
       ),
-      // 🔥 Jika box Kunci, dorong teks ke kanan (right: 15.0) dengan Alignment.centerRight
-      // agar duduk manis di area kosong di sebelah kanan kuncinya!
       alignment: isKeyBox ? Alignment.centerRight : Alignment.centerLeft,
       padding: isKeyBox
           ? const EdgeInsets.only(right: 15.0)

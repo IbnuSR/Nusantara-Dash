@@ -164,6 +164,7 @@ class _WeaponScreenState extends State<WeaponScreen> {
         ),
         child: Column(
           children: [
+            // ✅ AREA GAMBAR SENJATA (DIPERBARUI)
             Expanded(
               child: Container(
                 margin: const EdgeInsets.all(8),
@@ -172,18 +173,34 @@ class _WeaponScreenState extends State<WeaponScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: isOwned
-                    ? Icon(
-                        _getWeaponIcon(weapon.id),
-                        size: 50,
-                        color: rarityColor,
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          weapon
+                              .menuIconPath, // ✅ MENAMPILKAN GAMBAR DENGAN BACKGROUND
+                          fit: BoxFit
+                              .contain, // ✅ Agar seluruh gambar terlihat proporsional
+                          errorBuilder: (context, error, stackTrace) {
+                            // Fallback ke icon jika gambar background belum ada/salah path
+                            return Icon(
+                              _getWeaponIcon(weapon.id),
+                              size: 50,
+                              color: rarityColor,
+                            );
+                          },
+                        ),
                       )
-                    : const Icon(
-                        Icons.lock,
-                        size: 40,
-                        color: Colors.white24,
+                    : const Center(
+                        child: Icon(
+                          Icons.lock,
+                          size: 40,
+                          color: Colors.white24,
+                        ),
                       ),
               ),
             ),
+
+            // Info nama dan status
             Padding(
               padding: const EdgeInsets.all(8),
               child: Column(
@@ -191,7 +208,7 @@ class _WeaponScreenState extends State<WeaponScreen> {
                   Text(
                     weapon.name,
                     style: GoogleFonts.pressStart2p(
-                      fontSize: 7,
+                      fontSize: 8, // Sedikit diperbesar agar lebih terbaca
                       color: Colors.white,
                     ),
                     textAlign: TextAlign.center,

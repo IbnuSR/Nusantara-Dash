@@ -4,15 +4,16 @@ class Weapon {
   final String id;
   final String name;
   final String description;
-  final String history; // ✅ TAMBAH: Sejarah senjata
-  final String iconPath;
+  final String history;
+  final String iconPath; // ✅ Gambar polosan (untuk di dalam game)
+  final String menuIconPath; // ✅ Gambar dengan background (untuk di menu fitur)
   final int damage;
   final int price;
   final bool isLocked;
   final String rarity;
   final String origin;
-  final bool isSacred; // ✅ TAMBAH: Apakah senjata suci
-  final bool isCombined; // ✅ TAMBAH: Apakah senjata gabungan
+  final bool isSacred;
+  final bool isCombined;
 
   Weapon({
     required this.id,
@@ -20,6 +21,7 @@ class Weapon {
     required this.description,
     required this.history,
     required this.iconPath,
+    required this.menuIconPath, // ✅ Wajib diisi
     required this.damage,
     required this.price,
     this.isLocked = true,
@@ -36,6 +38,7 @@ class Weapon {
       description: description,
       history: history,
       iconPath: iconPath,
+      menuIconPath: menuIconPath,
       damage: damage,
       price: price,
       isLocked: isLocked ?? this.isLocked,

@@ -26,19 +26,31 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   
-  # ✅ PERBAIKAN: Path asset KONSISTEN dengan lokasi fisik
+  # ✅ GABUNGAN: Struktur detail teman + Folder weapons otomatis
   assets:
-  
-    - assets/audio/bgm/           # ✅ Tambahkan prefix 'assets/'
-    - assets/audio/sfx/           # ✅ Tambahkan prefix 'assets/'
+    # Audio
+    - assets/audio/bgm/
+    - assets/audio/sfx/
+    
+    # Core Game Assets
     - assets/images/player/
     - assets/images/boss/final/
     - assets/images/boss/mini/
-    - assets/data/
     - assets/images/battle/
-    - assets/videos/
     - assets/images/background/
     - assets/images/obstacles/
+    - assets/videos/
+    
+    # 🗡️ BARU: Folder Senjata (Otomatis membaca .png polosan DAN _bg.png)
+    - assets/images/weapons/
+    
+    # UI & Tutorial
+    - assets/images/ui/
+    - assets/images/ui/buttons/
+    - assets/images/tutorial/
+    - assets/images/tutorial_fiks/
+    
+    # Cultural Items (Struktur detail dari teman)
     - assets/images/items/
     - assets/images/items/sumatra/
     - assets/images/items/sumatra/aceh/
@@ -80,16 +92,12 @@ flutter:
     - assets/images/items/papua/papsel/
     - assets/images/items/papua/papteng/
     - assets/images/items/papua/papua/
-    - assets/images/ui/
-    - assets/images/ui/buttons/
-    - assets/images/tutorial/
-    - assets/images/tutorial_fiks/
+    
+    # Data Files
+    - assets/data/
     - assets/data/quiz_data.json
     - assets/data/province_config.json
     - assets/data/weapon_data.json
-    - assets/images/battle/
-    - assets/audio/
-    - assets/
 
 flutter_launcher_icons:
   android: "launcher_icon"

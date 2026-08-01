@@ -137,5 +137,18 @@ class SumatraLevelData {
     {'x': 4190, 'y': -110}, // Platform 13 (x:4100..4280, y:-50)
     {'x': 4990, 'y': -190}, // Platform 16 (x:4900..5100, y:-130)
   ];
-}
 
+  // =========================================================================
+  // 🗡️ WEAPON DATA - SUMATRA
+  // =========================================================================
+  static final List<Map<String, String>> weapons = [
+    {
+      'id': 'rencong_sumatra', // ✅ ID HARUS SAMA DENGAN WeaponData
+      'name': 'Rencong Suci',
+    },
+  ];
+
+  static final List<Map<String, double>> weaponSpawnPoints = [
+    {'x': 5200.0, 'y': -100.0}, // Tepat sebelum Boss Arena
+  ];
+}

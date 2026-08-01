@@ -135,4 +135,18 @@ class KalimantanLevelData {
     {'x': 4180, 'y': -130}, // Platform 13 (x:4100..4300, y:-70)
     {'x': 5040, 'y': -200}, // Platform 16 (x:4950..5170, y:-140)
   ];
+
+  // =========================================================================
+  // 🗡️ WEAPON DATA - KALIMANTAN
+  // =========================================================================
+  static final List<Map<String, String>> weapons = [
+    {
+      'id': 'mandau_kalimantan', // ✅ ID HARUS SAMA DENGAN WeaponData
+      'name': 'Mandau Dayak Suci',
+    },
+  ];
+
+  static final List<Map<String, double>> weaponSpawnPoints = [
+    {'x': 5200.0, 'y': -110.0}, // Tepat sebelum Boss Arena
+  ];
 }

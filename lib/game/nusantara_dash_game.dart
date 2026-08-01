@@ -2,16 +2,15 @@ import 'dart:ui';
 import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flame/input.dart'; // ✅ Dari kode temanmu
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flame/input.dart';
 
 import 'components/player/player.dart';
 import 'components/level_builder.dart';
 import 'components/controllers/analog_controller.dart';
 import 'components/controllers/arrow_controller.dart';
 
-// ✅ IMPORT DATA LEVEL PULAU
 import 'data/sumatra_level_data.dart';
 import 'data/jawa_level_data.dart';
 import 'data/kalimantan_level_data.dart';
@@ -23,8 +22,13 @@ import 'package:nusantara_dash/utils/audio_manager.dart';
 import 'package:nusantara_dash/game/data/museum_item_model.dart';
 import 'package:nusantara_dash/game/managers/museum_gameplay_bridge.dart';
 
+// ✅ IMPORT WEAPON SYSTEM (Dari kodemu)
+import 'package:nusantara_dash/game/features/weapons/weapon_manager.dart';
+import 'package:nusantara_dash/game/features/weapons/weapon_data.dart';
+
 class NusantaraDashGame extends FlameGame
     with KeyboardEvents, HasCollisionDetection {
+  // ✅ Gabungan mixin
   final String islandName;
   final VoidCallback onGameOver;
   final VoidCallback onLevelComplete;
@@ -32,23 +36,28 @@ class NusantaraDashGame extends FlameGame
   final VoidCallback onBossEncounter;
   final VoidCallback onPlayerDied;
   final void Function(CulturalItem item)? onCulturalItemUnlocked;
+  final void Function(String weaponId, String weaponName)?
+      onWeaponCollected; // ✅ Dari kodemu
 
   late Player player;
   late double groundY;
 
-  // 🔥 VARIABLE BARU UNTUK LEBAR DINAMIS
+  // 🔥 VARIABLE DYNAMIC WIDTH (Dari kode temanmu - Agar tidak ada garis hitam)
   late double dynamicWidth;
 
   int collectedCoins = 0;
   int totalWalletCoins = 0;
   int currentLives = 3;
 
+  // ✅ UI TEXTS (Dari kodemu)
+  late TextComponent coinText;
+  TextComponent? livesText;
+
   bool isLevelFinished = false;
   bool _hasEnteredBossZone = false;
   bool _hasDefeatedBoss = false;
 
-  // 🎯 TINGGI & ZOOM TETAP, LEBAR 1280 HANYA JADI PATOKAN AWAL
-  static const double virtualWidth = 1280;
+  static const double virtualWidth = 1280; // Tetap jadi patokan
   static const double virtualHeight = 720;
   static const double cameraZoom = 1.35;
 
@@ -60,15 +69,16 @@ class NusantaraDashGame extends FlameGame
     required this.onBossEncounter,
     required this.onPlayerDied,
     this.onCulturalItemUnlocked,
+    this.onWeaponCollected, // ✅ Dari kodemu
   });
 
   void updateLives(int lives) {
     currentLives = lives;
+    if (livesText != null) {
+      livesText!.text = '❤️ $currentLives';
+    }
   }
 
-  // ==========================================================
-  // 🧠 HELPER PINTAR: AMBIL PANJANG MAP DINAMIS PER PULAU
-  // ==========================================================
   double getLevelLength() {
     switch (islandName.toUpperCase()) {
       case 'JAWA':
@@ -84,7 +94,6 @@ class NusantaraDashGame extends FlameGame
     }
   }
 
-  // 🔥 Reset zona bos jika pemain kalah kuis
   void resetBossTrigger() {
     _hasEnteredBossZone = false;
     player.position.x = getLevelLength() - 600;
@@ -95,11 +104,11 @@ class NusantaraDashGame extends FlameGame
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // 🔥 MENGHITUNG RASIO LAYAR HP ASLI AGAR TIDAK ADA GARIS HITAM
+    // 🔥 MENGHITUNG RASIO LAYAR HP ASLI (Dari kode temanmu)
     final double screenRatio = size.x / size.y;
     dynamicWidth = virtualHeight * screenRatio;
 
-    // 🎯 VIEWPORT SEKARANG MEMAKAI LEBAR DINAMIS 100% LAYAR!
+    // 🎯 VIEWPORT MEMAKAI LEBAR DINAMIS
     camera.viewport = FixedResolutionViewport(
       resolution: Vector2(dynamicWidth, virtualHeight),
     );
@@ -116,6 +125,7 @@ class NusantaraDashGame extends FlameGame
     totalWalletCoins = await GamePrefs.getCoins();
     currentLives = await GamePrefs.getExtraLives();
     _hasDefeatedBoss = await GamePrefs.isBossDefeated(islandName);
+    updateLives(currentLives);
 
     player = Player(
       size: Vector2(64, 96),
@@ -124,7 +134,8 @@ class NusantaraDashGame extends FlameGame
         collectedCoins += 10;
         totalWalletCoins += 10;
         await GamePrefs.saveCoins(totalWalletCoins);
-        onCoinsUpdated(totalWalletCoins);
+        coinText.text = '🪙 $totalWalletCoins'; // ✅ Update UI
+        onCoinsUpdated(collectedCoins);
         AudioManager.instance.playSFX('sfx_coin.mp3');
       },
       onPlayerDied: () {
@@ -140,7 +151,9 @@ class NusantaraDashGame extends FlameGame
       ..priority = 100;
     world.add(player);
 
-    // 🏛️ LevelBuilder & Museum Integration
+    // ========================================================================
+    // LEVEL BUILDER (GABUNGAN: Museum + Weapon Anti-Freeze)
+    // ========================================================================
     world.add(LevelBuilder(
       groundY: groundY,
       islandName: islandName,
@@ -160,6 +173,114 @@ class NusantaraDashGame extends FlameGame
             });
           }
         });
+      },
+      // ✅ FITUR SENJATA ANTI-FREEZE PUNYAMU TETAP ADA DI SINI
+      onWeaponCollected: (weaponId, weaponName) async {
+        print("🔵 1. Senjata diambil: $weaponName");
+
+        pauseEngine();
+        await WeaponManager.addWeapon(weaponId);
+        print("🔵 2. Tersimpan ke database");
+
+        final weapon = WeaponData.getWeaponById(weaponId);
+        final isCombined = weapon?.isCombined ?? false;
+        final description = weapon?.description ??
+            'Senjata tradisional yang penuh kekuatan spiritual.';
+        final origin = weapon?.origin ?? islandName;
+
+        if (buildContext != null) {
+          await showDialog(
+            context: buildContext!,
+            barrierDismissible: false,
+            builder: (context) => Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A237E),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFFFFC107), width: 6),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isCombined
+                          ? '🏆 SENJATA LEGENDARIS DITEMUKAN!'
+                          : '🗡️ SENJATA SUCI DITEMUKAN!',
+                      style: const TextStyle(
+                          color: Color(0xFFFFC107),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'monospace'),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: const Color(0xFFFFC107), width: 2),
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Text('📍 $origin',
+                          style: const TextStyle(
+                              color: Color(0xFFFFC107),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'monospace')),
+                    ),
+                    const SizedBox(height: 24),
+                    Icon(isCombined ? Icons.star : Icons.shield,
+                        size: 80, color: const Color(0xFFFFC107)),
+                    const SizedBox(height: 16),
+                    Text(weaponName,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace'),
+                        textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    Text(description,
+                        style: const TextStyle(
+                            color: Color(0xFFE0E0E0),
+                            fontSize: 14,
+                            fontFamily: 'monospace',
+                            height: 1.4),
+                        textAlign: TextAlign.center),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFC107),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 16)),
+                        child: const Text('🏛️ LANJUTKAN',
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                fontFamily: 'monospace')),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+          print("🔵 3. Dialog ditutup, game dilanjutkan");
+          resumeEngine();
+        } else {
+          print("⚠️ Context tidak tersedia, resume langsung");
+          resumeEngine();
+        }
       },
     ));
 
@@ -184,6 +305,43 @@ class NusantaraDashGame extends FlameGame
       );
       camera.viewport.add(arrow);
     }
+
+    // ✅ UI TEXTS (Dari kodemu)
+    final islandText = TextComponent(
+      text: '🏝️ $islandName',
+      textRenderer: TextPaint(
+          style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              shadows: [Shadow(color: Colors.black, blurRadius: 4)])),
+      position: Vector2(20, 20),
+    );
+    camera.viewport.add(islandText);
+
+    coinText = TextComponent(
+      text: '🪙 $totalWalletCoins',
+      textRenderer: TextPaint(
+          style: const TextStyle(
+              color: Colors.amber,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              shadows: [Shadow(color: Colors.black, blurRadius: 4)])),
+      position: Vector2(20, 55),
+    );
+    camera.viewport.add(coinText);
+
+    livesText = TextComponent(
+      text: '❤️ $currentLives',
+      textRenderer: TextPaint(
+          style: const TextStyle(
+              color: Colors.redAccent,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              shadows: [Shadow(color: Colors.black, blurRadius: 4)])),
+      position: Vector2(20, 90),
+    );
+    camera.viewport.add(livesText!);
   }
 
   @override
@@ -201,7 +359,7 @@ class NusantaraDashGame extends FlameGame
           (targetY - camera.viewfinder.position.y) * 0.1,
     );
 
-    // 🎯 PERHITUNGAN KAMERA SEKARANG MEMAKAI DYNAMIC WIDTH
+    // 🎯 PERHITUNGAN KAMERA MEMAKAI DYNAMIC WIDTH (Dari kode temanmu)
     final double totalLength = getLevelLength();
     double visibleWorldWidth = dynamicWidth / cameraZoom;
     double minCamX = visibleWorldWidth / 2;
@@ -218,7 +376,7 @@ class NusantaraDashGame extends FlameGame
     if (player.position.x >= totalLength - 280 &&
         player.position.x < totalLength - 100 &&
         !_hasEnteredBossZone) {
-      print('🔥🔥 BOSS ZONE TRIGGERED! Posisi: ${player.position.x.toInt()}');
+      print('🔥 BOSS ZONE TRIGGERED! Posisi: ${player.position.x.toInt()}');
       _hasEnteredBossZone = true;
       pauseEngine();
       onBossEncounter();
@@ -235,21 +393,18 @@ class NusantaraDashGame extends FlameGame
       return;
     }
 
-    // ⛔ PRIORITAS 3: Player mencoba finish TANPA mengalahkan boss
+    // ⛔ PRIORITAS 3: Access Denied
     if (player.position.x >= totalLength - 50 &&
         !isLevelFinished &&
         !_hasDefeatedBoss) {
       print(
-        '⛔ ACCESS DENIED! Player di x=${player.position.x.toInt()} tapi boss belum dikalahkan!',
-      );
+          '⛔ ACCESS DENIED! Player di x=${player.position.x.toInt()} tapi boss belum dikalahkan!');
     }
   }
 
   @override
   KeyEventResult onKeyEvent(
-    KeyEvent event,
-    Set<LogicalKeyboardKey> keysPressed,
-  ) {
+      KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
       player.jump();
       AudioManager.instance.playSFX('sfx_jump.mp3');
@@ -268,8 +423,8 @@ class NusantaraDashGame extends FlameGame
         camera.backdrop.add(
           SpriteComponent(
             sprite: Sprite(img),
-            // 🔥 MERENTANGKAN BACKGROUND KE SELURUH LEBAR LAYAR HP!
-            size: Vector2(dynamicWidth, virtualHeight),
+            size: Vector2(dynamicWidth,
+                virtualHeight), // ✅ MERENTANGKAN BACKGROUND (Dari kode temanmu)
           ),
         );
         return;

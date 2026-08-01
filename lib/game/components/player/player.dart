@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import '../level_builder.dart';
 import 'package:nusantara_dash/game/components/items/hidden_cultural_item.dart';
 
+// ✅ IMPORT WEAPON SYSTEM (Dari kodemu)
+import 'package:nusantara_dash/game/features/weapons/weapon_item.dart';
+
 class Player extends SpriteAnimationComponent
     with HasGameRef, CollisionCallbacks {
   final double groundY;
@@ -26,8 +29,12 @@ class Player extends SpriteAnimationComponent
   // ✅ GOD MODE SWITCH - MATIKAN SAAT TESTING, NYALAKAN SAAT MAIN NORMAL
   // Set true = Player TIDAK BISA MATI (obstacle & jurang aman)
   // Set false = Player BISA MATI (mode normal)
+<<<<<<< HEAD
   static const bool godMode =
       false; // 🔥 UBAH INI: true = invincible, false = bisa mati
+=======
+  static const bool godMode = true;
+>>>>>>> a4900a1dcfb87deab7610a9fa1611b4846b51b38
 
   late Vector2 _checkpointPosition;
 
@@ -142,6 +149,7 @@ class Player extends SpriteAnimationComponent
     super.onCollision(points, other);
     if (isDead) return;
 
+    // 1. Cek Koin
     if (other is CoinItem) {
       if (!other.isCollected) {
         other.isCollected = true;
@@ -151,10 +159,7 @@ class Player extends SpriteAnimationComponent
       return;
     }
 
-    // 🏛️ SPRINT 6.4: Hidden Cultural Item pickup
-    // Pola identik dengan CoinItem: guard isCollected + delegate ke whenCollected().
-    // Player tidak mengetahui Museum, GamePrefs, maupun Audio —
-    // semua side effect diatur oleh callback chain (HCI → LevelBuilder → NusantaraDashGame).
+    // 2. Cek Hidden Cultural Item
     if (other is HiddenCulturalItemComponent) {
       if (!other.isCollected) {
         other.whenCollected();
@@ -162,7 +167,15 @@ class Player extends SpriteAnimationComponent
       return;
     }
 
-    // ✅ CEK OBSTACLE MEMATIKAN - Bisa dimatikan dengan godMode
+    // 3. 🗡️ Cek Senjata (FITUR KAMU)
+    if (other is WeaponItem) {
+      if (!other.isCollected) {
+        other.collect(); // Ini akan memicu callback onCollected di WeaponItem
+      }
+      return;
+    }
+
+    // 4. Cek Rintangan Mematikan
     if (other is RedObstacle) {
       if (!godMode) {
         die(); // Mati kalau nabrak obstacle
@@ -172,6 +185,7 @@ class Player extends SpriteAnimationComponent
       return;
     }
 
+    // 5. Cek Platform (Tanah)
     if (other is GroundPlatform) {
       double playerBottom = position.y + size.y;
       double bodyLeft = position.x + 18;

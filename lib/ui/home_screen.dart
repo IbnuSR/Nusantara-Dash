@@ -29,18 +29,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _initAnimations();
     _playBGM();
-    _checkFirstLaunchTutorial();
-  }
-
-  Future<void> _checkFirstLaunchTutorial() async {
-    final isCompleted = await GamePrefs.isTutorialCompleted();
-    if (!isCompleted && mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _handleOpenTutorial();
-        }
-      });
-    }
   }
 
   void _initAnimations() {

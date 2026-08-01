@@ -2,15 +2,16 @@ import 'dart:ui';
 import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
-import 'package:flame/input.dart'; // ✅ Dari kode temanmu
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flame/input.dart';
 
 import 'components/player/player.dart';
 import 'components/level_builder.dart';
 import 'components/controllers/analog_controller.dart';
 import 'components/controllers/arrow_controller.dart';
 
+// ✅ IMPORT DATA LEVEL PULAU
 import 'data/sumatra_level_data.dart';
 import 'data/jawa_level_data.dart';
 import 'data/kalimantan_level_data.dart';
@@ -22,13 +23,12 @@ import 'package:nusantara_dash/utils/audio_manager.dart';
 import 'package:nusantara_dash/game/data/museum_item_model.dart';
 import 'package:nusantara_dash/game/managers/museum_gameplay_bridge.dart';
 
-// ✅ IMPORT WEAPON SYSTEM (Dari kodemu)
+// ✅ IMPORT WEAPON SYSTEM
 import 'package:nusantara_dash/game/features/weapons/weapon_manager.dart';
 import 'package:nusantara_dash/game/features/weapons/weapon_data.dart';
 
 class NusantaraDashGame extends FlameGame
     with KeyboardEvents, HasCollisionDetection {
-  // ✅ Gabungan mixin
   final String islandName;
   final VoidCallback onGameOver;
   final VoidCallback onLevelComplete;
@@ -36,28 +36,22 @@ class NusantaraDashGame extends FlameGame
   final VoidCallback onBossEncounter;
   final VoidCallback onPlayerDied;
   final void Function(CulturalItem item)? onCulturalItemUnlocked;
-  final void Function(String weaponId, String weaponName)?
-      onWeaponCollected; // ✅ Dari kodemu
+  final void Function(String weaponId, String weaponName)? onWeaponCollected;
 
   late Player player;
   late double groundY;
 
-  // 🔥 VARIABLE DYNAMIC WIDTH (Dari kode temanmu - Agar tidak ada garis hitam)
   late double dynamicWidth;
 
   int collectedCoins = 0;
   int totalWalletCoins = 0;
   int currentLives = 3;
 
-  // ✅ UI TEXTS (Dari kodemu)
-  late TextComponent coinText;
-  TextComponent? livesText;
-
   bool isLevelFinished = false;
   bool _hasEnteredBossZone = false;
   bool _hasDefeatedBoss = false;
 
-  static const double virtualWidth = 1280; // Tetap jadi patokan
+  static const double virtualWidth = 1280;
   static const double virtualHeight = 720;
   static const double cameraZoom = 1.35;
 
@@ -69,14 +63,11 @@ class NusantaraDashGame extends FlameGame
     required this.onBossEncounter,
     required this.onPlayerDied,
     this.onCulturalItemUnlocked,
-    this.onWeaponCollected, // ✅ Dari kodemu
+    this.onWeaponCollected,
   });
 
   void updateLives(int lives) {
     currentLives = lives;
-    if (livesText != null) {
-      livesText!.text = '❤️ $currentLives';
-    }
   }
 
   double getLevelLength() {
@@ -104,11 +95,9 @@ class NusantaraDashGame extends FlameGame
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // 🔥 MENGHITUNG RASIO LAYAR HP ASLI (Dari kode temanmu)
     final double screenRatio = size.x / size.y;
     dynamicWidth = virtualHeight * screenRatio;
 
-    // 🎯 VIEWPORT MEMAKAI LEBAR DINAMIS
     camera.viewport = FixedResolutionViewport(
       resolution: Vector2(dynamicWidth, virtualHeight),
     );
@@ -134,8 +123,7 @@ class NusantaraDashGame extends FlameGame
         collectedCoins += 10;
         totalWalletCoins += 10;
         await GamePrefs.saveCoins(totalWalletCoins);
-        coinText.text = '🪙 $totalWalletCoins'; // ✅ Update UI
-        onCoinsUpdated(collectedCoins);
+        onCoinsUpdated(totalWalletCoins); // 🪙 Update koin ke GameScreen
         AudioManager.instance.playSFX('sfx_coin.mp3');
       },
       onPlayerDied: () {
@@ -151,9 +139,6 @@ class NusantaraDashGame extends FlameGame
       ..priority = 100;
     world.add(player);
 
-    // ========================================================================
-    // LEVEL BUILDER (GABUNGAN: Museum + Weapon Anti-Freeze)
-    // ========================================================================
     world.add(LevelBuilder(
       groundY: groundY,
       islandName: islandName,
@@ -174,7 +159,6 @@ class NusantaraDashGame extends FlameGame
           }
         });
       },
-      // ✅ FITUR SENJATA ANTI-FREEZE PUNYAMU TETAP ADA DI SINI
       onWeaponCollected: (weaponId, weaponName) async {
         print("🔵 1. Senjata diambil: $weaponName");
 
@@ -306,42 +290,8 @@ class NusantaraDashGame extends FlameGame
       camera.viewport.add(arrow);
     }
 
-    // ✅ UI TEXTS (Dari kodemu)
-    final islandText = TextComponent(
-      text: '🏝️ $islandName',
-      textRenderer: TextPaint(
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              shadows: [Shadow(color: Colors.black, blurRadius: 4)])),
-      position: Vector2(20, 20),
-    );
-    camera.viewport.add(islandText);
-
-    coinText = TextComponent(
-      text: '🪙 $totalWalletCoins',
-      textRenderer: TextPaint(
-          style: const TextStyle(
-              color: Colors.amber,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              shadows: [Shadow(color: Colors.black, blurRadius: 4)])),
-      position: Vector2(20, 55),
-    );
-    camera.viewport.add(coinText);
-
-    livesText = TextComponent(
-      text: '❤️ $currentLives',
-      textRenderer: TextPaint(
-          style: const TextStyle(
-              color: Colors.redAccent,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              shadows: [Shadow(color: Colors.black, blurRadius: 4)])),
-      position: Vector2(20, 90),
-    );
-    camera.viewport.add(livesText!);
+    // ❌ TEKS HUD LAMA (islandText, coinText, livesText) DIHAPUS DARI SINI
+    // AGAR TIDAK BENTROK DENGAN UI FLUTTER DI GABUNGAN GAMETEAM/GAMESCREEN.
   }
 
   @override
@@ -359,7 +309,6 @@ class NusantaraDashGame extends FlameGame
           (targetY - camera.viewfinder.position.y) * 0.1,
     );
 
-    // 🎯 PERHITUNGAN KAMERA MEMAKAI DYNAMIC WIDTH (Dari kode temanmu)
     final double totalLength = getLevelLength();
     double visibleWorldWidth = dynamicWidth / cameraZoom;
     double minCamX = visibleWorldWidth / 2;
@@ -423,8 +372,7 @@ class NusantaraDashGame extends FlameGame
         camera.backdrop.add(
           SpriteComponent(
             sprite: Sprite(img),
-            size: Vector2(dynamicWidth,
-                virtualHeight), // ✅ MERENTANGKAN BACKGROUND (Dari kode temanmu)
+            size: Vector2(dynamicWidth, virtualHeight),
           ),
         );
         return;

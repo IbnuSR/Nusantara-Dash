@@ -411,44 +411,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    island['description'] as String,
-                    style: GoogleFonts.pressStart2p(
-                      fontSize: 9,
-                      color: isUnlocked ? Colors.white : Colors.grey[500],
-                      height: 1.8,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                          child: _buildInfoItem(
-                              'BOSS', island['boss'] as String, isUnlocked)),
-                      Container(
-                          width: 2,
-                          height: 30,
-                          color: isUnlocked
-                              ? Colors.amber.withOpacity(0.5)
-                              : Colors.grey[800]),
-                      Expanded(
-                          child: _buildInfoItem('SENJATA',
-                              island['weapon'] as String, isUnlocked)),
-                    ],
-                  ),
-                  const SizedBox(height: 35),
+                  const SizedBox(height: 20),
+
+                  // 🚀 TOMBOL PINDAH KE SINI (DIBAWAH JUDUL & SUBTITLE)
                   if (isUnlocked)
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(context); // Tutup modal detail
 
-                        // 🔥 INI DIA KUNCINYA: Pasang sensor .then() !
-                        // Begitu kamu klik "Kembali ke Peta" dari layar kuis/game over,
-                        // kode di dalam .then() ini akan otomatis dijalankan untuk me-refresh layar peta!
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -512,6 +482,36 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
+
+                  const SizedBox(height: 20),
+                  Text(
+                    island['description'] as String,
+                    style: GoogleFonts.pressStart2p(
+                      fontSize: 9,
+                      color: isUnlocked ? Colors.white : Colors.grey[500],
+                      height: 1.8,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                          child: _buildInfoItem(
+                              'BOSS', island['boss'] as String, isUnlocked)),
+                      Container(
+                          width: 2,
+                          height: 30,
+                          color: isUnlocked
+                              ? Colors.amber.withOpacity(0.5)
+                              : Colors.grey[800]),
+                      Expanded(
+                          child: _buildInfoItem('SENJATA',
+                              island['weapon'] as String, isUnlocked)),
+                    ],
+                  ),
                 ],
               ),
             ),

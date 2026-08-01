@@ -10,8 +10,13 @@ import 'package:nusantara_dash/game/data/jawa_level_data.dart';
 import 'package:nusantara_dash/game/data/kalimantan_level_data.dart';
 import 'package:nusantara_dash/game/data/sulawesi_level_data.dart';
 import 'package:nusantara_dash/game/data/papua_level_data.dart';
+
 // 🏛️ SPRINT 6.3: Hidden Cultural Item
 import 'package:nusantara_dash/game/components/items/hidden_cultural_item.dart';
+
+// 🗡️ WEAPON SYSTEM IMPORTS (Punya Kita)
+import 'package:nusantara_dash/game/features/weapons/weapon_item.dart';
+import 'package:nusantara_dash/game/components/player/player.dart'; // Diperlukan untuk collision placeholder
 
 class GroundPlatform extends SpriteComponent {
   GroundPlatform({super.sprite, super.position, super.size, super.anchor});
@@ -21,9 +26,10 @@ class RedObstacle extends SpriteComponent {
   RedObstacle({super.sprite, super.position, super.size, super.anchor});
 }
 
-// 🔥 UBAH: Dari CircleComponent menjadi SpriteComponent agar bisa pakai gambar coin.png
+// 🔥 GABUNGAN: Pakai SpriteComponent (versi teman) TAPI tetap simpan isCollected (versi kita)
 class CoinItem extends SpriteComponent with HasGameRef {
-  bool isCollected = false;
+  bool isCollected =
+      false; // ✅ WAJIB ADA agar player.dart bisa mendeteksi pengambilan
 
   CoinItem({super.position, super.size, super.anchor});
 
@@ -41,19 +47,21 @@ class CoinItem extends SpriteComponent with HasGameRef {
 
 class LevelBuilder extends PositionComponent with HasGameRef {
   final double groundY;
-  final String islandName; // ✅ 2. TAMBAHKAN PARAMETER NAMA PULAU
+  final String islandName;
 
-  // 🏛️ SPRINT 6.3: Callback yang dipanggil saat Hidden Cultural Item diambil.
+  // 🏛️ SPRINT 6.3: Callback Cultural Item
   final void Function(String provinceId)? onCulturalItemFound;
 
-  // Efek gaya gravitasi menekan rumput
+  // 🗡️ WEAPON SYSTEM: Callback Senjata (Punya Kita)
+  final void Function(String weaponId, String weaponName)? onWeaponCollected;
+
   static const double obstacleSinkOffset = 8.0;
 
-  // ✅ Wajib menerima islandName saat dipanggil di NusantaraDashGame
   LevelBuilder({
     required this.groundY,
     required this.islandName,
-    this.onCulturalItemFound, // opsional — null-safe
+    this.onCulturalItemFound,
+    this.onWeaponCollected, // ✅ Ditambahkan
   });
 
   Future<Image> _safeLoad(String fileName) async {
@@ -65,7 +73,7 @@ class LevelBuilder extends PositionComponent with HasGameRef {
   }
 
   // ==========================================
-  // 🧠 3. FUNGSI HELPER PINTAR (PEMILIH DATA)
+  // 🧠 FUNGSI HELPER PINTAR (PEMILIH DATA)
   // ==========================================
   List<Map<String, double>> _getPlatforms() {
     switch (islandName.toUpperCase()) {
@@ -150,13 +158,13 @@ class LevelBuilder extends PositionComponent with HasGameRef {
 
     _spawnGroundAndPlatforms(t1Sprite, t2Sprite, t3Sprite);
     _spawnObstacles(kayuSprite, batuSprite, oyotSprite);
-    _spawnCoins();
-    _spawnHiddenCulturalItem(); // 🏛️ SPRINT 6.3
+    _spawnCoins(); // ✅ Menggunakan versi teman (Sprite)
+    _spawnHiddenCulturalItem();
+    _spawnWeapons(); // ✅ FITUR KITA: Spawn Senjata
     _spawnBossMarker();
   }
 
   void _spawnGroundAndPlatforms(Sprite g1, Sprite g2, Sprite g3) {
-    // ✅ 4. GANTI SumatraLevelData DENGAN _getPlatforms()
     for (final p in _getPlatforms()) {
       double targetWidth = p['w']!;
       double targetHeight = p['h']!;
@@ -177,7 +185,6 @@ class LevelBuilder extends PositionComponent with HasGameRef {
         anchor: Anchor.topLeft,
       );
 
-      // 🔥 OPTIMASI HP KENTANG: Jadikan Passive! Tanah tidak usah cek tabrakan sesama tanah.
       platform.add(RectangleHitbox(collisionType: CollisionType.passive));
       add(platform);
     }
@@ -185,7 +192,6 @@ class LevelBuilder extends PositionComponent with HasGameRef {
 
   void _spawnObstacles(Sprite kayu, Sprite batu, Sprite oyot) {
     int urutan = 0;
-    // ✅ 5. GANTI SumatraLevelData DENGAN _getObstacles()
     for (final o in _getObstacles()) {
       Sprite spriteTerpilih;
       double patokanTinggi = o['h']!;
@@ -209,20 +215,18 @@ class LevelBuilder extends PositionComponent with HasGameRef {
         anchor: Anchor.topLeft,
       );
 
-      // 🔥 OPTIMASI HP KENTANG: Rintangan diam saja menunggu ditabrak pemain.
       obstacle.add(RectangleHitbox(collisionType: CollisionType.passive));
       add(obstacle);
       urutan++;
     }
   }
 
+  // ✅ MENGGUNAKAN VERSI TEMAN (LEBIH BAGUS VISUALNYA)
   void _spawnCoins() {
-    // ✅ 6. GANTI SumatraLevelData DENGAN _getCoins()
     for (final c in _getCoins()) {
       final coin = CoinItem(
         position: Vector2(c['x']!, groundY + c['y']!),
-        // 🔥 UBAH: Gunakan size pengganti radius (14 radius = 28x28 diameter)
-        size: Vector2(28, 28),
+        size: Vector2(28, 28), // Sesuai dengan radius 14 sebelumnya
         anchor: Anchor.center,
       );
       add(coin);
@@ -232,7 +236,6 @@ class LevelBuilder extends PositionComponent with HasGameRef {
   // =========================================================================
   // 🏛️ SPRINT 6.3: Hidden Cultural Item Spawning
   // =========================================================================
-
   List<Map<String, double>>? _getCandidatesForIsland() {
     switch (islandName.toUpperCase()) {
       case 'SUMATRA':
@@ -275,9 +278,9 @@ class LevelBuilder extends PositionComponent with HasGameRef {
     if (itemIds == null || itemIds.isEmpty) return;
 
     final List<String> shuffledItemIds = List<String>.from(itemIds)..shuffle();
-
     final List<Map<String, double>> availableSpawns =
         List<Map<String, double>>.from(candidates)..shuffle();
+
     final int spawnCount = min(shuffledItemIds.length, availableSpawns.length);
     final List<Map<String, double>> chosenSpawns = availableSpawns
         .take(spawnCount)
@@ -287,11 +290,7 @@ class LevelBuilder extends PositionComponent with HasGameRef {
     for (int i = 0; i < spawnCount; i++) {
       final Map<String, double> spawn = chosenSpawns[i];
       final String itemId = shuffledItemIds[i];
-
-      final Vector2 spawnPosition = Vector2(
-        spawn['x']!,
-        groundY + spawn['y']!,
-      );
+      final Vector2 spawnPosition = Vector2(spawn['x']!, groundY + spawn['y']!);
 
       add(
         HiddenCulturalItemComponent(
@@ -302,18 +301,106 @@ class LevelBuilder extends PositionComponent with HasGameRef {
               : null,
         ),
       );
+    }
+  }
 
+  // =========================================================================
+  // 🗡️ WEAPON SYSTEM (PUNYA KITA - DITAMBAHKAN KE KODE TEMAN)
+  // =========================================================================
+  List<Map<String, double>>? _getWeaponSpawnPoints() {
+    switch (islandName.toUpperCase()) {
+      case 'SUMATRA':
+        return SumatraLevelData.weaponSpawnPoints;
+      case 'JAWA':
+        return JawaLevelData.weaponSpawnPoints;
+      case 'KALIMANTAN':
+        return KalimantanLevelData.weaponSpawnPoints;
+      case 'SULAWESI':
+        return SulawesiLevelData.weaponSpawnPoints;
+      case 'PAPUA':
+        return PapuaLevelData.weaponSpawnPoints;
+      default:
+        return null;
+    }
+  }
+
+  List<Map<String, String>>? _getWeaponsForIsland() {
+    switch (islandName.toUpperCase()) {
+      case 'SUMATRA':
+        return SumatraLevelData.weapons;
+      case 'JAWA':
+        return JawaLevelData.weapons;
+      case 'KALIMANTAN':
+        return KalimantanLevelData.weapons;
+      case 'SULAWESI':
+        return SulawesiLevelData.weapons;
+      case 'PAPUA':
+        return PapuaLevelData.weapons;
+      default:
+        return null;
+    }
+  }
+
+  void _spawnWeapons() async {
+    final weaponSpawns = _getWeaponSpawnPoints();
+    final weapons = _getWeaponsForIsland();
+
+    if (weaponSpawns == null || weapons == null) return;
+    if (weaponSpawns.isEmpty || weapons.isEmpty) return;
+
+    Sprite? weaponSprite;
+    try {
+      final img = await _safeLoad('weapon_generic');
+      weaponSprite = Sprite(img);
+    } catch (e) {
       debugPrint(
-        '🏛️ Safe Spawn Mystery Collectible #${i + 1}/$spawnCount: '
-        'itemId=$itemId at (${spawnPosition.x}, ${spawnPosition.y})',
-      );
+          '⚠️ Sprite weapon_generic tidak ditemukan, pakai placeholder!');
+    }
+
+    for (int i = 0; i < weapons.length && i < weaponSpawns.length; i++) {
+      final weaponData = weapons[i];
+      final spawnPoint = weaponSpawns[i];
+      final weaponId = weaponData['id']!;
+      final weaponName = weaponData['name']!;
+      final spawnPosition =
+          Vector2(spawnPoint['x']!, groundY + spawnPoint['y']!);
+
+      if (weaponSprite != null) {
+        add(
+          WeaponItem(
+            weaponId: weaponId,
+            weaponName: weaponName,
+            islandOrigin: islandName,
+            sprite: weaponSprite,
+            position: spawnPosition,
+            onCollected: () {
+              onWeaponCollected?.call(weaponId, weaponName);
+              debugPrint(
+                  '🗡️ Weapon collected: $weaponName ($weaponId) from $islandName');
+            },
+          ),
+        );
+      } else {
+        add(
+          _WeaponPlaceholder(
+            weaponId: weaponId,
+            weaponName: weaponName,
+            islandOrigin: islandName,
+            position: spawnPosition,
+            onCollected: () {
+              onWeaponCollected?.call(weaponId, weaponName);
+              debugPrint(
+                  '🗡️ Weapon collected (placeholder): $weaponName ($weaponId) from $islandName');
+            },
+          ),
+        );
+      }
     }
   }
 
   // =========================================================================
 
   void _spawnBossMarker() {
-    // ✅ 7. GANTI SumatraLevelData DENGAN _getLevelLength()
     final double totalLength = _getLevelLength();
 
     add(
@@ -338,5 +425,83 @@ class LevelBuilder extends PositionComponent with HasGameRef {
         position: Vector2(totalLength - 200, groundY - 200),
       ),
     );
+  }
+}
+
+// =========================================================================
+// 🗡️ WEAPON PLACEHOLDER (PUNYA KITA - TETAP DIPERTAHANKAN)
+// =========================================================================
+class _WeaponPlaceholder extends PositionComponent
+    with HasGameRef, CollisionCallbacks {
+  final String weaponId;
+  final String weaponName;
+  final String islandOrigin;
+  bool isCollected = false;
+  final VoidCallback? onCollected;
+  double _glowPhase = 0;
+
+  _WeaponPlaceholder({
+    required this.weaponId,
+    required this.weaponName,
+    required this.islandOrigin,
+    required Vector2 position,
+    this.onCollected,
+  }) : super(position: position, size: Vector2(48, 48), anchor: Anchor.center);
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    add(RectangleHitbox(
+        size: Vector2(40, 40),
+        position: Vector2(4, 4),
+        collisionType: CollisionType.passive));
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _glowPhase += dt * 3;
+    position.y += sin(_glowPhase) * 0.3;
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final paint = Paint()
+      ..color = Colors.amber.withOpacity(0.8 + sin(_glowPhase) * 0.2)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(0, 0, size.x, size.y), const Radius.circular(8)),
+        paint);
+
+    final borderPaint = Paint()
+      ..color = Colors.orange
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(0, 0, size.x, size.y), const Radius.circular(8)),
+        borderPaint);
+
+    final textPainter = TextPainter(
+        text: const TextSpan(text: '⚔️', style: TextStyle(fontSize: 24)),
+        textDirection: TextDirection.ltr);
+    textPainter.layout();
+    textPainter.paint(
+        canvas,
+        Offset((size.x - textPainter.width) / 2,
+            (size.y - textPainter.height) / 2));
+  }
+
+  @override
+  void onCollision(Set<Vector2> points, PositionComponent other) {
+    super.onCollision(points, other);
+    if (isCollected) return;
+
+    if (other is Player) {
+      isCollected = true;
+      onCollected?.call();
+      removeFromParent();
+    }
   }
 }

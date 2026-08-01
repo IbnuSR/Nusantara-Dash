@@ -110,4 +110,18 @@ class SulawesiLevelData {
     {'x': 4230, 'y': -110}, // Platform 13 (x:4150..4350, y:-50)
     {'x': 5080, 'y': -190}, // Platform 16 (x:5000..5200, y:-130)
   ];
+
+  // =========================================================================
+  // 🗡️ WEAPON DATA - SULAWESI
+  // =========================================================================
+  static final List<Map<String, String>> weapons = [
+    {
+      'id': 'badik_sulawesi', // ✅ ID HARUS SAMA DENGAN WeaponData
+      'name': 'Badik Bugis Suci',
+    },
+  ];
+
+  static final List<Map<String, double>> weaponSpawnPoints = [
+    {'x': 5250.0, 'y': -100.0}, // Tepat sebelum Boss Arena
+  ];
 }

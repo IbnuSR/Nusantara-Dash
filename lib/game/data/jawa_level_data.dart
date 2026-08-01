@@ -34,11 +34,36 @@ class JawaLevelData {
 
   // ✅ PERBAIKAN: 5 Rintangan diletakkan di TENGAH platform panjang
   static final List<Map<String, double>> obstacles = [
-    {'x': 320, 'y': -40, 'w': 40, 'h': 40}, // Wilayah 1: Pas di tengah platform awal
-    {'x': 1450, 'y': -40, 'w': 40, 'h': 40}, // Wilayah 2: Pas di tengah jalan datar
-    {'x': 2750, 'y': -40, 'w': 40, 'h': 40}, // Wilayah 3: Di tengah platform ke-3
-    {'x': 4780, 'y': -100, 'w': 40, 'h': 40}, // Wilayah 4: Di tengah platform dataran tinggi
-    {'x': 5330, 'y': -100, 'w': 40, 'h': 40}, // Wilayah 5: Rintangan terakhir sebelum bos
+    {
+      'x': 320,
+      'y': -40,
+      'w': 40,
+      'h': 40
+    }, // Wilayah 1: Pas di tengah platform awal
+    {
+      'x': 1450,
+      'y': -40,
+      'w': 40,
+      'h': 40
+    }, // Wilayah 2: Pas di tengah jalan datar
+    {
+      'x': 2750,
+      'y': -40,
+      'w': 40,
+      'h': 40
+    }, // Wilayah 3: Di tengah platform ke-3
+    {
+      'x': 4780,
+      'y': -100,
+      'w': 40,
+      'h': 40
+    }, // Wilayah 4: Di tengah platform dataran tinggi
+    {
+      'x': 5330,
+      'y': -100,
+      'w': 40,
+      'h': 40
+    }, // Wilayah 5: Rintangan terakhir sebelum bos
   ];
 
   // ✅ KOIN MELIMPAH: Membentuk lengkungan di atas setiap lompatan
@@ -70,7 +95,7 @@ class JawaLevelData {
   ];
 
   // ======================================================================
-  // 🏛️ HIDDEN CULTURAL ITEM — All 8 Jawa Items & Safe Spawn Points
+  // ️ HIDDEN CULTURAL ITEM — All 8 Jawa Items & Safe Spawn Points
   // ======================================================================
 
   /// 8 Item Budaya Baku Pulau Jawa (1 Item per Provinsi/Wilayah)
@@ -109,5 +134,19 @@ class JawaLevelData {
     // 🔴 Section 4
     {'x': 4235, 'y': -120}, // Platform 13 (x:4150..4350, y:-60)
     {'x': 5080, 'y': -200}, // Platform 16 (x:5000..5200, y:-140)
+  ];
+
+  // =========================================================================
+  // 🗡️ WEAPON DATA - JAWA
+  // =========================================================================
+  static final List<Map<String, String>> weapons = [
+    {
+      'id': 'keris_jawa', // ✅ ID HARUS SAMA DENGAN WeaponData
+      'name': 'Keris Mpu Gandring',
+    },
+  ];
+
+  static final List<Map<String, double>> weaponSpawnPoints = [
+    {'x': 5300.0, 'y': -110.0}, // Tepat sebelum Boss Arena
   ];
 }

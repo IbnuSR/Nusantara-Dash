@@ -110,4 +110,23 @@ class PapuaLevelData {
     {'x': 4180, 'y': -120}, // Platform 13 (x:4100..4300, y:-60)
     {'x': 5030, 'y': -200}, // Platform 16 (x:4950..5150, y:-140)
   ];
+
+  // =========================================================================
+  // 🗡️ WEAPON DATA - PAPUA + SENJATA GABUNGAN
+  // =========================================================================
+  static final List<Map<String, String>> weapons = [
+    {
+      'id': 'belati_papua', // ✅ ID HARUS SAMA DENGAN WeaponData
+      'name': 'Belati Asmat Suci',
+    },
+    {
+      'id': 'nusantara_blade', // ✅ SENJATA GABUNGAN (di Boss Arena)
+      'name': 'Nusantara Blade',
+    },
+  ];
+
+  static final List<Map<String, double>> weaponSpawnPoints = [
+    {'x': 5250.0, 'y': -110.0}, // Belati Asmat (Sebelum Boss)
+    {'x': 5800.0, 'y': -160.0}, // Nusantara Blade (Di tengah Boss Arena)
+  ];
 }

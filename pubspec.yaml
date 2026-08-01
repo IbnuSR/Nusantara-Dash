@@ -92,6 +92,7 @@ flutter:
     - assets/images/items/papua/papsel/
     - assets/images/items/papua/papteng/
     - assets/images/items/papua/papua/
+    - assets/images/weapons/
     
     # Data Files
     - assets/data/

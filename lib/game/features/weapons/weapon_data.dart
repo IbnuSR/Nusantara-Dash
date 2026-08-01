@@ -11,9 +11,8 @@ class WeaponData {
           'Senjata tradisional Aceh yang dianggap suci dan memiliki kekuatan spiritual tinggi. Bentuknya melengkung seperti huruf Bismillah.',
       history:
           'Rencong telah digunakan sejak zaman Kesultanan Aceh Darussalam (abad ke-13). Senjata ini menjadi simbol perlawanan terhadap penjajah Portugis dan Belanda.',
-      iconPath: 'assets/images/weapons/rencong.png', // ✅ Polosan (In-Game)
-      menuIconPath:
-          'assets/images/weapons/rencong_bg.png', // ✅ Ada Background (Menu)
+      imagePath: 'assets/images/weapons/rencong.png',
+      backgroundImage: 'assets/images/weapons/rencong_bg.png',
       damage: 50,
       price: 1000,
       isLocked: true,
@@ -30,8 +29,8 @@ class WeaponData {
           'Keris legendaris dengan bilah bergelombang (luk) yang dipercaya memiliki kekuatan supranatural.',
       history:
           'Keris Mpu Gandring berasal dari legenda Kerajaan Singhasari (abad ke-13). Dibuat oleh Empu Gandring, keris ini terkenal karena kutukannya.',
-      iconPath: 'assets/images/weapons/keris.png',
-      menuIconPath: 'assets/images/weapons/keris_bg.png',
+      imagePath: 'assets/images/weapons/keris.png',
+      backgroundImage: 'assets/images/weapons/keris_bg.png',
       damage: 55,
       price: 1200,
       isLocked: true,
@@ -48,8 +47,8 @@ class WeaponData {
           'Pedang tradisional suku Dayak dengan ukiran rumit yang melambangkan hubungan dengan roh leluhur dan alam.',
       history:
           'Mandau adalah senjata sakral suku Dayak di Kalimantan yang telah ada sejak ribuan tahun lalu. Dibuat dari besi meteorit.',
-      iconPath: 'assets/images/weapons/mandau.png',
-      menuIconPath: 'assets/images/weapons/mandau_bg.png',
+      imagePath: 'assets/images/weapons/mandau.png',
+      backgroundImage: 'assets/images/weapons/mandau_bg.png',
       damage: 52,
       price: 1100,
       isLocked: true,
@@ -66,8 +65,8 @@ class WeaponData {
           'Senjata tradisional Sulawesi Selatan dengan bentuk asimetris yang unik. Dipercaya melindungi dari roh jahat.',
       history:
           'Badik berasal dari Kerajaan Bugis dan Makassar. Dianggap sebagai "saudara" yang melindungi pemakainya dari bahaya.',
-      iconPath: 'assets/images/weapons/badik.png',
-      menuIconPath: 'assets/images/weapons/badik_bg.png',
+      imagePath: 'assets/images/weapons/badik.png',
+      backgroundImage: 'assets/images/weapons/badik_bg.png',
       damage: 48,
       price: 1050,
       isLocked: true,
@@ -76,16 +75,16 @@ class WeaponData {
       isSacred: true,
     ),
 
-    // 5. PAPUA - Belati Asmat
+    // 5. PAPUA - Busur Kasuari / Belati Asmat
     Weapon(
       id: 'belati_papua',
-      name: 'Belati Asmat Suci',
+      name: 'Busur Kasuari Suci',
       description:
-          'Pisau tradisional suku Asmat dari Papua yang terbuat dari tulang kasuari. Dihiasi ukiran leluhur.',
+          'Senjata tradisional Papua yang terbuat dari kayu pilihan dan benang tulang kasuari. Dihiasi ukiran leluhur Asmat.',
       history:
-          'Terbuat dari tulang kaki burung kasuari yang tajam. Simbol kedewasaan dan keberanian pria Asmat.',
-      iconPath: 'assets/images/weapons/belati.png',
-      menuIconPath: 'assets/images/weapons/belati_bg.png',
+          'Terbuat dari bahan alam Papua yang sakral. Simbol kedewasaan, keahlian berburu, dan keberanian suku Asmat.',
+      imagePath: 'assets/images/weapons/busur_kasuari.png',
+      backgroundImage: 'assets/images/weapons/belati_bg.png',
       damage: 50,
       price: 1000,
       isLocked: true,
@@ -102,8 +101,8 @@ class WeaponData {
           'Senjata legendaris yang menggabungkan kekuatan spiritual dari 5 senjata suci Nusantara.',
       history:
           'Hanya muncul ketika seorang pejuang telah membuktikan keberanian dengan menguasai 5 senjata suci dari 5 pulau utama.',
-      iconPath: 'assets/images/weapons/nusantara_blade.png',
-      menuIconPath: 'assets/images/weapons/nusantara_blade_bg.png',
+      imagePath: 'assets/images/weapons/keris.png',
+      backgroundImage: 'assets/images/weapons/keris_bg.png',
       damage: 100,
       price: 0,
       isLocked: true,

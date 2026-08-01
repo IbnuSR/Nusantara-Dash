@@ -164,30 +164,49 @@ class _WeaponScreenState extends State<WeaponScreen> {
         ),
         child: Column(
           children: [
-            // ✅ AREA GAMBAR SENJATA (DIPERBARUI)
+            // ✅ AREA GAMBAR SENJATA DENGAN BACKGROUND CARD & POLASAN WEAPON IMAGE
             Expanded(
               child: Container(
                 margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: rarityColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
                 child: isOwned
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          weapon
-                              .menuIconPath, // ✅ MENAMPILKAN GAMBAR DENGAN BACKGROUND
-                          fit: BoxFit
-                              .contain, // ✅ Agar seluruh gambar terlihat proporsional
-                          errorBuilder: (context, error, stackTrace) {
-                            // Fallback ke icon jika gambar background belum ada/salah path
-                            return Icon(
-                              _getWeaponIcon(weapon.id),
-                              size: 50,
-                              color: rarityColor,
-                            );
-                          },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // 1. Background Image Card
+                            Image.asset(
+                              weapon.backgroundImage,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: rarityColor.withOpacity(0.2),
+                                );
+                              },
+                            ),
+                            // 2. Weapon Image Path (Ukuran ~180x180 center fit contain)
+                            Image.asset(
+                              weapon.imagePath,
+                              width: 180,
+                              height: 180,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Text(
+                                    'Image Not Found',
+                                    style: TextStyle(
+                                      color: Colors.amber,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       )
                     : const Center(
@@ -208,7 +227,7 @@ class _WeaponScreenState extends State<WeaponScreen> {
                   Text(
                     weapon.name,
                     style: GoogleFonts.pressStart2p(
-                      fontSize: 8, // Sedikit diperbesar agar lebih terbaca
+                      fontSize: 8,
                       color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
@@ -276,25 +295,6 @@ class _WeaponScreenState extends State<WeaponScreen> {
         ),
       ),
     );
-  }
-
-  IconData _getWeaponIcon(String weaponId) {
-    switch (weaponId) {
-      case 'rencong_sumatra':
-        return Icons.shield;
-      case 'keris_jawa':
-        return Icons.auto_awesome;
-      case 'mandau_kalimantan':
-        return Icons.sports_martial_arts;
-      case 'badik_sulawesi':
-        return Icons.cut;
-      case 'belati_papua':
-        return Icons.shield;
-      case 'nusantara_blade':
-        return Icons.star;
-      default:
-        return Icons.shield;
-    }
   }
 
   Future<void> _onEquip(String weaponId) async {

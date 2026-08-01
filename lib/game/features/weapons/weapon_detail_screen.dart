@@ -45,18 +45,36 @@ class _WeaponDetailScreenState extends State<WeaponDetailScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            // ✅ GAMBAR SENJATA DETAIL (220 x 220, Fit Contain, Error Handling)
             Container(
-              width: 200,
-              height: 200,
+              width: 220,
+              height: 220,
               decoration: BoxDecoration(
                 color: rarityColor.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: rarityColor, width: 3),
               ),
-              child: Icon(
-                _getWeaponIcon(widget.weapon.id),
-                size: 100,
-                color: rarityColor,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Image.asset(
+                  widget.weapon.imagePath,
+                  width: 220,
+                  height: 220,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Text(
+                        'Image Not Found',
+                        style: TextStyle(
+                          color: Colors.amber,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -116,7 +134,7 @@ class _WeaponDetailScreenState extends State<WeaponDetailScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ SEJARAH LENGKAP
+            // Sejarah Lengkap
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -255,24 +273,5 @@ class _WeaponDetailScreenState extends State<WeaponDetailScreen> {
         ),
       ],
     );
-  }
-
-  IconData _getWeaponIcon(String weaponId) {
-    switch (weaponId) {
-      case 'rencong_sumatra':
-        return Icons.shield;
-      case 'keris_jawa':
-        return Icons.auto_awesome;
-      case 'mandau_kalimantan':
-        return Icons.sports_martial_arts;
-      case 'badik_sulawesi':
-        return Icons.cut;
-      case 'belati_papua':
-        return Icons.shield;
-      case 'nusantara_blade':
-        return Icons.star;
-      default:
-        return Icons.shield;
-    }
   }
 }

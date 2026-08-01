@@ -1,5 +1,4 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'weapon_model.dart';
 import 'weapon_data.dart';
 
 class WeaponManager {

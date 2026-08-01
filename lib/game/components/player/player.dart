@@ -29,7 +29,7 @@ class Player extends SpriteAnimationComponent
   // ✅ GOD MODE SWITCH
   // Set true = Player TIDAK BISA MATI (obstacle & jurang aman)
   // Set false = Player BISA MATI (mode normal)
-  static const bool godMode = false;
+  static const bool godMode = true;
 
   late Vector2 _checkpointPosition;
 

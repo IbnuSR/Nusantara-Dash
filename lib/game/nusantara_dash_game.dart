@@ -176,88 +176,180 @@ class NusantaraDashGame extends FlameGame
           await showDialog(
             context: buildContext!,
             barrierDismissible: false,
-            builder: (context) => Dialog(
-              backgroundColor: Colors.transparent,
-              child: Container(
-                width: 500,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A237E),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFFFC107), width: 6),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      isCombined
-                          ? '🏆 SENJATA LEGENDARIS DITEMUKAN!'
-                          : '🗡️ SENJATA SUCI DITEMUKAN!',
-                      style: const TextStyle(
-                          color: Color(0xFFFFC107),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace'),
-                      textAlign: TextAlign.center,
+            builder: (context) {
+              final screenSize = MediaQuery.of(context).size;
+              final double dialogWidth =
+                  (screenSize.width * 0.8).clamp(280.0, 520.0);
+
+              return SafeArea(
+                child: Dialog(
+                  backgroundColor: Colors.transparent,
+                  insetPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Container(
+                    width: dialogWidth,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A237E),
+                      borderRadius: BorderRadius.circular(24),
+                      border:
+                          Border.all(color: const Color(0xFFFFC107), width: 5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.6),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: const Color(0xFFFFC107), width: 2),
-                          borderRadius: BorderRadius.circular(20)),
-                      child: Text('📍 $origin',
-                          style: const TextStyle(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 1. Judul Header
+                          Text(
+                            isCombined
+                                ? '🏆 SENJATA LEGENDARIS DITEMUKAN!'
+                                : '🗡️ SENJATA SUCI DITEMUKAN!',
+                            style: const TextStyle(
                               color: Color(0xFFFFC107),
-                              fontSize: 12,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              fontFamily: 'monospace')),
-                    ),
-                    const SizedBox(height: 24),
-                    Icon(isCombined ? Icons.star : Icons.shield,
-                        size: 80, color: const Color(0xFFFFC107)),
-                    const SizedBox(height: 16),
-                    Text(weaponName,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace'),
-                        textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    Text(description,
-                        style: const TextStyle(
-                            color: Color(0xFFE0E0E0),
-                            fontSize: 14,
-                            fontFamily: 'monospace',
-                            height: 1.4),
-                        textAlign: TextAlign.center),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFFC107),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(vertical: 16)),
-                        child: const Text('🏛️ LANJUTKAN',
-                            style: TextStyle(
-                                color: Colors.black,
+                              fontFamily: 'monospace',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+
+                          // 2. Badge Asal (Origin)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color(0xFFFFC107), width: 1.5),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              '📍 $origin',
+                              style: const TextStyle(
+                                color: Color(0xFFFFC107),
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                fontFamily: 'monospace')),
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // 3. Gambar Weapon (Maks 120 px, fit contain, glow emas)
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      const Color(0xFFFFC107).withOpacity(0.5),
+                                  blurRadius: 16,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
+                            child: weapon != null
+                                ? Image.asset(
+                                    weapon.imagePath,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Center(
+                                        child: Text(
+                                          'Image Not Found',
+                                          style: TextStyle(
+                                            color: Color(0xFFFFC107),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Icon(
+                                    isCombined ? Icons.star : Icons.shield,
+                                    size: 60,
+                                    color: const Color(0xFFFFC107),
+                                  ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // 4. Nama Senjata
+                          Text(
+                            weaponName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'monospace',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 6),
+
+                          // 5. Deskripsi (Maks 3 Baris, Ellipsis)
+                          Text(
+                            description,
+                            style: const TextStyle(
+                              color: Color(0xFFE0E0E0),
+                              fontSize: 11.5,
+                              fontFamily: 'monospace',
+                              height: 1.3,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // 6. Tombol LANJUTKAN (Responif & Selalu Terlihat & Bisa Diklik)
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFFC107),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                elevation: 4,
+                              ),
+                              child: const Text(
+                                '🏛️ LANJUTKAN',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           );
           print("🔵 3. Dialog ditutup, game dilanjutkan");
           resumeEngine();

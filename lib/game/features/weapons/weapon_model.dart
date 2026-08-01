@@ -1,12 +1,10 @@
-import 'package:flutter/material.dart';
-
 class Weapon {
   final String id;
   final String name;
   final String description;
   final String history;
-  final String iconPath; // ✅ Gambar polosan (untuk di dalam game)
-  final String menuIconPath; // ✅ Gambar dengan background (untuk di menu fitur)
+  final String imagePath; // ✅ Gambar polosan (untuk di dalam game & popup/detail)
+  final String backgroundImage; // ✅ Gambar dengan background (untuk di menu koleksi)
   final int damage;
   final int price;
   final bool isLocked;
@@ -15,13 +13,17 @@ class Weapon {
   final bool isSacred;
   final bool isCombined;
 
+  // Getters untuk backward compatibility
+  String get iconPath => imagePath;
+  String get menuIconPath => backgroundImage;
+
   Weapon({
     required this.id,
     required this.name,
     required this.description,
     required this.history,
-    required this.iconPath,
-    required this.menuIconPath, // ✅ Wajib diisi
+    required this.imagePath,
+    required this.backgroundImage,
     required this.damage,
     required this.price,
     this.isLocked = true,
@@ -37,8 +39,8 @@ class Weapon {
       name: name,
       description: description,
       history: history,
-      iconPath: iconPath,
-      menuIconPath: menuIconPath,
+      imagePath: imagePath,
+      backgroundImage: backgroundImage,
       damage: damage,
       price: price,
       isLocked: isLocked ?? this.isLocked,

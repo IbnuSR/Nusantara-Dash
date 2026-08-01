@@ -114,7 +114,7 @@ class _BattleScreenState extends State<BattleScreen>
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
 
-    // Step 0 -> Step 1: Layar terbuka, Satria di posisi paling kiri
+    // Step 1: Layar terbuka, Satria mulai bersiap di kiri
     setState(() {
       _blackScreenOpacity = 0.0;
       _cinematicStep = 1;
@@ -123,21 +123,23 @@ class _BattleScreenState extends State<BattleScreen>
 
     _walkBobbingController.repeat(reverse: true);
 
+    // Beri waktu sebentar sebelum Satria mulai berjalan ke kanan
     await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
 
-    // Step 1 -> Step 2: Satria berjalan maju persis sampai posisi Rencong
+    // 🔥 Step 2: Memicu Satria berjalan mulus dari kiri ke posisi Rencong
     setState(() {
       _cinematicStep = 2;
     });
 
+    // Durasi jalan disamakan dengan durasi AnimatedPositioned (2500ms)
     await Future.delayed(const Duration(milliseconds: 2500));
     if (!mounted) return;
 
     _walkBobbingController.stop();
     _walkBobbingController.reset();
 
-    // Step 3: Satria tepat di atas pusaka -> Mengklaim Rencong!
+    // Step 3: Satria tiba & mengambil Rencong (Rencong langsung hilang, Satria Idle memegang senjata)
     setState(() {
       _cinematicStep = 3;
       _cinematicText =
@@ -151,7 +153,7 @@ class _BattleScreenState extends State<BattleScreen>
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    // Step 4: Boss Muncul (Rencong di tanah menghilang karena sudah diambil)
+    // Step 4: Boss Muncul
     setState(() {
       _cinematicStep = 4;
       _cinematicText = "Waspada! Penjaga wilayah telah muncul!";
@@ -577,10 +579,10 @@ class _BattleScreenState extends State<BattleScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     final attackDistance = screenWidth - 300;
 
-    // 🔥 Disesuaikan agar Satria berjalan persis sampai di depan/posisi Rencong (0.48 - offset)
+    // 🔥 POSISI BERJALAN SATRIA: Tepat sampai menabrak titik drop Rencong ((screenWidth * 0.48) - 40)
     double satriaCinematicLeft = 50;
     if (_cinematicStep >= 2) {
-      satriaCinematicLeft = (screenWidth * 0.48) - 30; // Pas mengklaim Rencong!
+      satriaCinematicLeft = (screenWidth * 0.48) - 40;
     }
 
     bool showBossInCinematic = (_cinematicStep >= 4 || !_isCinematicPlaying);
@@ -624,8 +626,9 @@ class _BattleScreenState extends State<BattleScreen>
             ),
           ),
 
-          // 🔥 2.5 DROP SENJATA DI TANAH (Menghilang saat Boss Muncul di Step 4)
-          if (_isCinematicPlaying && _cinematicStep < 4)
+          // 🔥 2.5 DROP RENCONG DI TANAH: Muncul sampai Step 2 (saat Satria berjalan menabraknya)
+          if (_isCinematicPlaying &&
+              (_cinematicStep == 1 || _cinematicStep == 2))
             Positioned(
               bottom: 80,
               left: screenWidth * 0.48,
@@ -639,7 +642,7 @@ class _BattleScreenState extends State<BattleScreen>
               ),
             ),
 
-          // 🔥 3. KARAKTER SATRIA
+          // 🔥 3. KARAKTER SATRIA (DIPERHALUS ANIMASI BERJALANNYA)
           AnimatedBuilder(
             animation: Listenable.merge(
                 [_walkBobbingController, _satriaAttackController]),
@@ -649,10 +652,12 @@ class _BattleScreenState extends State<BattleScreen>
                   : 0.0;
 
               return AnimatedPositioned(
+                // 🔥 Durasi diperpanjang menjadi 2500ms (2.5 detik) agar gerakan jalan dari kiri ke kanan sangat smooth sampai menabrak Rencong
                 duration: (_isCinematicPlaying && _cinematicStep == 2)
-                    ? const Duration(milliseconds: 2400)
+                    ? const Duration(milliseconds: 2500)
                     : const Duration(milliseconds: 0),
-                curve: Curves.easeInOut,
+                curve: Curves
+                    .linear, // Gerakan linier konstan agar terlihat seperti berjalan kaki
                 bottom: 60 + walkBounce,
                 left: _isCinematicPlaying
                     ? satriaCinematicLeft
